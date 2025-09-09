@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="AI-Enhanced Real Estate Wholesaling Platform - Connect motivated sellers with qualified investors using intelligent lead qualification and automated conversations."
+    />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>DealFlow - AI Real Estate Wholesaling Platform</title>
+    
+    <!-- Initialize WebSocket proxy for Codespaces before any other scripts -->
+    <script>
+      // This must run before any modules load, so it's a regular script, not a module
+      (function() {
+        const isCodespaces = window.location.hostname.includes('.app.github.dev');
+        
+        if (isCodespaces) {
+          console.log('🔧 Codespaces WebSocket proxy initialization...');
+          
+          const originalWebSocket = window.WebSocket;
+          
+          window.WebSocket = function(url, protocols) {
+            console.log('🔌 WebSocket attempt:', url);
+            
+            // Check for any localhost WebSocket connections that need proxying
+            if (url.includes('localhost:5175') || 
+                url.includes('localhost:5174') || 
+                url.includes('ws://localhost') || 
+                url.includes('wss://localhost') ||
+                (url.includes('localhost') && url.includes('token='))) {
+              
+              // Extract token from URL
+              const tokenMatch = url.match(/[?&]token=([^&]+)/);
+              const token = tokenMatch ? tokenMatch[1] : '';
+              
+              // Get the backend host by replacing the port
+              const currentHost = window.location.hostname;
+              const backendHost = currentHost.replace('-5173.', '-3000.');
+              
+              // Create the proxied URL
+              const proxyUrl = `wss://${backendHost}/frontend-ws/?token=${token}`;
+              
+              console.log('🔀 Redirecting WebSocket:', url, '→', proxyUrl);
+              return new originalWebSocket(proxyUrl, protocols);
+            }
+            
+            console.log('✅ Using original WebSocket connection');
+            return new originalWebSocket(url, protocols);
+          };
+          
+          // Preserve the original WebSocket properties and prototype
+          Object.setPrototypeOf(window.WebSocket, originalWebSocket);
+          Object.defineProperty(window.WebSocket, 'prototype', {
+            value: originalWebSocket.prototype,
+            writable: false
+          });
+          
+          // Copy static properties
+          for (const prop in originalWebSocket) {
+            if (originalWebSocket.hasOwnProperty(prop)) {
+              try {
+                window.WebSocket[prop] = originalWebSocket[prop];
+              } catch (e) {
+                // Some properties might not be writable
+              }
+            }
+          }
+          
+          console.log('✅ WebSocket proxy ready for Codespaces');
+        } else {
+          console.log('🏠 Local development - no WebSocket proxy needed');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>
