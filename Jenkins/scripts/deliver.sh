@@ -1,11 +1,18 @@
 #!/usr/bin/env sh
 
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Build the React app
 npm run build
 
+# Start the app in the background
 npm start &
 sleep 1
 echo $! > .pidfile
 
+# Define paths
+SOURCE_DIST="./dist"  # or "./build" if you're using React's default
 TARGET_DIR="/var/www/html"
 TARGET_DIST="$TARGET_DIR/dist"
 
@@ -22,7 +29,7 @@ sudo cp -r "$SOURCE_DIST" "$TARGET_DIR"
 # Set permissions
 echo "🔧 Setting permissions..."
 sudo chown -R www-data:www-data "$TARGET_DIST"
-sudo chmod -R 777 "$TARGET_DIST"
+sudo chmod -R 755 "$TARGET_DIST"
 
 echo "✅ Deployment complete."
 echo 'Now...'
