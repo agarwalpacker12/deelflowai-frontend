@@ -222,7 +222,7 @@
 import axios from "axios";
 
 // Base URLs - matching your Django server
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "http://dev.deelflowai.com:8000";
 const API_BASE_URL = `${BASE_URL}/api`;
 
 // Create a single API instance for all requests
