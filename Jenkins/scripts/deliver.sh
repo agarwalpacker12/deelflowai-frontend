@@ -11,6 +11,8 @@ npm start &
 sleep 1
 echo $! > .pidfile
 
+echo "Running as user: $(whoami)"
+
 # Define paths
 SOURCE_DIST="./dist"  # or "./build" if you're using React's default
 TARGET_DIR="/var/www/html"
