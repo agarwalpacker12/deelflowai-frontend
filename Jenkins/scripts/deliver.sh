@@ -22,7 +22,7 @@ sudo cp -r "$SOURCE_DIST" "$TARGET_DIR"
 # Set permissions
 echo "🔧 Setting permissions..."
 sudo chown -R www-data:www-data "$TARGET_DIST"
-sudo chmod -R 755 "$TARGET_DIST"
+sudo chmod -R 777 "$TARGET_DIST"
 
 echo "✅ Deployment complete."
 echo 'Now...'
