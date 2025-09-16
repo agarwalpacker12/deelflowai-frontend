@@ -48,17 +48,6 @@ const LeadForm = () => {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      // Prepare data for API
-      // const apiData = {
-      //   ...data,
-      //   estimated_value: data.estimated_value
-      //     ? parseFloat(data.estimated_value)
-      //     : null,
-      //   mortgage_balance: data.mortgage_balance
-      //     ? parseFloat(data.mortgage_balance)
-      //     : null,
-      //   asking_price: data.asking_price ? parseFloat(data.asking_price) : null,
-      // };
       const res = await leadsAPI.createLead(data);
       return res;
     },

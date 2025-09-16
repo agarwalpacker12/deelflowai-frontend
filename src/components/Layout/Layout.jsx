@@ -18,7 +18,6 @@ const marketplaceNavLinks = [
 const marketingHubNavLinks = [
   { to: "/app/campaigns", label: "Campaigns" },
   { to: "/app/duplicate", label: "Duplicate Management" },
-
   { to: "/app/leads", label: "Leads" },
   { to: "/app/clients", label: "Clients" },
   { to: "/app/marketing/advanced", label: "Advanced" },
@@ -63,17 +62,17 @@ const Layout = () => {
 
   // Generate settings links based on role
   const getSettingsNavLinks = () => {
-    if (userRole === "super_admin") {
-      return [...superAdminSettingsNavLinks]; // Only show AI Settings for super_admin
+    if (userRole === "superadmin") {
+      return [...baseSettingsNavLinks, ...superAdminSettingsNavLinks]; // Show ALL settings for superadmin
     } else if (userRole === "admin") {
-      return [...superAdminSettingsNavLinks, ...baseSettingsNavLinks];
+      return [...baseSettingsNavLinks]; // Show base settings for admin
     }
     return []; // Staff gets no settings
   };
 
   // Generate SaaS Management links based on role
   const getSaaSManagementNavLinks = () => {
-    if (userRole === "super_admin") {
+    if (userRole === "superadmin") {
       return saasManagementNavLinks; // Show all SaaS management links
     } else if (userRole === "admin") {
       // Filter out tenant management for admin users
@@ -90,17 +89,18 @@ const Layout = () => {
   // Check if settings section should be shown
   const shouldShowSettings = userRole !== "staff";
 
-  // Check if SaaS Management should be shown (ONLY for super_admin)
-  const shouldShowSaaSManagement = userRole === "super_admin";
+  // Check if SaaS Management should be shown (for superadmin and admin)
+  const shouldShowSaaSManagement =
+    userRole === "superadmin" || userRole === "admin";
 
-  // Check if Marketplace should be shown (hide for super_admin)
-  const shouldShowMarketplace = userRole !== "super_admin";
+  // Check if Marketplace should be shown (show for all roles including superadmin)
+  const shouldShowMarketplace = userRole !== "staff"; // Changed: now shows for superadmin too
 
-  // Check if Marketing Hub should be shown (hide for super_admin)
-  const shouldShowMarketingHub = userRole !== "super_admin";
+  // Check if Marketing Hub should be shown (show for all roles including superadmin)
+  const shouldShowMarketingHub = userRole !== "staff"; // Changed: now shows for superadmin too
 
   // Check if AI Features should be shown (show for all roles)
-  const shouldShowAIFeatures = true; // You can modify this based on your role requirements
+  const shouldShowAIFeatures = true;
 
   // Check if any of the "Settings" submenu items are currently active
   const isSettingsActive =
@@ -207,7 +207,7 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Marketing Hub Dropdown - Hide for super_admin */}
+            {/* Marketing Hub Dropdown - Now shows for superadmin */}
             {shouldShowMarketingHub && (
               <div className="flex flex-col">
                 <button
@@ -257,7 +257,7 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Marketplace Dropdown - Hide for super_admin */}
+            {/* Marketplace Dropdown - Now shows for superadmin */}
             {shouldShowMarketplace && (
               <div className="flex flex-col">
                 <button
@@ -351,7 +351,7 @@ const Layout = () => {
                       </Link>
                     ))}
 
-                    {/* SaaS Management Dropdown - ONLY for super_admin */}
+                    {/* SaaS Management Dropdown - For superadmin and admin */}
                     {shouldShowSaaSManagement && (
                       <div className="flex flex-col">
                         <button

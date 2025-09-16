@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import {
   BarChart3,
   Users,
@@ -19,7 +18,6 @@ import {
   AlertTriangle,
   Home,
   FileText,
-  Loader2,
 } from "lucide-react";
 import {
   XAxis,
@@ -31,262 +29,17 @@ import {
   AreaChart,
 } from "recharts";
 import MainContentWrapper from "../../components/Layout/MainContentWrapper";
-import { DashboardAPI } from "../../services/api";
 
 const Dashboard = () => {
-  // State for dashboard data
-  const [dashboardData, setDashboardData] = useState({
-    totalRevenue: { value: "$0", change: "0%" },
-    activeUsers: { value: "0", change: "0%" },
-    propertiesListed: { value: "0", change: "0%" }, // You may need to add this API endpoint
-    aiConversations: { value: "0", change: "0%" },
-    totalDeals: { value: "0", change: "0%" },
-    monthlyProfit: { value: "$0", change: "0%" },
-    voiceCalls: { value: "0", change: "0%" },
-    complianceStatus: { percentage: 0, status: "All audits compliant" },
-  });
-
-  const [chartData, setChartData] = useState([]);
-  const [liveActivity, setLiveActivity] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Fetch all dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-
-        // Fetch all data in parallel
-        const [
-          totalRevenueRes,
-          activeUsersRes,
-          aiConversationsRes,
-          totalDealsRes,
-          monthlyProfitRes,
-          voiceCallsRes,
-          complianceStatusRes,
-          liveActivityRes,
-          chartDataRes,
-        ] = await Promise.allSettled([
-          DashboardAPI.getTotalRevenue(),
-          DashboardAPI.getActiveUsers(),
-          DashboardAPI.getAiConversations(),
-          DashboardAPI.getTotalDeals(),
-          DashboardAPI.getMonthlyProfit(),
-          DashboardAPI.getVoiceCallsCount(),
-          DashboardAPI.getComplianceStatus(),
-          DashboardAPI.getLiveActivityFeed(),
-          DashboardAPI.getChartData(),
-        ]);
-
-        // Process the responses
-        const newDashboardData = { ...dashboardData };
-
-        if (totalRevenueRes.status === "fulfilled") {
-          newDashboardData.totalRevenue = {
-            value: formatCurrency(
-              totalRevenueRes.value.data.total_revenue || 0
-            ),
-            change: `${totalRevenueRes.value.data.change_percentage || 0}%`,
-          };
-        }
-
-        if (activeUsersRes.status === "fulfilled") {
-          newDashboardData.activeUsers = {
-            value: formatNumber(activeUsersRes.value.data.active_users || 0),
-            change: `${activeUsersRes.value.data.change_percentage || 0}%`,
-          };
-        }
-
-        if (aiConversationsRes.status === "fulfilled") {
-          newDashboardData.aiConversations = {
-            value: formatNumber(
-              aiConversationsRes.value.data.total_conversations || 0
-            ),
-            change: `${aiConversationsRes.value.data.change_percentage || 0}%`,
-          };
-        }
-
-        if (totalDealsRes.status === "fulfilled") {
-          newDashboardData.totalDeals = {
-            value: totalDealsRes.value.data.total_deals?.toString() || "0",
-            change: `${
-              totalDealsRes.value.data.change_percentage || 0
-            }% from last month`,
-          };
-        }
-
-        if (monthlyProfitRes.status === "fulfilled") {
-          newDashboardData.monthlyProfit = {
-            value: formatCurrency(
-              monthlyProfitRes.value.data.monthly_profit || 0
-            ),
-            change: `${
-              monthlyProfitRes.value.data.change_percentage || 0
-            }% from last month`,
-          };
-        }
-
-        if (voiceCallsRes.status === "fulfilled") {
-          newDashboardData.voiceCalls = {
-            value:
-              voiceCallsRes.value.data.voice_calls_count?.toString() || "0",
-            change: `${voiceCallsRes.value.data.change_percentage || 0}% today`,
-          };
-        }
-
-        if (complianceStatusRes.status === "fulfilled") {
-          newDashboardData.complianceStatus = {
-            percentage:
-              complianceStatusRes.value.data.compliance_percentage || 0,
-            status:
-              complianceStatusRes.value.data.status || "All audits compliant",
-          };
-        }
-
-        setDashboardData(newDashboardData);
-
-        // Set chart data
-        if (chartDataRes.status === "fulfilled") {
-          setChartData(chartDataRes.value.data.chart_data || []);
-        }
-
-        // Set live activity
-        if (liveActivityRes.status === "fulfilled") {
-          setLiveActivity(liveActivityRes.value.data.activities || []);
-        }
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-
-    // Set up polling for live data every 30 seconds
-    const interval = setInterval(() => {
-      DashboardAPI.getLiveActivityFeed()
-        .then((res) => setLiveActivity(res.data.activities || []))
-        .catch((err) => console.error("Error fetching live activity:", err));
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Helper functions
-  const formatCurrency = (amount) => {
-    if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(1)}M`;
-    }
-    if (amount >= 1000) {
-      return `${(amount / 1000).toFixed(1)}K`;
-    }
-    return `${amount}`;
-  };
-
-  const formatNumber = (num) => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
-    }
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
-    }
-    return num.toString();
-  };
-
-  const isPositiveChange = (change) => {
-    return parseFloat(change.replace("%", "").replace(/[^-\d.]/g, "")) > 0;
-  };
-
-  // Helper functions for live activity
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case "phone_call":
-      case "voice_ai":
-        return <Phone className="w-4 h-4" />;
-      case "deal_closed":
-      case "payment":
-        return <DollarSign className="w-4 h-4" />;
-      case "property":
-        return <Home className="w-4 h-4" />;
-      case "user_activity":
-        return <Users className="w-4 h-4" />;
-      default:
-        return <Eye className="w-4 h-4" />;
-    }
-  };
-
-  const getActivityColor = (type) => {
-    switch (type) {
-      case "phone_call":
-      case "voice_ai":
-        return { iconColor: "text-orange-400", iconBg: "bg-orange-500/20" };
-      case "deal_closed":
-      case "payment":
-        return { iconColor: "text-green-400", iconBg: "bg-green-500/20" };
-      case "property":
-        return { iconColor: "text-blue-400", iconBg: "bg-blue-500/20" };
-      case "user_activity":
-        return { iconColor: "text-purple-400", iconBg: "bg-purple-500/20" };
-      default:
-        return { iconColor: "text-gray-400", iconBg: "bg-gray-500/20" };
-    }
-  };
-
-  const formatTimeAgo = (timestamp) => {
-    if (!timestamp) return "Just now";
-
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diffInMinutes = Math.floor((now - time) / (1000 * 60));
-
-    if (diffInMinutes < 1) return "Just now";
-    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} hours ago`;
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} days ago`;
-  };
-
-  if (loading) {
-    return (
-      <MainContentWrapper>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="flex items-center gap-3 text-white">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <span className="text-lg">Loading dashboard data...</span>
-          </div>
-        </div>
-      </MainContentWrapper>
-    );
-  }
-
-  if (error) {
-    return (
-      <MainContentWrapper>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-6 text-center">
-            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">
-              Error Loading Dashboard
-            </h2>
-            <p className="text-red-400">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </MainContentWrapper>
-    );
-  }
+  // Chart data for Revenue & User Growth
+  const chartData = [
+    { month: "Jan", revenue: 180000, users: 12000 },
+    { month: "Feb", revenue: 220000, users: 15000 },
+    { month: "Mar", revenue: 280000, users: 18000 },
+    { month: "Apr", revenue: 320000, users: 22000 },
+    { month: "May", revenue: 380000, users: 28000 },
+    { month: "Jun", revenue: 480000, users: 35000 },
+  ];
 
   return (
     <MainContentWrapper>
@@ -311,9 +64,9 @@ const Dashboard = () => {
           <EnhancedStatCard
             icon={<DollarSign className="w-6 h-6" />}
             title="Total Revenue"
-            value={dashboardData.totalRevenue.value}
-            change={dashboardData.totalRevenue.change}
-            positive={isPositiveChange(dashboardData.totalRevenue.change)}
+            value="$2.4M"
+            change="+12%"
+            positive={true}
             trend="trending_up"
             subtitle="vs last month"
             color="blue"
@@ -321,9 +74,9 @@ const Dashboard = () => {
           <EnhancedStatCard
             icon={<Users className="w-6 h-6" />}
             title="Active Users"
-            value={dashboardData.activeUsers.value}
-            change={dashboardData.activeUsers.change}
-            positive={isPositiveChange(dashboardData.activeUsers.change)}
+            value="14,238"
+            change="+8%"
+            positive={true}
             trend="trending_up"
             subtitle="in pipeline"
             color="green"
@@ -331,9 +84,9 @@ const Dashboard = () => {
           <EnhancedStatCard
             icon={<ShoppingBag className="w-6 h-6" />}
             title="Properties Listed"
-            value={dashboardData.propertiesListed.value}
-            change={dashboardData.propertiesListed.change}
-            positive={isPositiveChange(dashboardData.propertiesListed.change)}
+            value="3,847"
+            change="+23%"
+            positive={true}
             trend="trending_up"
             subtitle="this month"
             color="emerald"
@@ -341,9 +94,9 @@ const Dashboard = () => {
           <EnhancedStatCard
             icon={<MessageCircle className="w-6 h-6" />}
             title="AI Conversations"
-            value={dashboardData.aiConversations.value}
-            change={dashboardData.aiConversations.change}
-            positive={isPositiveChange(dashboardData.aiConversations.change)}
+            value="48.2K"
+            change="+5%"
+            positive={true}
             trend="trending_up"
             subtitle="avg. rate"
             color="purple"
@@ -516,17 +269,17 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <BusinessMetricCard
             title="Total Deals"
-            value={dashboardData.totalDeals.value}
-            change={dashboardData.totalDeals.change}
-            positive={isPositiveChange(dashboardData.totalDeals.change)}
+            value="47"
+            change="12% from last month"
+            positive={true}
             icon={<Target className="w-5 h-5" />}
             color="blue"
           />
           <BusinessMetricCard
             title="Monthly Profit"
-            value={dashboardData.monthlyProfit.value}
-            change={dashboardData.monthlyProfit.change}
-            positive={isPositiveChange(dashboardData.monthlyProfit.change)}
+            value="$127,500"
+            change="28% from last month"
+            positive={true}
             icon={<DollarSign className="w-5 h-5" />}
             color="green"
           />
@@ -540,12 +293,12 @@ const Dashboard = () => {
           />
           <BusinessMetricCard
             title="Voice Calls"
-            value={dashboardData.voiceCalls.value}
-            change={dashboardData.voiceCalls.change}
-            positive={isPositiveChange(dashboardData.voiceCalls.change)}
+            value="89"
+            change="% today"
+            positive={false}
             icon={<Phone className="w-5 h-5" />}
             color="orange"
-            showTodayBadge={dashboardData.voiceCalls.change.includes("today")}
+            showTodayBadge={true}
           />
         </div>
 
@@ -558,21 +311,17 @@ const Dashboard = () => {
             </h2>
             <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
               <CheckCircle className="w-4 h-4 text-green-400" />
-              <span className="text-sm text-green-400 font-medium">
-                {dashboardData.complianceStatus.percentage}%
-              </span>
+              <span className="text-sm text-green-400 font-medium">96%</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 text-sm">
-              {dashboardData.complianceStatus.status}
-            </span>
+            <span className="text-green-400 text-sm">All audits compliant</span>
           </div>
           <div className="mt-3 w-full bg-white/10 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${dashboardData.complianceStatus.percentage}%` }}
+              className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full"
+              style={{ width: "96%" }}
             ></div>
           </div>
         </div>
@@ -734,31 +483,33 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-4">
-                {liveActivity.length > 0 ? (
-                  liveActivity
-                    .slice(0, 3)
-                    .map((activity, index) => (
-                      <ActivityItem
-                        key={index}
-                        icon={getActivityIcon(activity.type)}
-                        iconColor={getActivityColor(activity.type).iconColor}
-                        iconBg={getActivityColor(activity.type).iconBg}
-                        title={
-                          activity.user_name || activity.title || "Unknown User"
-                        }
-                        action={activity.action || activity.description}
-                        time={formatTimeAgo(
-                          activity.created_at || activity.time
-                        )}
-                        location={activity.location || ""}
-                      />
-                    ))
-                ) : (
-                  <div className="text-center py-8">
-                    <Eye className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-400">No recent activity</p>
-                  </div>
-                )}
+                <ActivityItem
+                  icon={<Phone className="w-4 h-4" />}
+                  iconColor="text-orange-400"
+                  iconBg="bg-orange-500/20"
+                  title="Rachel W."
+                  action="voice AI scheduled appointment"
+                  time="Just now"
+                  location="Atlanta, GA"
+                />
+                <ActivityItem
+                  icon={<DollarSign className="w-4 h-4" />}
+                  iconColor="text-green-400"
+                  iconBg="bg-green-500/20"
+                  title="David M."
+                  action="completed double close in 18 hours"
+                  time="Just now"
+                  location="Miami, FL"
+                />
+                <ActivityItem
+                  icon={<DollarSign className="w-4 h-4" />}
+                  iconColor="text-green-400"
+                  iconBg="bg-green-500/20"
+                  title="David M."
+                  action="completed double close in 18 hours"
+                  time="Just now"
+                  location="Miami, FL"
+                />
               </div>
             </div>
           </div>
@@ -1104,3 +855,5 @@ const TenantActivityItem = ({ organization, action, amount, time, status }) => {
 };
 
 export default Dashboard;
+
+// static dashboard for deelflow

@@ -38,54 +38,6 @@ const RoleManagementPage = () => {
     }
   };
 
-  // Handle toggle change
-  // const handleToggleChange = async (roleId, permissionName, currentEnabled) => {
-  //   try {
-  //     const newEnabled = !currentEnabled;
-
-  //     // Prepare the data for the API call
-  //     const updateData = {
-  //       permissions: {
-  //         [permissionName]: newEnabled,
-  //       },
-  //     };
-
-  //     // Call the API to update the permission
-  //     await RbacAPI.UpdatePermission(roleId, updateData);
-
-  //     // Update local state to reflect the change
-  //     setPermissionState((prevState) => {
-  //       const newState = { ...prevState };
-  //       newState.permission_groups = newState.permission_groups.map(
-  //         (group) => ({
-  //           ...group,
-  //           permissions: group.permissions.map((permission) => {
-  //             if (permission.name === permissionName) {
-  //               return {
-  //                 ...permission,
-  //                 roles: permission.roles.map((role) => {
-  //                   if (role.name === roleName) {
-  //                     return { ...role, enabled: newEnabled };
-  //                   }
-  //                   return role;
-  //                 }),
-  //               };
-  //             }
-  //             return permission;
-  //           }),
-  //         })
-  //       );
-  //       return newState;
-  //     });
-
-  //     console.log(`Updated ${permissionName} for ${roleName} to ${newEnabled}`);
-  //   } catch (error) {
-  //     console.error("Error updating permission:", error);
-  //     // You might want to show a toast notification or error message here
-  //   }
-  // };
-
-  // Handle toggle change
   const handleToggleChange = async (roleId, permissionName, currentEnabled) => {
     try {
       const newEnabled = !currentEnabled;
@@ -200,9 +152,6 @@ const RoleManagementPage = () => {
             <h2 className="text-2xl font-bold text-white">
               Granular Permission Management
             </h2>
-            {/* <button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:transform hover:scale-105 shadow-lg">
-              Save Changes
-            </button> */}
           </div>
 
           <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">

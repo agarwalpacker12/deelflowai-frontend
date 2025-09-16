@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Copy,
   AlertTriangle,
@@ -15,9 +15,6 @@ import {
   Zap,
   Filter,
   Info,
-  Mail,
-  Phone,
-  Building,
   Clock,
   TrendingUp,
   AlertCircle,
@@ -25,9 +22,7 @@ import {
   ChevronDown,
   ToggleLeft,
   ToggleRight,
-  RefreshCw,
   Database,
-  Link,
 } from "lucide-react";
 
 const DuplicateManagementDashboard = () => {

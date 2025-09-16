@@ -36,13 +36,13 @@ import { DashboardAPI } from "../../services/api";
 const Dashboard = () => {
   // State for dashboard data
   const [dashboardData, setDashboardData] = useState({
-    totalRevenue: { value: "$0", change: "0%" },
-    activeUsers: { value: "0", change: "0%" },
-    propertiesListed: { value: "0", change: "0%" }, // You may need to add this API endpoint
-    aiConversations: { value: "0", change: "0%" },
-    totalDeals: { value: "0", change: "0%" },
-    monthlyProfit: { value: "$0", change: "0%" },
-    voiceCalls: { value: "0", change: "0%" },
+    totalRevenue: { value: "$0", percentage: "0%" },
+    activeUsers: { value: "0", percentage: "0%" },
+    propertiesListed: { value: "0", percentage: "0%" }, // You may need to add this API endpoint
+    aiConversations: { value: "0", percentage: "0%" },
+    totalDeals: { value: "0", percentage: "0%" },
+    monthlyProfit: { value: "$0", percentage: "0%" },
+    voiceCalls: { value: "0", percentage: "0%" },
     complianceStatus: {
       percentage: 0,
       status: "All audits compliant",
@@ -54,7 +54,7 @@ const Dashboard = () => {
       resolvedIssues: 0,
     },
     // Add AI accuracy to existing dashboard data
-    aiAccuracy: { value: "0%", change: "0% improvement" },
+    aiAccuracy: { value: "0%", percentage: "0% improvement" },
   });
 
   // Add new state for AI metrics
@@ -105,6 +105,7 @@ const Dashboard = () => {
         const [
           totalRevenueRes,
           activeUsersRes,
+          propertiesListedRes,
           aiConversationsRes,
           totalDealsRes,
           monthlyProfitRes,
@@ -131,6 +132,7 @@ const Dashboard = () => {
         ] = await Promise.allSettled([
           DashboardAPI.getTotalRevenue(),
           DashboardAPI.getActiveUsers(),
+          DashboardAPI.getPropertiesListed(),
           DashboardAPI.getAiConversations(),
           DashboardAPI.getTotalDeals(),
           DashboardAPI.getMonthlyProfit(),
@@ -166,30 +168,44 @@ const Dashboard = () => {
             value: formatCurrency(
               totalRevenueRes.value.data.total_revenue || 0
             ),
-            change: `${totalRevenueRes.value.data.change_percentage || 0}%`,
+            percentage: `${totalRevenueRes.value.data.change_percentage || 0}%`,
           };
         }
 
         if (activeUsersRes.status === "fulfilled") {
           newDashboardData.activeUsers = {
             value: formatNumber(activeUsersRes.value.data.active_users || 0),
-            change: `${activeUsersRes.value.data.change_percentage || 0}%`,
+            percentage: `${activeUsersRes.value.data.change_percentage || 0}%`,
+          };
+        }
+
+        // Process the response
+        if (propertiesListedRes.status === "fulfilled") {
+          newDashboardData.propertiesListed = {
+            value: formatNumber(
+              propertiesListedRes.value.data.properties_listed || 0
+            ),
+            percentage: `${
+              propertiesListedRes.value.data.change_percentage || 0
+            }%`,
           };
         }
 
         if (aiConversationsRes.status === "fulfilled") {
           newDashboardData.aiConversations = {
             value: formatNumber(
-              aiConversationsRes.value.data.total_conversations || 0
+              aiConversationsRes.value.data.ai_conversations || 0
             ),
-            change: `${aiConversationsRes.value.data.change_percentage || 0}%`,
+            percentage: `${
+              aiConversationsRes.value.data.change_percentage || 0
+            }%`,
           };
         }
 
         if (totalDealsRes.status === "fulfilled") {
           newDashboardData.totalDeals = {
             value: totalDealsRes.value.data.total_deals?.toString() || "0",
-            change: `${
+            percentage: `${
               totalDealsRes.value.data.change_percentage || 0
             }% from last month`,
           };
@@ -200,7 +216,7 @@ const Dashboard = () => {
             value: formatCurrency(
               monthlyProfitRes.value.data.monthly_profit || 0
             ),
-            change: `${
+            percentage: `${
               monthlyProfitRes.value.data.change_percentage || 0
             }% from last month`,
           };
@@ -210,16 +226,18 @@ const Dashboard = () => {
           newDashboardData.voiceCalls = {
             value:
               voiceCallsRes.value.data.voice_calls_count?.toString() || "0",
-            change: `${voiceCallsRes.value.data.change_percentage || 0}% today`,
+            percentage: `${
+              voiceCallsRes.value.data.change_percentage || 0
+            }% today`,
           };
         }
 
         if (complianceStatusRes.status === "fulfilled") {
           newDashboardData.complianceStatus = {
-            percentage:
-              complianceStatusRes.value.data.compliance_percentage || 0,
+            percentage: complianceStatusRes.value.data.compliance_percent || 0,
             status:
-              complianceStatusRes.value.data.status || "All audits compliant",
+              complianceStatusRes.value.data.system_health ||
+              "All audits compliant",
           };
         }
         // Process AI accuracy response
@@ -227,7 +245,7 @@ const Dashboard = () => {
           const data = aiAccuracyRes.value.data;
           newDashboardData.aiAccuracy = {
             value: `${data.overall_accuracy || 0}%`,
-            change: `${data.improvement_percentage || 0}% improvement`,
+            percentage: `${data.improvement_percentage || 0}% improvement`,
           };
         }
 
@@ -255,15 +273,15 @@ const Dashboard = () => {
         if (nlpProcessingRes.status === "fulfilled") {
           const data = nlpProcessingRes.value.data;
           newAiMetrics.nlpProcessing = {
-            value: formatNumber(data.total_processed || 0),
-            percentage: `${data.processing_success_rate || 0}%`,
+            value: formatNumber(data.accuracy_rate || 0),
+            percentage: `${data.total_processed || 0}%`,
           };
         }
 
         if (blockchainRes.status === "fulfilled") {
           const data = blockchainRes.value.data;
           newAiMetrics.blockchain = {
-            value: formatNumber(data.total_transactions || 0),
+            value: formatNumber(data.total_txns || 0),
             percentage: `${data.success_rate || 0}%`,
           };
         }
@@ -352,7 +370,7 @@ const Dashboard = () => {
             ...prev,
             aiAccuracy: {
               value: `${data.overall_accuracy || 0}%`,
-              change: `${data.improvement_percentage || 0}% improvement`,
+              percentage: `${data.improvement_percentage || 0}% improvement`,
             },
           }));
         })
@@ -427,8 +445,8 @@ const Dashboard = () => {
     return num.toString();
   };
 
-  const isPositiveChange = (change) => {
-    return parseFloat(change.replace("%", "").replace(/[^-\d.]/g, "")) > 0;
+  const isPositiveChange = (percentage) => {
+    return parseFloat(percentage.replace("%", "").replace(/[^-\d.]/g, "")) > 0;
   };
 
   // Helper functions for live activity
@@ -561,8 +579,8 @@ const Dashboard = () => {
             icon={<DollarSign className="w-6 h-6" />}
             title="Total Revenue"
             value={dashboardData.totalRevenue.value}
-            change={dashboardData.totalRevenue.change}
-            positive={isPositiveChange(dashboardData.totalRevenue.change)}
+            percentage={dashboardData.totalRevenue.percentage}
+            positive={isPositiveChange(dashboardData.totalRevenue.percentage)}
             trend="trending_up"
             subtitle="vs last month"
             color="blue"
@@ -571,8 +589,8 @@ const Dashboard = () => {
             icon={<Users className="w-6 h-6" />}
             title="Active Users"
             value={dashboardData.activeUsers.value}
-            change={dashboardData.activeUsers.change}
-            positive={isPositiveChange(dashboardData.activeUsers.change)}
+            percentage={dashboardData.activeUsers.percentage}
+            positive={isPositiveChange(dashboardData.activeUsers.percentage)}
             trend="trending_up"
             subtitle="in pipeline"
             color="green"
@@ -581,8 +599,10 @@ const Dashboard = () => {
             icon={<ShoppingBag className="w-6 h-6" />}
             title="Properties Listed"
             value={dashboardData.propertiesListed.value}
-            change={dashboardData.propertiesListed.change}
-            positive={isPositiveChange(dashboardData.propertiesListed.change)}
+            percentage={dashboardData.propertiesListed.percentage}
+            positive={isPositiveChange(
+              dashboardData.propertiesListed.percentage
+            )}
             trend="trending_up"
             subtitle="this month"
             color="emerald"
@@ -591,8 +611,10 @@ const Dashboard = () => {
             icon={<MessageCircle className="w-6 h-6" />}
             title="AI Conversations"
             value={dashboardData.aiConversations.value}
-            change={dashboardData.aiConversations.change}
-            positive={isPositiveChange(dashboardData.aiConversations.change)}
+            percentage={dashboardData.aiConversations.percentage}
+            positive={isPositiveChange(
+              dashboardData.aiConversations.percentage
+            )}
             trend="trending_up"
             subtitle="avg. rate"
             color="purple"
@@ -774,35 +796,39 @@ const Dashboard = () => {
             <BusinessMetricCard
               title="Total Deals"
               value={dashboardData.totalDeals.value}
-              change={dashboardData.totalDeals.change}
-              positive={isPositiveChange(dashboardData.totalDeals.change)}
+              percentage={dashboardData.totalDeals.percentage}
+              positive={isPositiveChange(dashboardData.totalDeals.percentage)}
               icon={<Target className="w-5 h-5" />}
               color="blue"
             />
             <BusinessMetricCard
               title="Monthly Profit"
               value={dashboardData.monthlyProfit.value}
-              change={dashboardData.monthlyProfit.change}
-              positive={isPositiveChange(dashboardData.monthlyProfit.change)}
+              percentage={dashboardData.monthlyProfit.percentage}
+              positive={isPositiveChange(
+                dashboardData.monthlyProfit.percentage
+              )}
               icon={<DollarSign className="w-5 h-5" />}
               color="green"
             />
             <BusinessMetricCard
               title="AI Accuracy"
               value={dashboardData.aiAccuracy.value}
-              change={dashboardData.aiAccuracy.change}
-              positive={isPositiveChange(dashboardData.aiAccuracy.change)}
+              percentage={dashboardData.aiAccuracy.percentage}
+              positive={isPositiveChange(dashboardData.aiAccuracy.percentage)}
               icon={<Brain className="w-5 h-5" />}
               color="purple"
             />
             <BusinessMetricCard
               title="Voice Calls"
               value={dashboardData.voiceCalls.value}
-              change={dashboardData.voiceCalls.change}
-              positive={isPositiveChange(dashboardData.voiceCalls.change)}
+              percentage={dashboardData.voiceCalls.percentage}
+              positive={isPositiveChange(dashboardData.voiceCalls.percentage)}
               icon={<Phone className="w-5 h-5" />}
               color="orange"
-              showTodayBadge={dashboardData.voiceCalls.change.includes("today")}
+              showTodayBadge={dashboardData.voiceCalls.percentage.includes(
+                "today"
+              )}
             />
           </div>
 
@@ -1039,7 +1065,7 @@ const EnhancedStatCard = ({
   icon,
   title,
   value,
-  change,
+  percentage,
   positive,
   color,
   subtitle,
@@ -1070,7 +1096,7 @@ const EnhancedStatCard = ({
               positive ? "text-green-400" : "text-red-400"
             }`}
           >
-            {change}
+            {percentage}
           </span>
         </div>
       </div>
@@ -1165,7 +1191,7 @@ const AlertItem = ({ icon, text, time, type }) => {
 const BusinessMetricCard = ({
   title,
   value,
-  change,
+  percentage,
   positive,
   icon,
   color,
@@ -1226,7 +1252,7 @@ const BusinessMetricCard = ({
         <span
           className={`text-xs ${positive ? "text-green-400" : "text-red-400"}`}
         >
-          {change}
+          {percentage}
         </span>
       </div>
     </div>
