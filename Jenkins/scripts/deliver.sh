@@ -18,6 +18,16 @@ SOURCE_DIST="./dist"  # or "./build" if you're using React's default
 TARGET_DIR="/var/www/html"
 TARGET_DIST="$TARGET_DIR/dist"
 
+# Remove old dist folder
+if [ -d "$TARGET_DIST" ]; then
+  echo "🧹 Removing old dist folder from $TARGET_DIR..."
+  sudo rm -rf "$TARGET_DIST"
+fi
+
+# Copy new dist folder
+echo "📦 Copying new dist folder to $TARGET_DIR..."
+sudo cp -r "$SOURCE_DIST" "$TARGET_DIR"
+
 # Add .htaccess file to dist folder
 HTACCESS_CONTENT='
 <IfModule mod_rewrite.c>
@@ -32,16 +42,6 @@ HTACCESS_CONTENT='
 
 echo "📝 Creating .htaccess file in $SOURCE_DIST..."
 echo "$HTACCESS_CONTENT" > "$SOURCE_DIST/.htaccess"
-
-# Remove old dist folder
-if [ -d "$TARGET_DIST" ]; then
-  echo "🧹 Removing old dist folder from $TARGET_DIR..."
-  sudo rm -rf "$TARGET_DIST"
-fi
-
-# Copy new dist folder
-echo "📦 Copying new dist folder to $TARGET_DIR..."
-sudo cp -r "$SOURCE_DIST" "$TARGET_DIR"
 
 # Set permissions
 echo "🔧 Setting permissions..."
