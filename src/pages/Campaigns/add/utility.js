@@ -4,16 +4,29 @@ export const DefaultValues = {
   name: "",
   campaign_type: "",
   channel: "email",
-  target_criteria: {
-    location: "",
-    property_type: "",
-    equity_min: 50000,
-  },
+  budget: 1000.0,
+  scheduled_at: "",
   subject_line: "",
   email_content: "",
-  scheduled_at: "",
-  budget: 1000.0,
   use_ai_personalization: true,
+  status: "",
+
+  // ✅ New fields
+  geographic_scope_type: "", // e.g. "zip", "city", etc.
+  // geographic_scope_values: [], // array of zip codes or locations
+  location: "", // top-level location
+  property_type: "", // e.g. "Residential"
+  minimum_equity: 0, // min equity for campaign
+  min_price: 0,
+  max_price: 0,
+  distress_indicators: [], // array of strings
+
+  // existing nested criteria
+  // target_criteria: {
+  location: "",
+  property_type: "",
+  equity_min: 50000,
+  // },
 };
 
 export const campaignSchema = yup.object().shape({
@@ -36,16 +49,55 @@ export const campaignSchema = yup.object().shape({
   use_ai_personalization: yup
     .boolean()
     .required("Use AI Personalization must be true or false"),
+  status: yup
+    .string()
+    .oneOf(["active", "inactive", "draft"], "Invalid status")
+    .required("Status is required"),
 
-  target_criteria: yup.object().shape({
-    location: yup.string().required("Location is required"),
-    property_type: yup.string().required("Property type is required"),
-    equity_min: yup
-      .number()
-      .required("Minimum equity is required")
-      .min(0, "Equity must be non-negative"),
-  }),
+  // ✅ New fields
+  geographic_scope_type: yup
+    .string()
+    .required("Geographic scope type is required"),
+  // geographic_scope_values: yup
+  //   .array()
+  //   .of(yup.string().required())
+  //   .min(1, "At least one geographic scope value is required"),
+
+  location: yup.string().required("Location is required"),
+  property_type: yup.string().required("Property type is required"),
+  minimum_equity: yup
+    .number()
+    .required("Minimum equity is required")
+    .min(0, "Minimum equity must be non-negative"),
+
+  min_price: yup
+    .number()
+    .required("Minimum price is required")
+    .min(0, "Minimum price must be non-negative"),
+  max_price: yup
+    .number()
+    .required("Maximum price is required")
+    .min(
+      yup.ref("min_price"),
+      "Max price must be greater than or equal to Min price"
+    ),
+
+  distress_indicators: yup
+    .array()
+    .of(yup.string().required())
+    .min(1, "At least one distress indicator is required"),
+
+  // existing nested object
+  // target_criteria: yup.object().shape({
+  location: yup.string().required("Location is required"),
+  property_type: yup.string().required("Property type is required"),
+  equity_min: yup
+    .number()
+    .required("Minimum equity is required")
+    .min(0, "Equity must be non-negative"),
+  // }),
 });
+
 export const campaignTypes = [
   { value: "seller_finder", label: "Seller Finder" },
   { value: "buyer_finder", label: "Buyer Finder" },
