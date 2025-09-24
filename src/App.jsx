@@ -39,7 +39,7 @@ import Dashboard from "./pages/Dashboard/Dashboard.jsx";
 import LeadsPage from "./pages/Leads/LeadsPage.jsx";
 import PropertiesPage from "./pages/Properties/PropertiesPage.jsx";
 import DealsPage from "./pages/Deals/DealsPage.jsx";
-import CampaignsPage from "./pages/Campaigns/CampaignsPage.jsx";
+import CampaignsPage from "./pages/Campaigns/Page.jsx";
 import ProfilePage from "./pages/Profile/ProfilePage.jsx";
 
 // Styles
@@ -82,6 +82,7 @@ import VisionAiPage from "./pages/AI/Vision/VisionAiPage.jsx";
 import VoiceAiPage from "./pages/AI/Voice/VoiceAiPage.jsx";
 import NlpAiPage from "./pages/AI/nlp/NlpAiPage.jsx";
 import DuplicateManagementDashboard from "./pages/Duplicate/page.jsx";
+import PageManagement from "./pages/Page_Management/page.jsx";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -276,26 +277,10 @@ function App() {
                             path="psychology"
                             element={<CompletePsychologicalDashboard />}
                           />
-                          {/* <Route
-                            path="marketplace"
-                            element={<MarketplacePage />}
-                          />
-
                           <Route
-                            path="blockchain"
-                            element={<BlockchainPage />}
+                            path="page-management"
+                            element={<PageManagement />}
                           />
-                          <Route path="analytics" element={<AnalyticsPage />} />
-                          <Route
-                            path="psychology"
-                            element={<PsychologyDashboard />}
-                          />
-                          <Route path="profile" element={<ProfilePage />} />
-                          <Route path="settings" element={<SettingsPage />} />
-                          <Route
-                            path="white-label"
-                            element={<WhiteLabelPage />}
-                          /> */}
                         </Route>
 
                         {/* Catch all route */}

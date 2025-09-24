@@ -6,17 +6,19 @@ const topLevelNavLinks = [
   { to: "/app/dashboard", label: "Dashboard" },
   { to: "/app/analytics", label: "Analytics" },
   { to: "/app/psychology", label: "Psychological Dashboard" },
-  { to: "/app/content-management", label: "Content Management" },
 ];
+
+// Property List as independent menu
+const propertyNavLinks = [{ to: "/app/properties", label: "Property List" }];
 
 const marketplaceNavLinks = [
   { to: "/app/live-activity", label: "Live Feed" },
-  { to: "/app/properties", label: "Properties" },
   { to: "/app/deals", label: "Deals" },
 ];
 
 const marketingHubNavLinks = [
   { to: "/app/campaigns", label: "Campaigns" },
+  { to: "/app/content-management", label: "Content Management" }, // Moved under Marketing Hub
   { to: "/app/duplicate", label: "Duplicate Management" },
   { to: "/app/leads", label: "Leads" },
   { to: "/app/clients", label: "Clients" },
@@ -35,6 +37,7 @@ const baseSettingsNavLinks = [
   { to: "/app/settings", label: "Organization Settings" },
   { to: "/app/user-management", label: "User Management" },
   { to: "/app/billing", label: "Billing & Subscription" },
+  { to: "/app/page-management", label: "Page Management" }, // New independent menu under Settings
 ];
 
 // Super admin only settings
@@ -93,28 +96,34 @@ const Layout = () => {
   const shouldShowSaaSManagement =
     userRole === "superadmin" || userRole === "admin";
 
+  // Check if Property List should be shown (show for all roles except staff)
+  const shouldShowPropertyList = userRole !== "staff";
+
   // Check if Marketplace should be shown (show for all roles including superadmin)
-  const shouldShowMarketplace = userRole !== "staff"; // Changed: now shows for superadmin too
+  const shouldShowMarketplace = userRole !== "staff";
 
   // Check if Marketing Hub should be shown (show for all roles including superadmin)
-  const shouldShowMarketingHub = userRole !== "staff"; // Changed: now shows for superadmin too
+  const shouldShowMarketingHub = userRole !== "staff";
 
   // Check if AI Features should be shown (show for all roles)
   const shouldShowAIFeatures = true;
 
   // Check if any of the "Settings" submenu items are currently active
-  const isSettingsActive =
-    settingsNavLinks.some((link) => location.pathname.startsWith(link.to)) ||
-    (shouldShowSaaSManagement &&
-      filteredSaaSManagementNavLinks.some((link) =>
-        location.pathname.startsWith(link.to)
-      ));
+  const isSettingsActive = settingsNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
 
+  // Check if any of the "SaaS Management" submenu items are currently active
   const isSaaSManagementActive =
     shouldShowSaaSManagement &&
     filteredSaaSManagementNavLinks.some((link) =>
       location.pathname.startsWith(link.to)
     );
+
+  // Check if Property List is active
+  const isPropertyListActive = propertyNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
 
   // Check if any of the "Marketplace" submenu items are currently active
   const isMarketplaceActive = marketplaceNavLinks.some((link) =>
@@ -158,6 +167,68 @@ const Layout = () => {
                 {link.label}
               </Link>
             ))}
+
+            {/* SaaS Management Dropdown - Now appears after Dashboard */}
+            {shouldShowSaaSManagement && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() =>
+                    setIsSaaSManagementExpanded(!isSaaSManagementExpanded)
+                  }
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isSaaSManagementActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>SaaS Management</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isSaaSManagementExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {/* SaaS Management Submenu Items */}
+                {isSaaSManagementExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {filteredSaaSManagementNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Property List - New independent menu */}
+            {shouldShowPropertyList && (
+              <Link
+                to="/app/properties"
+                className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white ${
+                  isPropertyListActive ? "bg-indigo-600 text-white" : ""
+                }`}
+              >
+                Property List
+              </Link>
+            )}
 
             {/* AI Features Dropdown */}
             {shouldShowAIFeatures && (
@@ -207,7 +278,7 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Marketing Hub Dropdown - Now shows for superadmin */}
+            {/* Marketing Hub Dropdown */}
             {shouldShowMarketingHub && (
               <div className="flex flex-col">
                 <button
@@ -257,7 +328,7 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Marketplace Dropdown - Now shows for superadmin */}
+            {/* Marketplace Dropdown */}
             {shouldShowMarketplace && (
               <div className="flex flex-col">
                 <button
@@ -350,60 +421,6 @@ const Layout = () => {
                         {link.label}
                       </Link>
                     ))}
-
-                    {/* SaaS Management Dropdown - For superadmin and admin */}
-                    {shouldShowSaaSManagement && (
-                      <div className="flex flex-col">
-                        <button
-                          onClick={() =>
-                            setIsSaaSManagementExpanded(
-                              !isSaaSManagementExpanded
-                            )
-                          }
-                          className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between text-sm ${
-                            isSaaSManagementActive
-                              ? "bg-indigo-600 text-white"
-                              : ""
-                          }`}
-                        >
-                          <span>SaaS Management</span>
-                          <svg
-                            className={`w-4 h-4 transition-transform ${
-                              isSaaSManagementExpanded ? "rotate-180" : ""
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </button>
-
-                        {/* SaaS Management Submenu Items */}
-                        {isSaaSManagementExpanded && (
-                          <div className="ml-4 mt-2 flex flex-col gap-2">
-                            {filteredSaaSManagementNavLinks.map((link) => (
-                              <Link
-                                key={link.to}
-                                to={link.to}
-                                className={`px-3 py-2 rounded text-slate-400 font-medium transition hover:bg-indigo-700 hover:text-white text-xs ${
-                                  location.pathname.startsWith(link.to)
-                                    ? "bg-indigo-600 text-white"
-                                    : ""
-                                }`}
-                              >
-                                {link.label}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -473,8 +490,6 @@ const Layout = () => {
 
         {/* Main Content */}
         <main className="relative flex flex-col items-center justify-center h-screen w-full overflow-hidden">
-          {/* Fixed Profile Icon Button */}
-
           {/* Card-like wrapper for content */}
           <div className="w-full h-full p-6 overflow-y-auto">
             <Outlet />
