@@ -129,6 +129,10 @@ export const campaignsAPI = {
   deleteCampaign: (id) => api.delete(`/campaigns/${id}/`),
   getRecipients: (id) => api.get(`/campaigns/${id}/recipients/`),
   getActiveCampaigns: () => AllGETHeader.get("/active_campaign_summary/"),
+  getCampaignStats: () => AllGETHeader.get("/campaign_property_stats/"),
+  getPerformanceOverview: () =>
+    AllGETHeader.get("/campaign_performance_overview/"),
+  getChannelResponseRates: () => AllGETHeader.get("/channel_response_rates/"),
   getLeadConversionFunnel: () => AllGETHeader.get("/lead_conversion_funnel/"),
 };
 

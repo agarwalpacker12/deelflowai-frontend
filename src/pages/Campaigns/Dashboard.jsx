@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ChannelCard from "./ChannelCard";
 import MetricBox from "./MetricBox";
 import ProgressBar from "./ProgressBar";
@@ -10,7 +10,7 @@ const DashboardView = ({
   getHeatColor,
   heatMapHover,
   roiData,
-  channelData,
+  channelData, // This will now be replaced by API data
   setHeatMapHover,
   getActiveCampaigns, // Add this as a prop
 }) => {
@@ -32,8 +32,34 @@ const DashboardView = ({
     error: null,
   });
 
+  // Add state for channel response rates
+  const [channelResponseData, setChannelResponseData] = useState({
+    channels: [],
+    loading: true,
+    error: null,
+  });
+
+  // Add state for performance overview data
+  const [performanceOverviewData, setPerformanceOverviewData] = useState({
+    campaigns: [],
+    loading: true,
+    error: null,
+  });
+
+  // Add ref to prevent double API calls
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
-    const fetchActiveCampaigns = async () => {
+    // Prevent double execution in React Strict Mode
+    if (hasInitialized.current) {
+      return;
+    }
+    hasInitialized.current = true;
+    // Combined function to fetch all data
+    const fetchAllData = async () => {
+      console.log("Fetching all dashboard data...");
+
+      // Fetch active campaigns
       try {
         setActiveCampaignData((prev) => ({
           ...prev,
@@ -42,8 +68,8 @@ const DashboardView = ({
         }));
 
         const response = await campaignsAPI.getActiveCampaigns();
+        console.log("Active campaigns response:", response);
 
-        // Update state with the fetched data
         setActiveCampaignData({
           totalActive: response.data?.data?.total_active || 0,
           leadsToday: response.data?.data?.leads_today || 0,
@@ -60,10 +86,8 @@ const DashboardView = ({
           error: "Failed to load campaign data",
         }));
       }
-    };
 
-    // Add function to fetch lead conversion funnel data
-    const fetchLeadConversionFunnel = async () => {
+      // Fetch lead conversion funnel
       try {
         setLeadFunnelData((prev) => ({
           ...prev,
@@ -72,8 +96,8 @@ const DashboardView = ({
         }));
 
         const response = await campaignsAPI.getLeadConversionFunnel();
+        console.log("Lead funnel response:", response);
 
-        // Update state with the fetched funnel data
         setLeadFunnelData({
           leads: response.data?.data?.leads || 0,
           qualified: response.data?.data?.qualified || 0,
@@ -89,11 +113,68 @@ const DashboardView = ({
           error: "Failed to load funnel data",
         }));
       }
+
+      // Fetch channel response rates
+      try {
+        setChannelResponseData((prev) => ({
+          ...prev,
+          loading: true,
+          error: null,
+        }));
+
+        const response = await campaignsAPI.getChannelResponseRates();
+        console.log("Channel response rates:", response);
+
+        setChannelResponseData({
+          channels: response.data?.data || [],
+          loading: false,
+          error: null,
+        });
+      } catch (error) {
+        console.error("Error fetching channel response rates:", error);
+        setChannelResponseData((prev) => ({
+          ...prev,
+          loading: false,
+          error: "Failed to load channel response rates",
+        }));
+      }
+
+      // Fetch performance overview
+      try {
+        setPerformanceOverviewData((prev) => ({
+          ...prev,
+          loading: true,
+          error: null,
+        }));
+
+        const response = await campaignsAPI.getPerformanceOverview();
+        console.log("Performance overview response:", response);
+
+        // Handle the specific response format from your API
+        const campaignData = response.data?.data || response.data || [];
+
+        setPerformanceOverviewData({
+          campaigns: campaignData,
+          loading: false,
+          error: null,
+        });
+      } catch (error) {
+        console.error("Error fetching performance overview:", error);
+        setPerformanceOverviewData((prev) => ({
+          ...prev,
+          loading: false,
+          error: "Failed to load performance overview",
+        }));
+      }
     };
 
-    // Call both API functions
-    fetchActiveCampaigns();
-    fetchLeadConversionFunnel();
+    // Call the combined function
+    fetchAllData();
+
+    // Cleanup function
+    return () => {
+      hasInitialized.current = false;
+    };
   }, []);
 
   return (
@@ -359,48 +440,156 @@ const DashboardView = ({
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* ROI Chart */}
+              {/* ROI Chart - Updated with API data */}
               <div className="bg-white/5 rounded-xl p-6">
                 <h4 className="text-lg font-semibold mb-4 text-white">
                   ROI by Campaign Type
                 </h4>
-                <div className="space-y-4">
-                  {roiData.map((item, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm text-white/80">
-                          {item.name}
-                        </span>
-                        <span className="font-semibold text-white">
-                          {item.value}%
-                        </span>
+
+                {performanceOverviewData.loading ? (
+                  <div className="space-y-4 animate-pulse">
+                    {[...Array(4)].map((_, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between mb-2">
+                          <div className="h-4 w-24 bg-white/20 rounded"></div>
+                          <div className="h-4 w-12 bg-white/20 rounded"></div>
+                        </div>
+                        <div className="h-2 bg-white/10 rounded"></div>
                       </div>
-                      <ProgressBar percentage={item.value / 3} />
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : performanceOverviewData.error ? (
+                  <div className="text-center text-red-300 text-sm">
+                    {performanceOverviewData.error}
+                    <br />
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="text-purple-300 hover:text-white underline mt-2"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : performanceOverviewData.campaigns.length > 0 ? (
+                  <div className="space-y-4">
+                    {performanceOverviewData.campaigns.map((item, index) => {
+                      // Handle both object format {campaign_type: "Name", roi: 287}
+                      // and key-value format {"Heat Mapping": 287}
+                      let campaignName, roiValue;
+
+                      if (
+                        typeof item === "object" &&
+                        (item.campaign_type || item.name)
+                      ) {
+                        // Standard object format
+                        campaignName = item.campaign_type || item.name;
+                        roiValue = item.roi || item.value || 0;
+                      } else if (typeof item === "object") {
+                        // Key-value pair format like {"Heat Mapping": 287}
+                        const entries = Object.entries(item);
+                        if (entries.length > 0) {
+                          [campaignName, roiValue] = entries[0];
+                        }
+                      } else {
+                        // Fallback
+                        campaignName = `Campaign ${index + 1}`;
+                        roiValue = 0;
+                      }
+
+                      // Parse percentage value (remove % if present)
+                      const numericROI =
+                        typeof roiValue === "string"
+                          ? parseInt(roiValue.replace("%", ""))
+                          : roiValue || 0;
+
+                      return (
+                        <div key={index}>
+                          <div className="flex justify-between mb-2">
+                            <span className="text-sm text-white/80">
+                              {campaignName}
+                            </span>
+                            <span className="font-semibold text-white">
+                              {numericROI}%
+                            </span>
+                          </div>
+                          <ProgressBar
+                            percentage={Math.min(numericROI / 3, 100)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  // Fallback to static roiData if no API data
+                  <div className="space-y-4">
+                    {roiData.map((item, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm text-white/80">
+                            {item.name}
+                          </span>
+                          <span className="font-semibold text-white">
+                            {item.value}%
+                          </span>
+                        </div>
+                        <ProgressBar percentage={item.value / 3} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Channel Performance */}
+              {/* Channel Performance - Updated with API data */}
               <div className="bg-white/5 rounded-xl p-6">
                 <h4 className="text-lg font-semibold mb-4 text-white">
                   Channel Response Rates
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  {channelData.map((channel, index) => (
-                    <div
-                      key={index}
-                      className="text-center p-4 bg-white/10 rounded-lg"
+
+                {channelResponseData.loading ? (
+                  <div className="grid grid-cols-2 gap-4 animate-pulse">
+                    {[...Array(4)].map((_, index) => (
+                      <div
+                        key={index}
+                        className="text-center p-4 bg-white/10 rounded-lg"
+                      >
+                        <div className="h-8 w-12 bg-white/20 rounded mx-auto mb-2"></div>
+                        <div className="h-4 w-16 bg-white/20 rounded mx-auto"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : channelResponseData.error ? (
+                  <div className="text-center text-red-300 text-sm">
+                    {channelResponseData.error}
+                    <br />
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="text-purple-300 hover:text-white underline mt-2"
                     >
-                      <div className="text-3xl font-bold text-white">
-                        {channel.rate}%
+                      Try again
+                    </button>
+                  </div>
+                ) : channelResponseData.channels.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {channelResponseData.channels.map((channel, index) => (
+                      <div
+                        key={index}
+                        className="text-center p-4 bg-white/10 rounded-lg"
+                      >
+                        <div className="text-3xl font-bold text-white">
+                          {channel.response_rate || channel.rate || 0}%
+                        </div>
+                        <div className="text-sm text-white/70">
+                          {channel.channel_name ||
+                            channel.name ||
+                            `Channel ${index + 1}`}
+                        </div>
                       </div>
-                      <div className="text-sm text-white/70">
-                        {channel.name}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-white/70 text-sm">
+                    No channel data available
+                  </div>
+                )}
               </div>
             </div>
 
