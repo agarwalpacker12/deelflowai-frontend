@@ -2,13 +2,8 @@ import { useEffect, useState } from "react";
 import CreateCampaignForm from "./Form";
 import DialogBox from "../../../components/UI/DialogBox";
 
-function AddCampaign() {
-  const [open, setOpen] = useState(false);
+function AddCampaign({ open, setOpen }) {
   const [fillMode, setFillMode] = useState(null); // 'ai' or 'manual'
-
-  useEffect(() => {
-    setOpen(true); // Automatically show dialog on render
-  }, []);
 
   const handleModeSelection = (mode) => {
     setFillMode(mode);
@@ -85,7 +80,7 @@ function AddCampaign() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 group-hover:text-purple-700">
-                  Fill with AI Assistant
+                  AI Assistant
                 </h3>
                 <p className="text-sm text-gray-600">
                   Let AI help you generate campaign content and suggestions
@@ -105,7 +100,7 @@ function AddCampaign() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 group-hover:text-indigo-700">
-                  Fill Manually
+                  Manual Setup
                 </h3>
                 <p className="text-sm text-gray-600">
                   Fill out the form fields yourself with custom content
@@ -114,7 +109,7 @@ function AddCampaign() {
             </div>
           </button>
 
-          <div class="flex justify-end text-gray-600 cursor-pointer">
+          <div className="flex justify-end text-gray-600 cursor-pointer">
             <div onClick={() => setOpen(false)}>Skip Selection</div>
           </div>
         </div>

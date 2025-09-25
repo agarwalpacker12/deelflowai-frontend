@@ -38,3 +38,4 @@ coverage/
 
 # Optional: Ignore compiled JS from TypeScript
 *.tsbuildinfo
+package-lock.json

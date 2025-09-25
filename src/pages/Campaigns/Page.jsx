@@ -10,6 +10,7 @@ const CampaignPage = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [campaignStep, setCampaignStep] = useState(2);
   const [heatMapHover, setHeatMapHover] = useState(null);
+  const [open, setOpen] = useState(false);
 
   // Sample data for charts
   const roiData = [
@@ -67,7 +68,12 @@ const CampaignPage = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (tab.id === "wizard") {
+                    setOpen(true);
+                  }
+                }}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-md text-sm font-medium transition-all ${
                   activeTab === tab.id
                     ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg"
@@ -103,7 +109,7 @@ const CampaignPage = () => {
               setHeatMapHover={setHeatMapHover}
             />
           )}
-          {activeTab === "wizard" && <AddCampaign />}
+          {activeTab === "wizard" && <AddCampaign open={open} setOpen={setOpen} />}
           {activeTab === "leads" && <CampaignsTable />}
           {activeTab === "ai" && <AIMessageView />}
         </div>
