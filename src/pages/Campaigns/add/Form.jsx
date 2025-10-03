@@ -23,6 +23,12 @@ import {
   Sparkles,
   Target,
   Filter,
+  Users,
+  Search,
+  Home,
+  User,
+  Building,
+  Globe,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -53,6 +59,9 @@ const CreateCampaignForm = ({ fillMode }) => {
     resolver: yupResolver(campaignSchema),
     defaultValues: DefaultValues,
   });
+
+  // Watch campaign type to show/hide relevant sections
+  const campaignType = watch("campaign_type");
 
   // Add this state to your component
   const [priceRange, setPriceRange] = useState({
@@ -92,6 +101,13 @@ const CreateCampaignForm = ({ fillMode }) => {
     { value: "active", label: "Active", color: "green" },
     { value: "inactive", label: "Inactive", color: "red" },
     { value: "draft", label: "Draft", color: "yellow" },
+  ];
+
+  // Enhanced campaign types including buyer and seller finder
+  const enhancedCampaignTypes = [
+    // ...campaignTypes,
+    { value: "buyer_finder", label: "Buyer Finder" },
+    { value: "seller_finder", label: "Seller Finder" },
   ];
 
   // Add this function to handle range changes
@@ -159,7 +175,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                       </label>
                       {fillMode === "ai" ? (
                         <div className="space-y-3">
-                          {campaignTypes.map((t) => (
+                          {enhancedCampaignTypes.map((t) => (
                             <label
                               key={t.value}
                               className="relative cursor-pointer group block"
@@ -174,9 +190,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                                 <span className="font-medium text-gray-700 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors duration-200">
                                   {t.label}
                                 </span>
-                                <div className="w-6 h-6 border-2 border-gray-300 rounded-full transition-all duration-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 relative">
+                                {/* <div className="w-6 h-6 border-2 border-gray-300 rounded-full transition-all duration-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 relative">
                                   <div className="absolute inset-1 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity duration-200"></div>
-                                </div>
+                                </div> */}
                               </div>
                             </label>
                           ))}
@@ -187,7 +203,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
                         >
                           <option value="">Select Campaign Type</option>
-                          {campaignTypes.map((t) => (
+                          {enhancedCampaignTypes.map((t) => (
                             <option key={t.value} value={t.value}>
                               {t.label}
                             </option>
@@ -225,9 +241,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                                 <span className="font-medium text-gray-700 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors duration-200">
                                   {ch.label}
                                 </span>
-                                <div className="w-6 h-6 border-2 border-gray-300 rounded-full transition-all duration-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 relative">
+                                {/* <div className="w-6 h-6 border-2 border-gray-300 rounded-full transition-all duration-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 relative">
                                   <div className="absolute inset-1 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity duration-200"></div>
-                                </div>
+                                </div> */}
                               </div>
                             </label>
                           ))}
@@ -365,257 +381,732 @@ const CreateCampaignForm = ({ fillMode }) => {
                 </div>
               </div>
 
-              {/* ===== Geographic Scope ===== */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl"></div>
-                <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
-                  <div className="flex items-center mb-6">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl mr-4 shadow-lg">
-                      <MapPin className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        Geographic Scope
-                      </h2>
-                      <p className="text-gray-600">
-                        Define your target locations
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
-                        Scope Type <Text className="text-red-500 ml-1">*</Text>
-                      </label>
-                      <input
-                        {...register("geographic_scope_type")}
-                        placeholder="zip / city / county"
-                        className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
-                      />
-                      {errors.geographic_scope_type && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.geographic_scope_type.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <Target className="w-4 h-4 mr-2 text-emerald-600" />
-                        Scope Values{" "}
-                        <Text className="text-red-500 ml-1">*</Text>
-                      </label>
-                      <input
-                        {...register("geographic_scope_values")}
-                        placeholder="33101,33102,33103"
-                        className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
-                      />
-                      {errors.geographic_scope_values && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.geographic_scope_values.message}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ===== Property Filters ===== */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl"></div>
-                <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
-                  <div className="flex items-center mb-6">
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl mr-4 shadow-lg">
-                      <Filter className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        Property Filters
-                      </h2>
-                      <p className="text-gray-600">
-                        Set your property targeting criteria
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <MapPin className="w-4 h-4 mr-2 text-purple-600" />
-                        Location <Text className="text-red-500 ml-1">*</Text>
-                      </label>
-                      <input
-                        {...register("location")}
-                        placeholder="Miami"
-                        className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
-                      />
-                      {errors.location && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.location.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <Settings className="w-4 h-4 mr-2 text-purple-600" />
-                        Property Type{" "}
-                        <Text className="text-red-500 ml-1">*</Text>
-                      </label>
-                      <input
-                        {...register("property_type")}
-                        placeholder="Residential"
-                        className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
-                      />
-                      {errors.property_type && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.property_type.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <DollarSign className="w-4 h-4 mr-2 text-green-600" />
-                        Minimum Equity{" "}
-                        <Text className="text-red-500 ml-1">*</Text>
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          {...register("minimum_equity")}
-                          type="number"
-                          placeholder="100000"
-                          className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
-                        />
+              {/* ===== Buyer Finder - Demographic Details ===== */}
+              {campaignType === "buyer_finder" && (
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl"></div>
+                  <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+                    <div className="flex items-center mb-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl mr-4 shadow-lg">
+                        <Users className="w-6 h-6 text-white" />
                       </div>
-                      {errors.minimum_equity && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.minimum_equity.message}
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Demographic Details
+                        </h2>
+                        <p className="text-gray-600">
+                          Define your target buyer demographics
                         </p>
-                      )}
-                    </div>
-                  </div>
-                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <DollarSign className="w-4 h-4 mr-2 text-green-600" />
-                        Min Price
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          {...register("min_price")}
-                          type="number"
-                          placeholder="250000"
-                          className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
-                        />
                       </div>
-                      {errors.min_price && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.min_price.message}
-                        </p>
-                      )}
                     </div>
 
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <DollarSign className="w-4 h-4 mr-2 text-green-600" />
-                        Max Price
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          {...register("max_price")}
-                          type="number"
-                          placeholder="750000"
-                          className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
-                        />
-                      </div>
-                      {errors.max_price && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.max_price.message}
-                        </p>
-                      )}
-                    </div>
-                  </div> */}
-                  {/* // Replace the existing min/max price grid section with this: */}
-                  <div className="mb-8">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <DollarSign className="w-5 h-5 mr-2 text-green-600" />
-                      Price Range
-                    </h3>
-                    <PriceRangeSlider
-                      minValue={priceRange.min}
-                      maxValue={priceRange.max}
-                      onRangeChange={handlePriceRangeChange}
-                      min={100000}
-                      max={2000000}
-                      step={25000}
-                    />
-                    {/* Display errors if any */}
-                    {(errors.min_price || errors.max_price) && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-                        {errors.min_price && (
-                          <p className="text-sm text-red-500 flex items-center mb-1">
-                            <X className="w-4 h-4 mr-1" />
-                            Min Price: {errors.min_price.message}
-                          </p>
-                        )}
-                        {errors.max_price && (
-                          <p className="text-sm text-red-500 flex items-center">
-                            <X className="w-4 h-4 mr-1" />
-                            Max Price: {errors.max_price.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {/* Distress Indicators */}
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <Target className="w-5 h-5 mr-2 text-purple-600" />
-                      Distress Indicators
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        "Pre-foreclosure",
-                        "Tax Liens",
-                        "Divorce",
-                        "Vacant",
-                      ].map((d) => (
-                        <label key={d} className="group cursor-pointer">
-                          <div className="flex items-center p-4 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-200 hover:border-purple-400 hover:shadow-md hover:bg-white">
-                            <input
-                              type="checkbox"
-                              value={d}
-                              {...register("distress_indicators")}
-                              className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                            />
-                            <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-purple-600 transition-colors duration-200">
-                              {d}
-                            </span>
-                          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Last Qualification */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <User className="w-4 h-4 mr-2 text-green-600" />
+                          Last Qualification
                         </label>
-                      ))}
+                        <select
+                          {...register("last_qualification")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                        >
+                          <option value="">Select Qualification</option>
+                          <option value="pre_approved">Pre-approved</option>
+                          <option value="pre_qualified">Pre-qualified</option>
+                          <option value="cash_buyer">Cash Buyer</option>
+                          <option value="first_time_buyer">
+                            First Time Buyer
+                          </option>
+                          <option value="investor">Investor</option>
+                        </select>
+                      </div>
+
+                      {/* Age Range */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <User className="w-4 h-4 mr-2 text-green-600" />
+                          Age Range
+                        </label>
+                        <select
+                          {...register("age_range")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                        >
+                          <option value="">Select Age Range</option>
+                          <option value="18-25">18-25</option>
+                          <option value="26-35">26-35</option>
+                          <option value="36-45">36-45</option>
+                          <option value="46-55">46-55</option>
+                          <option value="56-65">56-65</option>
+                          <option value="65+">65+</option>
+                        </select>
+                      </div>
+
+                      {/* Ethnicity */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Users className="w-4 h-4 mr-2 text-green-600" />
+                          Ethnicity
+                        </label>
+                        <select
+                          {...register("ethnicity")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                        >
+                          <option value="">Select Ethnicity</option>
+                          <option value="any">Any</option>
+                          <option value="caucasian">Caucasian</option>
+                          <option value="african_american">
+                            African American
+                          </option>
+                          <option value="hispanic">Hispanic</option>
+                          <option value="asian">Asian</option>
+                          <option value="native_american">
+                            Native American
+                          </option>
+                          <option value="mixed">Mixed</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      {/* Salary Range */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <DollarSign className="w-4 h-4 mr-2 text-green-600" />
+                          Salary Range
+                        </label>
+                        <select
+                          {...register("salary_range")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                        >
+                          <option value="">Select Salary Range</option>
+                          <option value="under_30k">Under $30,000</option>
+                          <option value="30k_50k">$30,000 - $50,000</option>
+                          <option value="50k_75k">$50,000 - $75,000</option>
+                          <option value="75k_100k">$75,000 - $100,000</option>
+                          <option value="100k_150k">$100,000 - $150,000</option>
+                          <option value="150k_200k">$150,000 - $200,000</option>
+                          <option value="200k_plus">$200,000+</option>
+                        </select>
+                      </div>
+
+                      {/* Marital Status */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Users className="w-4 h-4 mr-2 text-green-600" />
+                          Marital Status
+                        </label>
+                        <select
+                          {...register("marital_status")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="married">Married</option>
+                          <option value="single">Single</option>
+                          <option value="divorced">Divorced</option>
+                        </select>
+                      </div>
+
+                      {/* Employment Status */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Building className="w-4 h-4 mr-2 text-green-600" />
+                          Employment Status
+                        </label>
+                        <select
+                          {...register("employment_status")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                        >
+                          <option value="">Select Employment</option>
+                          <option value="employed">Employed</option>
+                          <option value="self_employed">Self Employed</option>
+                          <option value="retired">Retired</option>
+                        </select>
+                      </div>
+
+                      {/* Home Ownership Status */}
+                      <div className="lg:col-span-3">
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Home className="w-4 h-4 mr-2 text-green-600" />
+                          Home Ownership Status
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <label className="relative cursor-pointer group">
+                            <input
+                              {...register("home_ownership_status")}
+                              type="radio"
+                              value="own_home"
+                              className="sr-only peer"
+                            />
+                            <div className="flex items-center justify-center p-6 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-300 hover:shadow-lg hover:bg-white peer-checked:border-green-500 peer-checked:bg-gradient-to-r peer-checked:from-green-50 peer-checked:to-emerald-50 peer-checked:shadow-xl group-hover:scale-105">
+                              <div className="text-center">
+                                <Home className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                                <span className="font-semibold text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+                                  Own Home
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                          <label className="relative cursor-pointer group">
+                            <input
+                              {...register("home_ownership_status")}
+                              type="radio"
+                              value="rent_home"
+                              className="sr-only peer"
+                            />
+                            <div className="flex items-center justify-center p-6 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-300 hover:shadow-lg hover:bg-white peer-checked:border-green-500 peer-checked:bg-gradient-to-r peer-checked:from-green-50 peer-checked:to-emerald-50 peer-checked:shadow-xl group-hover:scale-105">
+                              <div className="text-center">
+                                <Building className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                                <span className="font-semibold text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+                                  Rent Home
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
                     </div>
-                    {errors.distress_indicators && (
-                      <p className="text-sm text-red-500 mt-2 flex items-center">
-                        <X className="w-4 h-4 mr-1" />
-                        {errors.distress_indicators.message}
-                      </p>
-                    )}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* ===== Buyer Finder - Geographic Details ===== */}
+              {campaignType === "buyer_finder" && (
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl"></div>
+                  <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+                    <div className="flex items-center mb-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl mr-4 shadow-lg">
+                        <Globe className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Geographic Details
+                        </h2>
+                        <p className="text-gray-600">
+                          Define target locations for buyers
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                      {/* Country */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Globe className="w-4 h-4 mr-2 text-blue-600" />
+                          Country
+                        </label>
+                        <select
+                          {...register("buyer_country")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        >
+                          <option value="">Select Country</option>
+                          <option value="us">United States</option>
+                          <option value="ca">Canada</option>
+                          <option value="mx">Mexico</option>
+                        </select>
+                      </div>
+
+                      {/* State */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                          State
+                        </label>
+                        <input
+                          {...register("buyer_state")}
+                          placeholder="e.g., Florida, Texas"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+
+                      {/* Counties */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                          Counties
+                        </label>
+                        <input
+                          {...register("buyer_counties")}
+                          placeholder="e.g., Miami-Dade, Broward"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+
+                      {/* City */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Building className="w-4 h-4 mr-2 text-blue-600" />
+                          City
+                        </label>
+                        <input
+                          {...register("buyer_city")}
+                          placeholder="e.g., Miami, Austin"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+
+                      {/* Districts */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                          Districts
+                        </label>
+                        <input
+                          {...register("buyer_districts")}
+                          placeholder="e.g., Downtown, Midtown"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+
+                      {/* Parish */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                          Parish
+                        </label>
+                        <input
+                          {...register("buyer_parish")}
+                          placeholder="e.g., Orleans Parish"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Map Integration Placeholder */}
+                    <div className="bg-white/60 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                      <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                        Interactive Map Integration
+                      </h3>
+                      <p className="text-gray-500">
+                        Map functionality can be integrated here for visual area
+                        selection
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ===== Seller Finder - Additional Fields ===== */}
+              {campaignType === "seller_finder" && (
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-yellow-500/10 rounded-2xl"></div>
+                  <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+                    <div className="flex items-center mb-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-600 to-yellow-600 rounded-xl mr-4 shadow-lg">
+                        <Search className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Seller Finder Criteria
+                        </h2>
+                        <p className="text-gray-600">
+                          Define seller-specific targeting parameters
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* Budget Range */}
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                          <DollarSign className="w-5 h-5 mr-2 text-orange-600" />
+                          Seller Budget Range
+                        </h3>
+                        <PriceRangeSlider
+                          minValue={priceRange.min}
+                          maxValue={priceRange.max}
+                          onRangeChange={handlePriceRangeChange}
+                          min={50000}
+                          max={5000000}
+                          step={25000}
+                        />
+                      </div>
+
+                      {/* Property Age */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                            <Building className="w-4 h-4 mr-2 text-orange-600" />
+                            Property Age (Year Built)
+                          </label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <input
+                                {...register("property_year_built_min")}
+                                type="number"
+                                placeholder="Min Year"
+                                min="1800"
+                                max="2024"
+                                className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100"
+                              />
+                            </div>
+                            <div>
+                              <input
+                                {...register("property_year_built_max")}
+                                type="number"
+                                placeholder="Max Year"
+                                min="1800"
+                                max="2024"
+                                className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Keywords */}
+                        <div>
+                          <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                            <Search className="w-4 h-4 mr-2 text-orange-600" />
+                            Keywords
+                          </label>
+                          <textarea
+                            {...register("seller_keywords")}
+                            rows={4}
+                            placeholder="Enter keywords to target sellers (e.g., motivated seller, quick sale, distressed property, foreclosure, inheritance, divorce)"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100 resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ===== Geographic Details for Seller Finder ===== */}
+              {campaignType === "seller_finder" && (
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl"></div>
+                  <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+                    <div className="flex items-center mb-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl mr-4 shadow-lg">
+                        <Globe className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Geographic Details
+                        </h2>
+                        <p className="text-gray-600">
+                          Define target locations for sellers
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                      {/* Country */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Globe className="w-4 h-4 mr-2 text-emerald-600" />
+                          Country
+                        </label>
+                        <select
+                          {...register("seller_country")}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        >
+                          <option value="">Select Country</option>
+                          <option value="us">United States</option>
+                          <option value="ca">Canada</option>
+                          <option value="mx">Mexico</option>
+                        </select>
+                      </div>
+
+                      {/* State */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
+                          State
+                        </label>
+                        <input
+                          {...register("seller_state")}
+                          placeholder="e.g., Florida, Texas"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        />
+                      </div>
+
+                      {/* Counties */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
+                          Counties
+                        </label>
+                        <input
+                          {...register("seller_counties")}
+                          placeholder="e.g., Miami-Dade, Broward"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        />
+                      </div>
+
+                      {/* City */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Building className="w-4 h-4 mr-2 text-emerald-600" />
+                          City
+                        </label>
+                        <input
+                          {...register("seller_city")}
+                          placeholder="e.g., Miami, Austin"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        />
+                      </div>
+
+                      {/* Districts */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
+                          Districts
+                        </label>
+                        <input
+                          {...register("seller_districts")}
+                          placeholder="e.g., Downtown, Midtown"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        />
+                      </div>
+
+                      {/* Parish */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
+                          Parish
+                        </label>
+                        <input
+                          {...register("seller_parish")}
+                          placeholder="e.g., Orleans Parish"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Map Integration Placeholder */}
+                    <div className="bg-white/60 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
+                      <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                        Interactive Map Integration
+                      </h3>
+                      <p className="text-gray-500">
+                        Map functionality can be integrated here for visual area
+                        selection
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ===== Geographic Scope (For other campaign types) ===== */}
+              {campaignType !== "buyer_finder" &&
+                campaignType !== "seller_finder" && (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl"></div>
+                    <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+                      <div className="flex items-center mb-6">
+                        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl mr-4 shadow-lg">
+                          <MapPin className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-900">
+                            Geographic Scope
+                          </h2>
+                          <p className="text-gray-600">
+                            Define your target locations
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                            <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
+                            Scope Type{" "}
+                            <Text className="text-red-500 ml-1">*</Text>
+                          </label>
+                          <input
+                            {...register("geographic_scope_type")}
+                            placeholder="zip / city / county"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                          />
+                          {errors.geographic_scope_type && (
+                            <p className="text-sm text-red-500 mt-2 flex items-center">
+                              <X className="w-4 h-4 mr-1" />
+                              {errors.geographic_scope_type.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                            <Target className="w-4 h-4 mr-2 text-emerald-600" />
+                            Scope Values{" "}
+                            <Text className="text-red-500 ml-1">*</Text>
+                          </label>
+                          <input
+                            {...register("geographic_scope_values")}
+                            placeholder="33101,33102,33103"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                          />
+                          {errors.geographic_scope_values && (
+                            <p className="text-sm text-red-500 mt-2 flex items-center">
+                              <X className="w-4 h-4 mr-1" />
+                              {errors.geographic_scope_values.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* ===== Property Filters (For non-buyer campaigns) ===== */}
+              {campaignType !== "buyer_finder" && (
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl"></div>
+                  <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+                    <div className="flex items-center mb-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl mr-4 shadow-lg">
+                        <Filter className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Property Filters
+                        </h2>
+                        <p className="text-gray-600">
+                          Set your property targeting criteria
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <MapPin className="w-4 h-4 mr-2 text-purple-600" />
+                          Location <Text className="text-red-500 ml-1">*</Text>
+                        </label>
+                        <input
+                          {...register("location")}
+                          placeholder="Miami"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                        />
+                        {errors.location && (
+                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.location.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Settings className="w-4 h-4 mr-2 text-purple-600" />
+                          Property Type{" "}
+                          <Text className="text-red-500 ml-1">*</Text>
+                        </label>
+                        <input
+                          {...register("property_type")}
+                          placeholder="Residential"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                        />
+                        {errors.property_type && (
+                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.property_type.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <DollarSign className="w-4 h-4 mr-2 text-green-600" />
+                          Minimum Equity{" "}
+                          <Text className="text-red-500 ml-1">*</Text>
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          <input
+                            {...register("minimum_equity")}
+                            type="number"
+                            placeholder="100000"
+                            className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                          />
+                        </div>
+                        {errors.minimum_equity && (
+                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.minimum_equity.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Price Range (only show for seller finder or general campaigns) */}
+                    {campaignType !== "seller_finder" && (
+                      <div className="mb-8">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                          <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                          Price Range
+                        </h3>
+                        <PriceRangeSlider
+                          minValue={priceRange.min}
+                          maxValue={priceRange.max}
+                          onRangeChange={handlePriceRangeChange}
+                          min={100000}
+                          max={2000000}
+                          step={25000}
+                        />
+                        {/* Display errors if any */}
+                        {(errors.min_price || errors.max_price) && (
+                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                            {errors.min_price && (
+                              <p className="text-sm text-red-500 flex items-center mb-1">
+                                <X className="w-4 h-4 mr-1" />
+                                Min Price: {errors.min_price.message}
+                              </p>
+                            )}
+                            {errors.max_price && (
+                              <p className="text-sm text-red-500 flex items-center">
+                                <X className="w-4 h-4 mr-1" />
+                                Max Price: {errors.max_price.message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Distress Indicators */}
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <Target className="w-5 h-5 mr-2 text-purple-600" />
+                        Distress Indicators
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          "Pre-foreclosure",
+                          "Tax Liens",
+                          "Divorce",
+                          "Vacant",
+                        ].map((d) => (
+                          <label key={d} className="group cursor-pointer">
+                            <div className="flex items-center p-4 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-200 hover:border-purple-400 hover:shadow-md hover:bg-white">
+                              <input
+                                type="checkbox"
+                                value={d}
+                                {...register("distress_indicators")}
+                                className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                              />
+                              <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-purple-600 transition-colors duration-200">
+                                {d}
+                              </span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      {errors.distress_indicators && (
+                        <p className="text-sm text-red-500 mt-2 flex items-center">
+                          <X className="w-4 h-4 mr-1" />
+                          {errors.distress_indicators.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* ===== Email Content ===== */}
               <div className="relative">
