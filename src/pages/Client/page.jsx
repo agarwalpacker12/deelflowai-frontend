@@ -191,7 +191,7 @@ const ClientsPage = () => {
       <div className="p-4">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+          <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-200 text-sm font-medium">
@@ -208,7 +208,7 @@ const ClientsPage = () => {
             </div>
           </div>
 
-          <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+          <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-200 text-sm font-medium">
@@ -225,7 +225,7 @@ const ClientsPage = () => {
             </div>
           </div>
 
-          <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+          <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-200 text-sm font-medium">
@@ -242,7 +242,7 @@ const ClientsPage = () => {
             </div>
           </div>
 
-          <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+          <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-200 text-sm font-medium">
@@ -261,7 +261,7 @@ const ClientsPage = () => {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30 mb-6">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30 mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative flex-1 max-w-md">
               <Search className="w-5 h-5 absolute left-4 top-3.5 text-purple-300" />
@@ -295,7 +295,7 @@ const ClientsPage = () => {
         </div>
 
         {/* Clients List */}
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl border border-purple-600/30 overflow-hidden">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg border border-purple-600/30 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-purple-900/50 border-b border-purple-600/30">
@@ -451,11 +451,11 @@ const ClientsPage = () => {
         {/* Client Detail Modal */}
         {selectedClient && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-purple-600/30">
+            <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-purple-600/30">
               <div className="p-6 border-b border-purple-600/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                    <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl shadow-lg">
                       {selectedClient.avatar}
                     </div>
                     <div>

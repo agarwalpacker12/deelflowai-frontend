@@ -200,7 +200,7 @@ const AdvancedPage = () => {
 
     return (
       <div
-        className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30 hover:border-purple-500/50 transition-all cursor-pointer transform hover:scale-105"
+        className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30 hover:border-purple-500/50 transition-all cursor-pointer transform hover:scale-105"
         onClick={() => setSelectedFeature(feature)}
       >
         <div className="flex items-start justify-between mb-4">
@@ -255,7 +255,7 @@ const AdvancedPage = () => {
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Crown className="w-6 h-6 text-yellow-400" />
             <span className="text-purple-200 font-medium">Enterprise</span>
@@ -264,7 +264,7 @@ const AdvancedPage = () => {
           <div className="text-purple-200 text-sm">Active Tenants</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-6 h-6 text-green-400" />
             <span className="text-purple-200 font-medium">Security</span>
@@ -273,7 +273,7 @@ const AdvancedPage = () => {
           <div className="text-purple-200 text-sm">Compliance Score</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Lock className="w-6 h-6 text-orange-400" />
             <span className="text-purple-200 font-medium">Blockchain</span>
@@ -282,7 +282,7 @@ const AdvancedPage = () => {
           <div className="text-purple-200 text-sm">In Escrow</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Code className="w-6 h-6 text-blue-400" />
             <span className="text-purple-200 font-medium">API</span>
@@ -300,7 +300,7 @@ const AdvancedPage = () => {
       </div>
 
       {/* System Health */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <h3 className="text-xl font-bold text-white mb-4">System Health</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex items-center gap-3">
@@ -323,7 +323,7 @@ const AdvancedPage = () => {
   const WhiteLabelTab = () => (
     <div className="space-y-6">
       {/* Tenant Management */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-white">Tenant Management</h3>
           <button className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-xl flex items-center gap-2">
@@ -438,7 +438,7 @@ const AdvancedPage = () => {
     <div className="space-y-6">
       {/* Blockchain Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Lock className="w-6 h-6 text-orange-400" />
             <span className="text-purple-200 font-medium">Smart Contracts</span>
@@ -447,7 +447,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">+23 today</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Wallet className="w-6 h-6 text-green-400" />
             <span className="text-purple-200 font-medium">Total Escrow</span>
@@ -456,7 +456,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">+$45K today</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Zap className="w-6 h-6 text-blue-400" />
             <span className="text-purple-200 font-medium">Transactions</span>
@@ -465,7 +465,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">100% success</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-6 h-6 text-purple-400" />
             <span className="text-purple-200 font-medium">Security</span>
@@ -476,7 +476,7 @@ const AdvancedPage = () => {
       </div>
 
       {/* Active Smart Contracts */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-white">
             Active Smart Contracts
@@ -581,7 +581,7 @@ const AdvancedPage = () => {
 
       {/* Wallet Integration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <h4 className="text-lg font-bold text-white mb-4">
             Supported Wallets
           </h4>
@@ -600,7 +600,7 @@ const AdvancedPage = () => {
           </div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <h4 className="text-lg font-bold text-white mb-4">
             Network Settings
           </h4>
@@ -633,7 +633,7 @@ const AdvancedPage = () => {
     <div className="space-y-6">
       {/* API Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Code className="w-6 h-6 text-blue-400" />
             <span className="text-purple-200 font-medium">Endpoints</span>
@@ -642,7 +642,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">+5 this week</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="w-6 h-6 text-green-400" />
             <span className="text-purple-200 font-medium">Requests/Month</span>
@@ -651,7 +651,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">+15% growth</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Timer className="w-6 h-6 text-yellow-400" />
             <span className="text-purple-200 font-medium">Avg Latency</span>
@@ -660,7 +660,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">-5ms improved</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Globe className="w-6 h-6 text-purple-400" />
             <span className="text-purple-200 font-medium">Integrations</span>
@@ -671,7 +671,7 @@ const AdvancedPage = () => {
       </div>
 
       {/* API Endpoints */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-white">API Endpoints</h3>
           <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl flex items-center gap-2">
@@ -743,7 +743,7 @@ const AdvancedPage = () => {
 
       {/* Integration Partners */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <h4 className="text-lg font-bold text-white mb-4">
             Active Integrations
           </h4>
@@ -780,7 +780,7 @@ const AdvancedPage = () => {
           </div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <h4 className="text-lg font-bold text-white mb-4">API Keys</h4>
           <div className="space-y-4">
             <div>
@@ -822,7 +822,7 @@ const AdvancedPage = () => {
     <div className="space-y-6">
       {/* Analytics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <Brain className="w-6 h-6 text-purple-400" />
             <span className="text-purple-200 font-medium">AI Insights</span>
@@ -831,7 +831,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">+47 today</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-6 h-6 text-green-400" />
             <span className="text-purple-200 font-medium">Accuracy</span>
@@ -840,7 +840,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">+1.3% this month</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <BarChart3 className="w-6 h-6 text-blue-400" />
             <span className="text-purple-200 font-medium">Predictions</span>
@@ -849,7 +849,7 @@ const AdvancedPage = () => {
           <div className="text-green-400 text-sm">87% accurate</div>
         </div>
 
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <div className="flex items-center gap-3 mb-2">
             <FileText className="w-6 h-6 text-orange-400" />
             <span className="text-purple-200 font-medium">Reports</span>
@@ -862,7 +862,7 @@ const AdvancedPage = () => {
       {/* Analytics Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Conversion Funnel */}
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <h4 className="text-lg font-bold text-white mb-4">
             Conversion Funnel
           </h4>
@@ -915,7 +915,7 @@ const AdvancedPage = () => {
         </div>
 
         {/* Revenue Breakdown */}
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
           <h4 className="text-lg font-bold text-white mb-4">
             Revenue Breakdown
           </h4>
@@ -960,7 +960,7 @@ const AdvancedPage = () => {
       </div>
 
       {/* AI Performance Metrics */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <h4 className="text-lg font-bold text-white mb-4">
           AI Performance Metrics
         </h4>
@@ -992,7 +992,7 @@ const AdvancedPage = () => {
   const SettingsTab = () => (
     <div className="space-y-6">
       {/* System Configuration */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <h3 className="text-xl font-bold text-white mb-6">
           System Configuration
         </h3>
@@ -1067,7 +1067,7 @@ const AdvancedPage = () => {
       </div>
 
       {/* Security Settings */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <h4 className="text-lg font-bold text-white mb-4">Security Settings</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -1146,7 +1146,7 @@ const AdvancedPage = () => {
       </div>
 
       {/* Notification Preferences */}
-      <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-6 border border-purple-600/30">
+      <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-6 border border-purple-600/30">
         <h4 className="text-lg font-bold text-white mb-4">
           Notification Preferences
         </h4>
@@ -1250,9 +1250,9 @@ const AdvancedPage = () => {
       </div>
       {/* </div> */}
 
-      <div className="p-6">
+      <div className="p-4">
         {/* Navigation Tabs */}
-        <div className="bg-purple-800/40 backdrop-blur-sm rounded-2xl p-2 border border-purple-600/30 mb-6">
+        <div className="bg-purple-800/40 backdrop-blur-sm rounded-lg p-2 border border-purple-600/30 mb-6">
           <div className="flex gap-2 overflow-x-auto">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -1280,7 +1280,7 @@ const AdvancedPage = () => {
         {/* Feature Detail Modal */}
         {selectedFeature && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl rounded-2xl max-w-2xl w-full border border-purple-600/30">
+            <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl rounded-lg max-w-2xl w-full border border-purple-600/30">
               <div className="p-6 border-b border-purple-600/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
