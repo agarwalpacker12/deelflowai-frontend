@@ -362,21 +362,6 @@ const VoiceAIPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "active":
-        return "bg-emerald-900/20 text-emerald-400";
-      case "paused":
-        return "bg-amber-900/20 text-amber-400";
-      case "scheduled":
-        return "bg-blue-900/20 text-blue-400";
-      case "completed":
-        return "bg-gray-800/20 text-gray-400";
-      default:
-        return "bg-gray-800/20 text-gray-400";
-    }
-  };
-
   const getOutcomeColor = (outcome) => {
     switch (outcome) {
       case "appointment_scheduled":
