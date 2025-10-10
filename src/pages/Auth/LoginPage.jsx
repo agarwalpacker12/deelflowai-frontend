@@ -9,7 +9,7 @@ import {
 import LoadingSpinner from "../../components/UI/LoadingSpinner";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [orgLoading, setOrgLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const dispatch = useDispatch();
@@ -37,8 +37,8 @@ const LoginPage = () => {
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.username.trim()) {
-      errors.username = "Username is required";
+    if (!formData.email.trim()) {
+      errors.email = "email is required";
     }
 
     if (!formData.password.trim()) {
@@ -100,22 +100,22 @@ const LoginPage = () => {
           <div>
             <label
               className="block text-sm font-medium text-white/80 mb-2"
-              htmlFor="username"
+              htmlFor="email"
             >
-              Username
+              email
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-white/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
-              placeholder="Enter your username"
+              placeholder="Enter your email"
               required
             />
-            {formErrors.username && (
-              <p className="text-red-400 text-xs mt-1">{formErrors.username}</p>
+            {formErrors.email && (
+              <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>
             )}
           </div>
           <div>

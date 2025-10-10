@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URLs - matching your Django server
-const BASE_URL = "http://dev.deelflowai.com:8000";
+const BASE_URL = "http://localhost:8140";
 const API_BASE_URL = `${BASE_URL}/api`;
 
 // Create a single API instance for all requests
@@ -74,7 +74,7 @@ api.interceptors.response.use(
 
 // Auth API - Fixed URLs to match your Django urls.py
 export const authAPI = {
-  login: (credentials) => AllPOSTHeader.post("/login/", credentials), // Matches your URL pattern
+  login: (credentials) => AllPOSTHeader.post("/api/auth/login", credentials), // Matches your URL pattern
   register: (userData) => AllPOSTHeader.post("/create-user/", userData), // Matches your URL pattern
   logout: () => api.post("/logout/"),
   getCurrentUser: () => api.get("/user/"),
