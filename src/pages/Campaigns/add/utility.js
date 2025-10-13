@@ -34,7 +34,7 @@ export const DefaultValues = {
   // Basic campaign information
   name: "",
   campaign_type: "",
-  channel: "email",
+  channel: [],
   budget: 1000.0,
   scheduled_at: "",
   subject_line: "",
@@ -44,7 +44,7 @@ export const DefaultValues = {
 
   // Geographic scope (for general campaigns)
   geographic_scope_type: "",
-  geographic_scope_values: "",
+  geographic_scope_values: [],
 
   // Basic property filters
   location: "",
@@ -103,12 +103,15 @@ export const campaignSchema = yup.object().shape({
     ),
 
   channel: yup
-    .string()
-    .required("Channel is required")
-    .oneOf(
-      channels.map((ch) => ch.value),
-      "Please select a valid channel"
-    ),
+    .array()
+    .of(
+      yup.string().oneOf(
+        channels.map((ch) => ch.value),
+        "Please select a valid channel"
+      )
+    )
+    .min(1, "Please select at least one channel")
+    .required("Channel is required"),
 
   budget: yup
     .number()
@@ -152,11 +155,11 @@ export const campaignSchema = yup.object().shape({
     otherwise: (schema) => schema.nullable(),
   }),
 
-  geographic_scope_values: yup.string().when("campaign_type", {
-    is: (val) => val && !["buyer_finder", "seller_finder"].includes(val),
-    then: (schema) => schema.required("Geographic scope values are required"),
-    otherwise: (schema) => schema.nullable(),
-  }),
+  // geographic_scope_values: yup.string().when("campaign_type", {
+  //   is: (val) => val && !["buyer_finder", "seller_finder"].includes(val),
+  //   then: (schema) => schema.required("Geographic scope values are required"),
+  //   otherwise: (schema) => schema.nullable(),
+  // }),
 
   // Property filters (conditional for non-buyer campaigns)
   location: yup.string().when("campaign_type", {
@@ -346,37 +349,50 @@ export const campaignSchema = yup.object().shape({
     otherwise: (schema) => schema.nullable(),
   }),
 
+  // // Seller Finder - Additional Fields (conditional)
+  // property_year_built_min: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) =>
+  //     schema
+  //       .nullable()
+  //       .min(1800, "Year built cannot be before 1800")
+  //       .max(
+  //         new Date().getFullYear(),
+  //         `Year built cannot be after ${new Date().getFullYear()}`
+  //       ),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
+
+  // property_year_built_max: yup
+  //   .string()
+  //   .when(["campaign_type", "property_year_built_min"], {
+  //     is: (campaign_type, min_year) => campaign_type === "seller_finder",
+  //     then: (schema) =>
+  //       schema
+  //         .nullable()
+  //         .min(
+  //           yup.ref("property_year_built_min"),
+  //           "Max year must be greater than or equal to min year"
+  //         )
+  //         .max(
+  //           new Date().getFullYear(),
+  //           `Year built cannot be after ${new Date().getFullYear()}`
+  //         ),
+  //     otherwise: (schema) => schema.nullable(),
+  //   }),
+
   // Seller Finder - Additional Fields (conditional)
-  property_year_built_min: yup.number().when("campaign_type", {
+  property_year_built_min: yup.string().when("campaign_type", {
     is: "seller_finder",
-    then: (schema) =>
-      schema
-        .nullable()
-        .min(1800, "Year built cannot be before 1800")
-        .max(
-          new Date().getFullYear(),
-          `Year built cannot be after ${new Date().getFullYear()}`
-        ),
-    otherwise: (schema) => schema.nullable(),
+    then: (schema) => schema.required("Property year built min is required"),
+    otherwise: (schema) => schema.nullable().optional(),
   }),
 
-  property_year_built_max: yup
-    .number()
-    .when(["campaign_type", "property_year_built_min"], {
-      is: (campaign_type, min_year) => campaign_type === "seller_finder",
-      then: (schema) =>
-        schema
-          .nullable()
-          .min(
-            yup.ref("property_year_built_min"),
-            "Max year must be greater than or equal to min year"
-          )
-          .max(
-            new Date().getFullYear(),
-            `Year built cannot be after ${new Date().getFullYear()}`
-          ),
-      otherwise: (schema) => schema.nullable(),
-    }),
+  property_year_built_max: yup.string().when("campaign_type", {
+    is: "seller_finder",
+    then: (schema) => schema.required("Property year built max is required"),
+    otherwise: (schema) => schema.nullable().optional(),
+  }),
 
   seller_keywords: yup.string().when("campaign_type", {
     is: "seller_finder",

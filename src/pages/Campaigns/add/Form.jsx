@@ -59,6 +59,7 @@ const CreateCampaignForm = ({ fillMode }) => {
     resolver: yupResolver(campaignSchema),
     defaultValues: DefaultValues,
   });
+  console.log("errors", errors);
 
   // Watch campaign type to show/hide relevant sections
   const campaignType = watch("campaign_type");
@@ -92,10 +93,6 @@ const CreateCampaignForm = ({ fillMode }) => {
     };
     mutation.mutate(formData);
   };
-
-  const handleScopeTypeChange = (type) => setSelectedScopeType(type);
-  const removeCounty = (id) =>
-    setSelectedCounties((prev) => prev.filter((c) => c.id !== id));
 
   const statusOptions = [
     { value: "active", label: "Active", color: "green" },
@@ -225,25 +222,22 @@ const CreateCampaignForm = ({ fillMode }) => {
                         Channel <Text className="text-red-500 ml-1">*</Text>
                       </label>
                       {fillMode === "ai" ? (
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {channels.map((ch) => (
                             <label
                               key={ch.value}
-                              className="relative cursor-pointer group block"
+                              className="group cursor-pointer"
                             >
-                              <input
-                                {...register("channel")}
-                                type="radio"
-                                value={ch.value}
-                                className="sr-only peer"
-                              />
-                              <div className="flex items-center justify-between p-5 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-300 hover:border-blue-400 hover:shadow-lg hover:bg-white peer-checked:border-blue-600 peer-checked:bg-gradient-to-r peer-checked:from-blue-50 peer-checked:to-indigo-50 peer-checked:shadow-xl group-hover:scale-[1.02]">
-                                <span className="font-medium text-gray-700 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors duration-200">
+                              <div className="flex items-center p-5 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-200 hover:border-blue-400 hover:shadow-md hover:bg-white">
+                                <input
+                                  type="checkbox"
+                                  value={ch.value}
+                                  {...register("channel")}
+                                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">
                                   {ch.label}
                                 </span>
-                                {/* <div className="w-6 h-6 border-2 border-gray-300 rounded-full transition-all duration-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 relative">
-                                  <div className="absolute inset-1 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity duration-200"></div>
-                                </div> */}
                               </div>
                             </label>
                           ))}
@@ -251,9 +245,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                       ) : (
                         <select
                           {...register("channel")}
+                          multiple
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
                         >
-                          <option value="">Select Channel</option>
                           {channels.map((ch) => (
                             <option key={ch.value} value={ch.value}>
                               {ch.label}
@@ -734,20 +728,16 @@ const CreateCampaignForm = ({ fillMode }) => {
                             <div>
                               <input
                                 {...register("property_year_built_min")}
-                                type="number"
+                                type="text"
                                 placeholder="Min Year"
-                                min="1800"
-                                max="2024"
                                 className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100"
                               />
                             </div>
                             <div>
                               <input
                                 {...register("property_year_built_max")}
-                                type="number"
+                                type="text"
                                 placeholder="Max Year"
-                                min="1800"
-                                max="2024"
                                 className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100"
                               />
                             </div>
