@@ -83,6 +83,7 @@ import VoiceAiPage from "./pages/AI/Voice/VoiceAiPage.jsx";
 import NlpAiPage from "./pages/AI/nlp/NlpAiPage.jsx";
 import DuplicateManagementDashboard from "./pages/Duplicate/page.jsx";
 import PageManagement from "./pages/Page_Management/page.jsx";
+import PaymentGatewayMethods from "./pages/payment-gateway/page.jsx";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -280,6 +281,10 @@ function App() {
                           <Route
                             path="page-management"
                             element={<PageManagement />}
+                          />
+                          <Route
+                            path="payment-gateway"
+                            element={<PaymentGatewayMethods />}
                           />
                         </Route>
 
