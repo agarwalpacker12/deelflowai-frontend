@@ -462,17 +462,17 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </select>
                       </div>
 
-                      {/* Salary Range */}
+                      {/* Income Range */}
                       <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                           <DollarSign className="w-4 h-4 mr-2 text-green-600" />
-                          Salary Range
+                          Income Range
                         </label>
                         <select
                           {...register("salary_range")}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
                         >
-                          <option value="">Select Salary Range</option>
+                          <option value="">Select Income Range</option>
                           <option value="under_30k">Under $30,000</option>
                           <option value="30k_50k">$30,000 - $50,000</option>
                           <option value="50k_75k">$50,000 - $75,000</option>
