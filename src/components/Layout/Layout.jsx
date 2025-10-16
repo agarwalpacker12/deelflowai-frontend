@@ -14,11 +14,13 @@ const propertyNavLinks = [{ to: "/app/properties", label: "Property List" }];
 const marketplaceNavLinks = [
   { to: "/app/live-activity", label: "Live Feed" },
   { to: "/app/deals", label: "Deals" },
+  { to: "/app/transaction", label: "transaction" },
+  { to: "/app/Funding Partners", label: "funding" },
 ];
 
 const marketingHubNavLinks = [
   { to: "/app/campaigns", label: "Campaigns" },
-  { to: "/app/content-management", label: "Content Management" }, // Moved under Marketing Hub
+  { to: "/app/content-management", label: "Content Management" },
   { to: "/app/duplicate", label: "Duplicate Management" },
   { to: "/app/leads", label: "Leads" },
   { to: "/app/clients", label: "Clients" },
@@ -32,12 +34,41 @@ const aiFeatureNavLinks = [
   { to: "/app/ai/nlp-center", label: "NLP Center" },
 ];
 
+// Analytics & Reports navigation links
+const analyticsReportsNavLinks = [
+  { to: "/app/reports/overview", label: "Overview" },
+  { to: "/app/reports/custom", label: "Custom Reports" },
+  { to: "/app/reports/data-export", label: "Data Exports" },
+];
+
+// System Settings navigation links
+const systemSettingsNavLinks = [
+  { to: "/app/system/general", label: "General" },
+  { to: "/app/system/security", label: "Security" },
+  { to: "/app/system/notification", label: "Notification" },
+  { to: "/app/system/backup", label: "Backup" },
+];
+
+// AI management navigation links
+const aiManagementNavLinks = [
+  { to: "/app/ai-management/conversation", label: "AI Conversation" },
+  { to: "/app/ai-management/training", label: "Training" },
+  { to: "/app/ai-management/automation-rule", label: "Automation Rules" },
+];
+
+// Integration navigation links
+const integrationNavLinks = [
+  { to: "/app/integrations/api", label: "API Keys" },
+  { to: "/app/integrations/webhooks", label: "Webhooks" },
+  { to: "/app/integrations/third-party", label: "Third Party Apps" },
+];
+
 // Base settings for all roles (except staff)
 const baseSettingsNavLinks = [
   { to: "/app/settings", label: "Organization Settings" },
   { to: "/app/user-management", label: "User Management" },
   { to: "/app/billing", label: "Billing & Subscription" },
-  { to: "/app/page-management", label: "Page Management" }, // New independent menu under Settings
+  { to: "/app/page-management", label: "Page Management" },
 ];
 
 // Super admin only settings
@@ -59,84 +90,97 @@ const Layout = () => {
   const [isSaaSManagementExpanded, setIsSaaSManagementExpanded] =
     useState(false);
   const [isAIFeaturesExpanded, setIsAIFeaturesExpanded] = useState(false);
+  const [isAnalyticsReportsExpanded, setIsAnalyticsReportsExpanded] =
+    useState(false);
+  const [isSystemSettingsExpanded, setIsSystemSettingsExpanded] =
+    useState(false);
+  const [isAiManagementExpanded, setIsAiManagementExpanded] = useState(false);
+  const [isIntegrationsExpanded, setIsIntegrationsExpanded] = useState(false);
 
   const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = userDetails.role || "staff"; // Default to staff if no role
+  const userRole = userDetails.role || "staff";
 
   // Generate settings links based on role
   const getSettingsNavLinks = () => {
     if (userRole === "superadmin") {
-      return [...baseSettingsNavLinks, ...superAdminSettingsNavLinks]; // Show ALL settings for superadmin
+      return [...baseSettingsNavLinks, ...superAdminSettingsNavLinks];
     } else if (userRole === "admin") {
-      return [...baseSettingsNavLinks]; // Show base settings for admin
+      return [...baseSettingsNavLinks];
     }
-    return []; // Staff gets no settings
+    return [];
   };
 
   // Generate SaaS Management links based on role
   const getSaaSManagementNavLinks = () => {
     if (userRole === "superadmin") {
-      return saasManagementNavLinks; // Show all SaaS management links
+      return saasManagementNavLinks;
     } else if (userRole === "admin") {
-      // Filter out tenant management for admin users
       return saasManagementNavLinks.filter(
         (link) => link.to !== "/app/tenant-management"
       );
     }
-    return []; // Staff gets no SaaS management
+    return [];
   };
 
   const settingsNavLinks = getSettingsNavLinks();
   const filteredSaaSManagementNavLinks = getSaaSManagementNavLinks();
 
-  // Check if settings section should be shown
+  // Check if sections should be shown based on role
   const shouldShowSettings = userRole !== "staff";
-
-  // Check if SaaS Management should be shown (for superadmin and admin)
   const shouldShowSaaSManagement =
     userRole === "superadmin" || userRole === "admin";
-
-  // Check if Property List should be shown (show for all roles except staff)
   const shouldShowPropertyList = userRole !== "staff";
-
-  // Check if Marketplace should be shown (show for all roles including superadmin)
   const shouldShowMarketplace = userRole !== "staff";
-
-  // Check if Marketing Hub should be shown (show for all roles including superadmin)
   const shouldShowMarketingHub = userRole !== "staff";
-
-  // Check if AI Features should be shown (show for all roles)
   const shouldShowAIFeatures = true;
+  const shouldShowAnalyticsReports = userRole !== "staff";
+  const shouldShowSystemSettings =
+    userRole === "admin" || userRole === "superadmin";
+  const shouldShowAiManagement =
+    userRole === "admin" || userRole === "superadmin";
+  const shouldShowIntegrations =
+    userRole === "admin" || userRole === "superadmin";
 
-  // Check if any of the "Settings" submenu items are currently active
+  // Check if any submenu items are currently active
   const isSettingsActive = settingsNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
   );
 
-  // Check if any of the "SaaS Management" submenu items are currently active
   const isSaaSManagementActive =
     shouldShowSaaSManagement &&
     filteredSaaSManagementNavLinks.some((link) =>
       location.pathname.startsWith(link.to)
     );
 
-  // Check if Property List is active
   const isPropertyListActive = propertyNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
   );
 
-  // Check if any of the "Marketplace" submenu items are currently active
   const isMarketplaceActive = marketplaceNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
   );
 
-  // Check if any of the "Marketing Hub" submenu items are currently active
   const isMarketingHubActive = marketingHubNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
   );
 
-  // Check if any of the "AI Features" submenu items are currently active
   const isAIFeaturesActive = aiFeatureNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
+
+  const isAnalyticsReportsActive = analyticsReportsNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
+
+  const isSystemSettingsActive = systemSettingsNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
+
+  const isAiManagementActive = aiManagementNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
+
+  const isIntegrationsActive = integrationNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
   );
 
@@ -147,11 +191,10 @@ const Layout = () => {
         {/* Sidebar */}
         <aside className="bg-[#18192a] flex flex-col px-8 py-6 h-screen">
           <Link to="/" className="text-white text-2xl font-bold mb-8">
-            {/* DealFlow */}
             <img src="/logo.jpeg" alt="Logo" />
           </Link>
 
-          {/* Vertical Navbar - Takes up remaining space */}
+          {/* Vertical Navbar */}
           <nav className="flex flex-col gap-3 w-full flex-1 overflow-y-auto">
             {/* Top Level Navigation Items */}
             {topLevelNavLinks.map((link) => (
@@ -168,7 +211,7 @@ const Layout = () => {
               </Link>
             ))}
 
-            {/* SaaS Management Dropdown - Now appears after Dashboard */}
+            {/* SaaS Management Dropdown */}
             {shouldShowSaaSManagement && (
               <div className="flex flex-col">
                 <button
@@ -197,7 +240,6 @@ const Layout = () => {
                   </svg>
                 </button>
 
-                {/* SaaS Management Submenu Items */}
                 {isSaaSManagementExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
                     {filteredSaaSManagementNavLinks.map((link) => (
@@ -218,7 +260,7 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Property List - New independent menu */}
+            {/* Property List */}
             {shouldShowPropertyList && (
               <Link
                 to="/app/properties"
@@ -257,7 +299,6 @@ const Layout = () => {
                   </svg>
                 </button>
 
-                {/* AI Features Submenu Items */}
                 {isAIFeaturesExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
                     {aiFeatureNavLinks.map((link) => (
@@ -307,7 +348,6 @@ const Layout = () => {
                   </svg>
                 </button>
 
-                {/* Marketing Hub Submenu Items */}
                 {isMarketingHubExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
                     {marketingHubNavLinks.map((link) => (
@@ -357,7 +397,6 @@ const Layout = () => {
                   </svg>
                 </button>
 
-                {/* Marketplace Submenu Items */}
                 {isMarketplaceExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
                     {marketplaceNavLinks.map((link) => (
@@ -378,7 +417,203 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Settings Dropdown - Only show if user is not staff */}
+            {/* Analytics & Reports Dropdown */}
+            {shouldShowAnalyticsReports && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() =>
+                    setIsAnalyticsReportsExpanded(!isAnalyticsReportsExpanded)
+                  }
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isAnalyticsReportsActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>Analytics & Reports</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isAnalyticsReportsExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {isAnalyticsReportsExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {analyticsReportsNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI Management Dropdown */}
+            {shouldShowAiManagement && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() =>
+                    setIsAiManagementExpanded(!isAiManagementExpanded)
+                  }
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isAiManagementActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>AI Management</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isAiManagementExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {isAiManagementExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {aiManagementNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* System Settings Dropdown */}
+            {shouldShowSystemSettings && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() =>
+                    setIsSystemSettingsExpanded(!isSystemSettingsExpanded)
+                  }
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isSystemSettingsActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>System Settings</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isSystemSettingsExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {isSystemSettingsExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {systemSettingsNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Integrations Dropdown */}
+            {shouldShowIntegrations && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() =>
+                    setIsIntegrationsExpanded(!isIntegrationsExpanded)
+                  }
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isIntegrationsActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>Integrations</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isIntegrationsExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {isIntegrationsExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {integrationNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Settings Dropdown */}
             {shouldShowSettings && (
               <div className="flex flex-col">
                 <button
@@ -405,7 +640,6 @@ const Layout = () => {
                   </svg>
                 </button>
 
-                {/* Settings Submenu Items */}
                 {isSettingsExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
                     {settingsNavLinks.map((link) => (
@@ -436,7 +670,6 @@ const Layout = () => {
               aria-label="Go to Profile"
             >
               <span className="block bg-white rounded-full p-1">
-                {/* Elegant User Avatar SVG */}
                 <svg
                   width="32"
                   height="32"
@@ -490,7 +723,6 @@ const Layout = () => {
 
         {/* Main Content */}
         <main className="relative flex flex-col items-center justify-center h-screen w-full overflow-hidden">
-          {/* Card-like wrapper for content */}
           <div className="w-full h-full p-6 overflow-y-auto">
             <Outlet />
           </div>
