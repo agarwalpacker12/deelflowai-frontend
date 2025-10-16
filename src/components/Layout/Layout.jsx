@@ -25,6 +25,8 @@ const marketingHubNavLinks = [
   { to: "/app/leads", label: "Leads" },
   { to: "/app/clients", label: "Clients" },
   { to: "/app/marketing/advanced", label: "Advanced" },
+  { to: "/app/marketing/contacts", label: "Contacts" },
+  { to: "/app/marketing/communications", label: "Communications" },
 ];
 
 // AI Features navigation links
@@ -79,6 +81,23 @@ const superAdminSettingsNavLinks = [
 const saasManagementNavLinks = [
   { to: "/app/tenant-management", label: "Tenant Management" },
   { to: "/app/role-management", label: "Role Management" },
+
+  { to: "/app/pricing", label: "Pricing Plans" },
+  { to: "/app/billing", label: "Billing Settings" },
+  { to: "/app/revenue", label: "Revenue Analytics" },
+  { to: "/app/subscription", label: "Subscription" },
+];
+
+const whiteLabelNavLinks = [
+  { to: "/app/white-label/tenant-management", label: "Tenant Management" },
+  { to: "/app/white-label/branding-settings", label: "Branding Settings" },
+  { to: "/app/white-label/domain-management", label: "Domain Management" },
+];
+
+const landingPageBuilderNavLinks = [
+  { to: "/app/landing-page-builder/templates", label: "Templates" },
+  { to: "/app/landing-page-builder/page-builder", label: "Page Builder" },
+  { to: "/app/landing-page-builder/ab-testing", label: "A/B Testing" },
 ];
 
 const Layout = () => {
@@ -96,6 +115,9 @@ const Layout = () => {
     useState(false);
   const [isAiManagementExpanded, setIsAiManagementExpanded] = useState(false);
   const [isIntegrationsExpanded, setIsIntegrationsExpanded] = useState(false);
+  const [isWhiteLabelExpanded, setIsWhiteLabelExpanded] = useState(false);
+  const [isLandingPageBuilderExpanded, setIsLandingPageBuilderExpanded] =
+    useState(false);
 
   const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = userDetails.role || "staff";
@@ -141,6 +163,12 @@ const Layout = () => {
   const shouldShowIntegrations =
     userRole === "admin" || userRole === "superadmin";
 
+  const shouldShowWhiteLabel =
+    userRole === "admin" || userRole === "superadmin";
+
+  const shouldShowLandingPageBuilder =
+    userRole === "admin" || userRole === "superadmin";
+
   // Check if any submenu items are currently active
   const isSettingsActive = settingsNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
@@ -183,7 +211,12 @@ const Layout = () => {
   const isIntegrationsActive = integrationNavLinks.some((link) =>
     location.pathname.startsWith(link.to)
   );
-
+  const isWhiteLabelActive = whiteLabelNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
+  const isLandingPageBuilderActive = landingPageBuilderNavLinks.some((link) =>
+    location.pathname.startsWith(link.to)
+  );
   return (
     <>
       <NotificationBar />
@@ -596,6 +629,105 @@ const Layout = () => {
                 {isIntegrationsExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
                     {integrationNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* White Label Dropdown */}
+            {shouldShowWhiteLabel && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() => setIsWhiteLabelExpanded(!isWhiteLabelExpanded)}
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isWhiteLabelActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>White Label</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isWhiteLabelExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {isWhiteLabelExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {whiteLabelNavLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`px-3 py-2 rounded text-slate-300 font-medium transition hover:bg-indigo-700 hover:text-white text-sm ${
+                          location.pathname.startsWith(link.to)
+                            ? "bg-indigo-600 text-white"
+                            : ""
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* </div>
+            )} */}
+            {/* Landing Page Builder Dropdown */}
+            {shouldShowLandingPageBuilder && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() =>
+                    setIsLandingPageBuilderExpanded(
+                      !isLandingPageBuilderExpanded
+                    )
+                  }
+                  className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white flex items-center justify-between ${
+                    isLandingPageBuilderActive ? "bg-indigo-600 text-white" : ""
+                  }`}
+                >
+                  <span>Landing Page Builder</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      isLandingPageBuilderExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {isLandingPageBuilderExpanded && (
+                  <div className="ml-4 mt-2 flex flex-col gap-2">
+                    {landingPageBuilderNavLinks.map((link) => (
                       <Link
                         key={link.to}
                         to={link.to}
