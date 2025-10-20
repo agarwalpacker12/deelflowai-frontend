@@ -65,9 +65,15 @@ const CampaignsTable = () => {
         const response = await campaignsAPI.getCampaigns(params);
 
         if (response.data.status === "success") {
-          setCampaigns(response.data.data.data);
-          setTotal(response.data.data.meta.total);
-          setTotalPages(response.data.data.meta.last_page);
+          // Set campaigns directly from API response
+          setCampaigns(response.data.data);
+          setTotal(response.data.total);
+
+          // Calculate total pages since API doesn't provide it
+          const calculatedTotalPages = Math.ceil(
+            response.data.total / (response.data.limit || perPage)
+          );
+          setTotalPages(calculatedTotalPages);
         } else {
           setError("Failed to fetch campaigns");
         }
@@ -151,7 +157,6 @@ const CampaignsTable = () => {
       setCampaigns((prevCampaigns) =>
         prevCampaigns.filter((campaign) => campaign.id !== id)
       );
-      // setSuccess("Campaign deleted successfully");
       toast.success("Campaign deleted successfully");
       setTimeout(() => setSuccess(null), 2000);
     } catch (err) {
@@ -164,6 +169,18 @@ const CampaignsTable = () => {
       {/* Filters */}
       <div className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search campaigns..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           {/* Campaign Type Filter */}
           <div className="relative">
             <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -173,8 +190,52 @@ const CampaignsTable = () => {
               className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
             >
               <option value="">All Types</option>
-              <option value="seller_finder">Seller Finder</option>
-              <option value="buyer_finder">Buyer Finder</option>
+              <option value="email">Email</option>
+              <option value="marketing">Marketing</option>
+              <option value="promotion">Promotion</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
+            >
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="completed">Completed</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+
+          {/* Channel Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <select
+              value={channelFilter}
+              onChange={(e) => setChannelFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
+            >
+              <option value="">All Channels</option>
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+            </select>
+          </div>
+
+          {/* Per Page */}
+          <div className="relative">
+            <select
+              value={perPage}
+              onChange={(e) => setPerPage(Number(e.target.value))}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
+            >
+              <option value={10}>10 per page</option>
+              <option value={25}>25 per page</option>
+              <option value={50}>50 per page</option>
             </select>
           </div>
 
@@ -248,13 +309,14 @@ const CampaignsTable = () => {
                       key={campaign.id}
                       className="border-b border-white/10 hover:bg-white/5"
                     >
+                      {/* Campaign Info */}
                       <td className="p-4">
                         <div className="space-y-2">
                           <div className="text-white font-medium">
                             {campaign.name}
                           </div>
                           <div className="text-gray-400 text-sm">
-                            {campaign.target_criteria?.location}
+                            {campaign.location}
                           </div>
                           <div className="text-xs text-gray-500 capitalize">
                             {campaign.campaign_type?.replace("_", " ")}
@@ -262,6 +324,7 @@ const CampaignsTable = () => {
                         </div>
                       </td>
 
+                      {/* Details */}
                       <td className="p-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-gray-300 text-sm">
@@ -269,55 +332,59 @@ const CampaignsTable = () => {
                             {campaign.channel?.replace("_", " ")}
                           </div>
                           <div className="text-gray-400 text-sm capitalize">
-                            {campaign.target_criteria?.property_type?.replace(
-                              "_",
-                              " "
-                            )}
+                            {campaign.property_type?.replace("_", " ")}
                           </div>
                           <div className="text-xs text-gray-500">
                             Min Equity:{" "}
-                            {formatCurrency(
-                              campaign.target_criteria?.equity_min || 0
-                            )}
+                            {formatCurrency(campaign.minimum_equity || 0)}
                           </div>
+                          {campaign.min_price && campaign.max_price && (
+                            <div className="text-xs text-gray-500">
+                              Price: {formatCurrency(campaign.min_price)} -{" "}
+                              {formatCurrency(campaign.max_price)}
+                            </div>
+                          )}
                         </div>
                       </td>
 
+                      {/* Performance */}
                       <td className="p-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <Users className="h-3 w-3 text-gray-400" />
                             <span className="text-sm text-white">
-                              {campaign.sent_count}/{campaign.total_recipients}
+                              {campaign.sent_count || 0}/
+                              {campaign.total_recipients || "N/A"}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <TrendingUp className="h-3 w-3 text-green-400" />
                             <span className="text-sm text-green-400">
                               {calculateOpenRate(
-                                campaign.open_count,
-                                campaign.sent_count
+                                campaign.open_count || 0,
+                                campaign.sent_count || 0
                               )}
                               % open
                             </span>
                           </div>
                           <div className="text-xs text-gray-400">
                             {calculateClickRate(
-                              campaign.click_count,
-                              campaign.sent_count
+                              campaign.click_count || 0,
+                              campaign.sent_count || 0
                             )}
                             % click
                           </div>
                           <div className="text-xs text-gray-400">
                             {calculateConversionRate(
-                              campaign.conversion_count,
-                              campaign.sent_count
+                              campaign.conversion_count || 0,
+                              campaign.sent_count || 0
                             )}
                             % convert
                           </div>
                         </div>
                       </td>
 
+                      {/* Budget & Spend */}
                       <td className="p-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-white text-sm">
@@ -325,12 +392,15 @@ const CampaignsTable = () => {
                             {formatCurrency(campaign.budget)}
                           </div>
                           <div className="text-gray-400 text-sm">
-                            Spent: {formatCurrency(campaign.spent)}
+                            Spent: {formatCurrency(campaign.spent || 0)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {((campaign.spent / campaign.budget) * 100).toFixed(
-                              0
-                            )}
+                            {campaign.spent
+                              ? (
+                                  (campaign.spent / campaign.budget) *
+                                  100
+                                ).toFixed(0)
+                              : "0"}
                             % used
                           </div>
                           <div className="w-full bg-gray-700 rounded-full h-1">
@@ -339,7 +409,8 @@ const CampaignsTable = () => {
                               style={{
                                 width: `${Math.min(
                                   100,
-                                  (campaign.spent / campaign.budget) * 100
+                                  ((campaign.spent || 0) / campaign.budget) *
+                                    100
                                 )}%`,
                               }}
                             ></div>
@@ -347,6 +418,7 @@ const CampaignsTable = () => {
                         </div>
                       </td>
 
+                      {/* Status */}
                       <td className="p-4">
                         <div className="space-y-2">
                           <span
@@ -367,6 +439,7 @@ const CampaignsTable = () => {
                         </div>
                       </td>
 
+                      {/* Schedule */}
                       <td className="p-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-gray-400 text-xs">
@@ -379,16 +452,9 @@ const CampaignsTable = () => {
                         </div>
                       </td>
 
+                      {/* Actions */}
                       <td className="p-4">
                         <div className="flex gap-2">
-                          {/* <button
-                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                            onClick={() =>
-                              navigate(`/app/campaigns/${campaign.id}`)
-                            }
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button> */}
                           <button
                             className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors"
                             onClick={() =>
@@ -430,19 +496,32 @@ const CampaignsTable = () => {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-1">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                      currentPage === i + 1
-                        ? "bg-blue-500 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-blue-500 text-white"
+                          : "text-gray-400 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
               </div>
               <button
                 onClick={() =>

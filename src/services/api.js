@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Base URLs - matching your Django server
-// const BASE_URL = "http://localhost:8140";
-const BASE_URL = "http://dev.deelflowai.com:8140";
+const BASE_URL = "http://localhost:8140";
+// const BASE_URL = "http://dev.deelflowai.com:8140";
 const API_BASE_URL = `${BASE_URL}/api`;
 
 // Create a single API instance for all requests
@@ -124,7 +124,7 @@ export const dealMilestonesAPI = {
 
 export const campaignsAPI = {
   getCampaigns: (params) => AllGETHeader.get("/campaigns/", { params }),
-  getCampaign: (id) => api.get(`/campaigns/${id}/`),
+  getCampaign: (id) => AllGETHeader.get(`/campaigns/${id}/`),
   createCampaign: (data) => AllPOSTHeader.post("/campaigns/", data),
   updateCampaign: (id, data) => api.put(`/campaigns/${id}/`, data),
   deleteCampaign: (id) => api.delete(`/campaigns/${id}/`),
