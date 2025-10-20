@@ -18,7 +18,6 @@ export const transactionTypeList = [
   { value: "assignment", label: "Assignment" },
   { value: "double_close", label: "Double Close" },
   { value: "buy_and_hold", label: "Buy & Hold" },
-
 ];
 //  assignment, double_close, wholesale, fix_and_flip, buy_and_holds
 // US States list
@@ -111,40 +110,40 @@ export const validateField = (fieldName, value) => {
       return !value ? "State is required" : "";
     case "zip_code":
       return !value.trim() ? "ZIP code is required" : "";
-    case "county":
-      return !value.trim() ? "County is required" : "";
-    case "property_type":
-      return !value ? "Property type is required" : "";
-    case "bedrooms":
-      return !value || value < 0 ? "Valid number of bedrooms is required" : "";
-    case "bathrooms":
-      return !value || value < 0 ? "Valid number of bathrooms is required" : "";
-    case "square_feet":
-      return !value || value < 0 ? "Valid square footage is required" : "";
-    case "lot_size":
-      return !value || value < 0 ? "Valid lot size is required" : "";
-    case "year_built":
-      return !value || value < 1800 || value > new Date().getFullYear()
-        ? "Valid year built is required"
-        : "";
-    case "purchase_price":
-      return !value || value < 0 ? "Valid purchase price is required" : "";
-    case "arv":
-      return !value || value < 0 ? "Valid ARV is required" : "";
-    case "repair_estimate":
-      return !value || value < 0 ? "Valid repair estimate is required" : "";
-    case "holding_costs":
-      return !value || value < 0 ? "Valid holding costs are required" : "";
-    case "transaction_type":
-      return !value ? "Transaction type is required" : "";
-    case "assignment_fee":
-      return !value || value < 0 ? "Valid assignment fee is required" : "";
-    case "property_description":
-      return !value.trim() ? "Property description is required" : "";
+    // case "county":
+    //   return !value.trim() ? "County is required" : "";
+    // case "property_type":
+    //   return !value ? "Property type is required" : "";
+    // case "bedrooms":
+    //   return !value || value < 0 ? "Valid number of bedrooms is required" : "";
+    // case "bathrooms":
+    //   return !value || value < 0 ? "Valid number of bathrooms is required" : "";
+    // case "square_feet":
+    //   return !value || value < 0 ? "Valid square footage is required" : "";
+    // case "lot_size":
+    //   return !value || value < 0 ? "Valid lot size is required" : "";
+    // case "year_built":
+    //   return !value || value < 1800 || value > new Date().getFullYear()
+    //     ? "Valid year built is required"
+    //     : "";
+    // case "purchase_price":
+    //   return !value || value < 0 ? "Valid purchase price is required" : "";
+    // case "arv":
+    //   return !value || value < 0 ? "Valid ARV is required" : "";
+    // case "repair_estimate":
+    //   return !value || value < 0 ? "Valid repair estimate is required" : "";
+    // case "holding_costs":
+    //   return !value || value < 0 ? "Valid holding costs are required" : "";
+    // case "transaction_type":
+    //   return !value ? "Transaction type is required" : "";
+    // case "assignment_fee":
+    //   return !value || value < 0 ? "Valid assignment fee is required" : "";
+    // case "property_description":
+    //   return !value.trim() ? "Property description is required" : "";
     case "unit_apt":
       return !value.trim() ? "Unit/Apt is required" : "";
-    case "seller_notes":
-      return !value.trim() ? "Seller notes are required" : "";
+    // case "seller_notes":
+    //   return !value.trim() ? "Seller notes are required" : "";
     default:
       return "";
   }
