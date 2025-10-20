@@ -255,7 +255,6 @@ const Dashboard = () => {
         //   };
         // }
         if (aiAccuracyRes.status === "fulfilled") {
-          debugger;
           newDashboardData.aiAccuracyRes = {
             percentage: aiAccuracyRes.value.data.data.overall_accuracy || 0,
             status:
@@ -270,34 +269,44 @@ const Dashboard = () => {
         const newAiMetrics = { ...aiMetrics };
 
         if (voiceAIMetricsRes.status === "fulfilled") {
-          const data = voiceAIMetricsRes.value.data;
           newAiMetrics.voiceAI = {
-            value: formatNumber(data.total_calls || 0),
-            percentage: `${data.success_rate || 0}%`,
+            value: formatNumber(
+              voiceAIMetricsRes.value.data.data.total_calls || 0
+            ),
+            percentage: `${
+              voiceAIMetricsRes.value.data.data.success_rate || 0
+            }%`,
           };
         }
 
         if (visionAnalysisRes.status === "fulfilled") {
-          const data = visionAnalysisRes.value.data;
           newAiMetrics.visionAnalysis = {
-            value: formatNumber(data.imagesProcessed || 0),
-            percentage: `${data.accuracy || 0}%`,
+            value: formatNumber(
+              visionAnalysisRes.value.data.data.total_analyses || 0
+            ),
+            percentage: `${
+              visionAnalysisRes.value.data.data.accuracy_rate || 0
+            }%`,
           };
         }
 
         if (nlpProcessingRes.status === "fulfilled") {
-          const data = nlpProcessingRes.value.data;
           newAiMetrics.nlpProcessing = {
-            value: formatNumber(data.sentimentAccuracy || 0),
-            percentage: `${data.documentsProcessed || 0}%`,
+            value: formatNumber(
+              nlpProcessingRes.value.data.data.total_processed || 0
+            ),
+            percentage: `${
+              nlpProcessingRes.value.data.data.average_processing_time || 0
+            }%`,
           };
         }
 
         if (blockchainRes.status === "fulfilled") {
-          const data = blockchainRes.value.data;
           newAiMetrics.blockchain = {
-            value: formatNumber(data.total_txns || 0),
-            percentage: `${data.success_rate || 0}%`,
+            value: formatNumber(
+              blockchainRes.value.data.data.total_transactions || 0
+            ),
+            percentage: `${blockchainRes.value.data.data.success_rate || 0}%`,
           };
         }
 
@@ -310,38 +319,57 @@ const Dashboard = () => {
           const data = tenantStatsRes.value.data.data;
 
           newTenantData.stats = {
-            activeTenants: (data.activeTenants || 0).toString(),
-            paymentOverdue: (data.paymentOverdue || 0).toString(),
-            suspended: (data.suspended || 0).toString(),
-            monthlyRevenue: formatCurrency(data.monthlyRevenue || 0),
+            activeTenants: (
+              tenantStatsRes.value.data.data.activeTenants || 0
+            ).toString(),
+            paymentOverdue: (
+              tenantStatsRes.value.data.data.paymentOverdue || 0
+            ).toString(),
+            suspended: (
+              tenantStatsRes.value.data.data.suspended || 0
+            ).toString(),
+            monthlyRevenue: formatCurrency(
+              tenantStatsRes.value.data.data.monthlyRevenue || 0
+            ),
           };
         }
 
         if (tenantActivityRes.status === "fulfilled") {
           const data = tenantActivityRes.value.data.data;
-          console.log("data", data);
-
-          newTenantData.recentActivity = data.activities || [];
+          newTenantData.recentActivity =
+            tenantActivityRes.value.data.data || [];
         }
 
         setTenantData(newTenantData);
 
         // Process opportunity cost analysis response
         if (opportunityCostRes.status === "fulfilled") {
-          const data = opportunityCostRes.value.data;
           setOpportunityCostData({
-            lostRevenue: formatCurrency(data.lost_revenue || 0),
+            lostRevenue: formatCurrency(
+              opportunityCostRes.value.data.data.lostRevenue || 0
+            ),
             lostRevenueDescription:
-              data.lost_revenue_description ||
+              opportunityCostRes.value.data.data.lostRevenueDescription ||
               "Lost due diluted for full automation",
-            potentialRevenue: formatCurrency(data.potential_revenue || 0),
-            currentRevenue: formatCurrency(data.current_revenue || 0),
-            projectedRevenue: formatCurrency(data.projected_revenue || 0),
-            optimizationNeeded: data.optimization_needed || 0,
-            roiConversionEfficiency: `${data.roi_conversion_efficiency || 0}%`,
-            peakTimeMonths: data.peak_time_months || 0,
+            potentialRevenue: formatCurrency(
+              opportunityCostRes.value.data.data.potentialRevenue || 0
+            ),
+            currentRevenue: formatCurrency(
+              opportunityCostRes.value.data.data.currentRevenue || 0
+            ),
+            projectedRevenue: formatCurrency(
+              opportunityCostRes.value.data.data.projectedRevenue || 0
+            ),
+            optimizationNeeded:
+              opportunityCostRes.value.data.data.optimizationNeeded || 0,
+            roiConversionEfficiency: `${
+              opportunityCostRes.value.data.data.roiConversionEfficiency || 0
+            }%`,
+            peakTimeMonths:
+              opportunityCostRes.value.data.data.peakTimeMonths || 0,
             peakDescription:
-              data.peak_description || "automated renewal potential",
+              opportunityCostRes.value.data.data.peakDescription ||
+              "automated renewal potential",
           });
         }
         // Process market alerts response
@@ -350,7 +378,9 @@ const Dashboard = () => {
         }
         // Set chart data
         if (chartDataRes.status === "fulfilled") {
-          setChartData(chartDataRes.value.data.chart_data || []);
+          setChartData(
+            chartDataRes.value.data.data.chart_data.revenueData || []
+          );
         }
 
         // Set live activity
