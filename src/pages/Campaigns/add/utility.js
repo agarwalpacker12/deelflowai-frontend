@@ -33,7 +33,7 @@ export const propertyTypes = [
 export const DefaultValues = {
   // Basic campaign information
   name: "",
-  campaign_type: "",
+  campaign_type: "buyer_finder",
   channel: [],
   budget: 1000.0,
   scheduled_at: "",

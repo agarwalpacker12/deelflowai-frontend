@@ -84,13 +84,41 @@ const CreateCampaignForm = ({ fillMode }) => {
   });
 
   const onSubmit = (data) => {
+    // Build geographic_scope_values array based on campaign type
+    let geographic_scope_values = [];
+
+    if (data.campaign_type === "buyer_finder") {
+      // Collect buyer geographic values
+      geographic_scope_values = [
+        data.buyer_country,
+        data.buyer_state,
+        data.buyer_counties,
+        data.buyer_city,
+        data.buyer_districts,
+        data.buyer_parish,
+      ].filter(Boolean); // Remove empty values
+    } else if (data.campaign_type === "seller_finder") {
+      // Collect seller geographic values
+      geographic_scope_values = [
+        data.seller_country,
+        data.seller_state,
+        data.seller_counties,
+        data.seller_city,
+        data.seller_districts,
+        data.seller_parish,
+      ].filter(Boolean); // Remove empty values
+    }
+
     const formData = {
       ...data,
+      geographic_scope_values,
       geographic_scope: {
         type: selectedScopeType,
         counties: selectedCounties.map((c) => c.name),
       },
     };
+    // console.log("formData", JSON.stringify(formData));
+
     mutation.mutate(formData);
   };
 
@@ -590,7 +618,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-                          {...register("buyer_country")}
+                          {...register("geographic_scope_type")}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
                         >
                           <option value="">Select Country</option>
@@ -790,7 +818,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-                          {...register("seller_country")}
+                          {...register("geographic_scope_type")}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
                         >
                           <option value="">Select Country</option>
