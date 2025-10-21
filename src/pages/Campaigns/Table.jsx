@@ -327,10 +327,10 @@ const CampaignsTable = () => {
                       {/* Details */}
                       <td className="p-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-gray-300 text-sm">
+                          {/* <div className="flex items-center gap-2 text-gray-300 text-sm">
                             <Mail className="h-3 w-3" />
                             {campaign.channel?.replace("_", " ")}
-                          </div>
+                          </div> */}
                           <div className="text-gray-400 text-sm capitalize">
                             {campaign.property_type?.replace("_", " ")}
                           </div>
