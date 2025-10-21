@@ -22,37 +22,39 @@ import {
 function mapPropertyToFormFields(property) {
   if (!property) return { ...DefaultValues };
   return {
-    street_address: property.address || "",
-    unit_apt: property.unit || "",
+    street_address: property.street_address || "",
+    unit_apt: property.unit_apt || "",
     city: property.city || "",
     state: property.state || "",
-    zip_code: property.zip || "",
+    zip_code: property.zip_code || "",
     county: property.county || "",
     property_type: property.property_type || "",
-    bedrooms: property.bedrooms ?? "",
-    bathrooms: property.bathrooms ?? "",
-    square_feet: property.square_feet ?? "",
-    lot_size: property.lot_size ?? "",
-    year_built: property.year_built ?? "",
-    purchase_price: property.purchase_price ?? "",
-    arv: property.arv ?? "",
-    repair_estimate: property.repair_estimate ?? "",
-    holding_costs: property.holding_costs ?? "",
-    transaction_type: property.transaction_type || "",
-    assignment_fee: property.assignment_fee ?? "",
-    property_description: property.description || "",
-    seller_notes: property.seller_notes || "",
+    bedrooms: String(property.bedrooms ?? ""),
+    bathrooms: String(property.bathrooms) ?? "",
+    square_feet: String(property.square_feet) ?? "",
+    lot_size: String(property.lot_size) ?? "",
+    year_built: String(property.year_built) ?? "",
+    purchase_price: String(property.purchase_price) ?? "",
+    arv: String(property.arv) ?? "",
+    repair_estimate: String(property.repair_estimate) ?? "",
+    holding_costs: String(property.holding_costs) ?? "",
+    transaction_type: String(property.transaction_type) ?? "",
+    assignment_fee: String(property.assignment_fee) ?? "",
+    property_description: String(property.property_description) ?? "",
+    seller_notes: String(property.seller_notes) ?? "",
   };
 }
 
-const EditPropertyForm = ({propertyRes}) => {
+const EditPropertyForm = ({ propertyRes }) => {
   // Redux hooks
   const dispatch = useDispatch();
   const { properties, loading } = useSelector((state) => state.properties);
   const navigate = useNavigate();
 
   // Use mapping function to initialize formData
-  const [formData, setFormData] = useState(mapPropertyToFormFields(propertyRes));
+  const [formData, setFormData] = useState(
+    mapPropertyToFormFields(propertyRes)
+  );
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
@@ -105,30 +107,11 @@ const EditPropertyForm = ({propertyRes}) => {
 
     try {
       // Prepare data for API (only selected fields)
-      const apiData = {
-        address: formData.street_address, // backend expects 'address'
-        unit: formData.unit_apt || "",         // backend expects 'unit'
-        city: formData.city,
-        state: formData.state,
-        zip: formData.zip_code,          // backend expects 'zip'
-        county: formData.county,
-        property_type: formData.property_type,
-        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
-        bathrooms: formData.bathrooms ? parseFloat(formData.bathrooms) : null,
-        square_feet: formData.square_feet ? parseInt(formData.square_feet) : null,
-        lot_size: formData.lot_size ? parseFloat(formData.lot_size) : null,
-        year_built: formData.year_built ? parseInt(formData.year_built) : null,
-        purchase_price: formData.purchase_price ? parseFloat(formData.purchase_price) : null,
-        arv: formData.arv ? parseFloat(formData.arv) : null,
-        repair_estimate: formData.repair_estimate ? parseFloat(formData.repair_estimate) : null,
-        holding_costs: formData.holding_costs ? parseFloat(formData.holding_costs) : null,
-        transaction_type: formData.transaction_type, // must be one of: assignment, double_close, wholesale, fix_and_flip, buy_and_hold
-        assignment_fee: formData.assignment_fee ? parseFloat(formData.assignment_fee) : null,
-        description: formData.property_description, // backend expects 'description'
-        seller_notes: formData.seller_notes || "",
-      };
 
-      const response = await propertiesAPI.updateProperty(propertyRes?.id,  apiData);
+      const response = await propertiesAPI.updateProperty(
+        propertyRes?.id,
+        formData
+      );
 
       if (response.data.status === "success") {
         const newProperty = response.data.data;
@@ -196,7 +179,8 @@ const EditPropertyForm = ({propertyRes}) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Street Address *
+                      Street Address{" "}
+                      <span className="text-red-500 text-sm mt-1"> * </span>
                     </label>
                     <input
                       name="street_address"
@@ -218,7 +202,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Unit/Apt (Optional)
+                      Unit/Apt
                     </label>
                     <input
                       name="unit_apt"
@@ -228,18 +212,19 @@ const EditPropertyForm = ({propertyRes}) => {
                       placeholder="Unit, Apt, Suite"
                     />
 
-{errors.unit_apt && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.unit_apt}
-                    </p>
-                  )}
+                    {errors.unit_apt && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.unit_apt}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City *
+                      City{" "}
+                      <span className="text-red-500 text-sm mt-1"> * </span>
                     </label>
                     <input
                       name="city"
@@ -257,7 +242,8 @@ const EditPropertyForm = ({propertyRes}) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      State *
+                      State{" "}
+                      <span className="text-red-500 text-sm mt-1"> * </span>
                     </label>
                     <select
                       name="state"
@@ -282,7 +268,8 @@ const EditPropertyForm = ({propertyRes}) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ZIP Code *
+                      ZIP Code{" "}
+                      <span className="text-red-500 text-sm mt-1"> * </span>
                     </label>
                     <input
                       name="zip_code"
@@ -302,7 +289,8 @@ const EditPropertyForm = ({propertyRes}) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      County *
+                      County{" "}
+                      <span className="text-red-500 text-sm mt-1"> * </span>
                     </label>
                     <input
                       name="county"
@@ -332,7 +320,7 @@ const EditPropertyForm = ({propertyRes}) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Property Type *
+                    Property Type
                   </label>
                   <select
                     name="property_type"
@@ -359,11 +347,11 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bedrooms *
+                    Bedrooms
                   </label>
                   <input
                     name="bedrooms"
-                    type="number"
+                    type="text"
                     value={formData.bedrooms}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
@@ -380,12 +368,11 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bathrooms *
+                    Bathrooms
                   </label>
                   <input
                     name="bathrooms"
-                    type="number"
-                    step="0.5"
+                    type="text"
                     value={formData.bathrooms}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
@@ -402,11 +389,11 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Square Feet *
+                    Square Feet
                   </label>
                   <input
                     name="square_feet"
-                    type="number"
+                    type="text"
                     value={formData.square_feet}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
@@ -423,11 +410,11 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Lot Size (acres) *
+                    Lot Size (acres)
                   </label>
                   <input
                     name="lot_size"
-                    type="number"
+                    type="text"
                     step="0.01"
                     value={formData.lot_size}
                     onChange={handleInputChange}
@@ -445,7 +432,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Year Built *
+                    Year Built
                   </label>
                   <input
                     name="year_built"
@@ -475,7 +462,7 @@ const EditPropertyForm = ({propertyRes}) => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Purchase Price *
+                    Purchase Price
                   </label>
                   <input
                     name="purchase_price"
@@ -498,7 +485,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ARV (After Repair Value) *
+                    ARV (After Repair Value)
                   </label>
                   <input
                     name="arv"
@@ -517,7 +504,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Repair Estimate *
+                    Repair Estimate
                   </label>
                   <input
                     name="repair_estimate"
@@ -540,7 +527,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Holding Costs *
+                    Holding Costs
                   </label>
                   <input
                     name="holding_costs"
@@ -563,7 +550,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Transaction Type *
+                    Transaction Type
                   </label>
                   <select
                     name="transaction_type"
@@ -590,7 +577,7 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Assignment Fee *
+                    Assignment Fee
                   </label>
                   <input
                     name="assignment_fee"
@@ -655,7 +642,7 @@ const EditPropertyForm = ({propertyRes}) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Property Description *
+                    Property Description
                   </label>
                   <textarea
                     name="property_description"
@@ -678,18 +665,18 @@ const EditPropertyForm = ({propertyRes}) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Seller Notes (Optional)
+                    Seller Notes
                   </label>
                   <textarea
                     name="seller_notes"
                     rows={3}
                     value={formData.seller_notes}
                     onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
-                         errors.property_description
-                           ? "border-red-500"
-                           : "border-gray-300"
-                       }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                      errors.property_description
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                     placeholder="Any additional notes about the seller or property"
                   />
                   {errors.seller_notes && (
