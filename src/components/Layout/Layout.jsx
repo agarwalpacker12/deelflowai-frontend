@@ -61,6 +61,7 @@ const aiManagementNavLinks = [
 // Integration navigation links
 const integrationNavLinks = [
   { to: "/app/integrations/api", label: "API Keys" },
+  { to: "/app/payment-gateway", label: "Payment Methods" },
   { to: "/app/integrations/webhooks", label: "Webhooks" },
   { to: "/app/integrations/third-party", label: "Third Party Apps" },
 ];
