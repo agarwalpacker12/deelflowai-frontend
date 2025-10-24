@@ -84,6 +84,9 @@ import NlpAiPage from "./pages/AI/nlp/NlpAiPage.jsx";
 import DuplicateManagementDashboard from "./pages/Duplicate/page.jsx";
 import PageManagement from "./pages/Page_Management/page.jsx";
 import PaymentGatewayMethods from "./pages/payment-gateway/page.jsx";
+import NewLeadPage from "./pages/new_Lead/Page.jsx";
+import AddNewLead from "./pages/new_Lead/add/index.jsx";
+import EditNewLead from "./pages/new_Lead/[id]/index.jsx";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -159,10 +162,12 @@ function App() {
                           />
 
                           <Route path="dashboard" element={<Dashboard />} />
-                          <Route path="leads" element={<LeadsPage />} />
+                          {/* <Route path="leads" element={<LeadsPage />} />
                           <Route path="leads/add" element={<AddLead />} />
-                          <Route path="leads/:id" element={<EditLead />} />
-
+                          <Route path="leads/:id" element={<EditLead />} /> */}
+                          <Route path="leads" element={<NewLeadPage />} />
+                          <Route path="leads/add" element={<AddNewLead />} />
+                          <Route path="leads/:id" element={<EditNewLead />} />
                           <Route
                             path="properties"
                             element={<PropertiesPage />}

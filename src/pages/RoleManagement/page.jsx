@@ -4,17 +4,20 @@ import MainContentWrapper from "../../components/Layout/MainContentWrapper";
 import { RbacAPI } from "../../services/api";
 
 const RoleManagementPage = () => {
-  const [permissionState, setPermissionState] = useState();
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [allPermission, setAllPermission] = useState([]);
+
+  // Permissions array provided by user
 
   useEffect(() => {
     const fetchInvitation = async () => {
       try {
         const response = await RbacAPI.getPermissions();
-        console.log("101", JSON.stringify(response.data.data));
+        console.log("101", JSON.stringify(response?.data?.data?.permissions));
 
         // Handle the API response format
         if (response.data.status === "success") {
-          setPermissionState(response.data.data);
+          setAllPermission(response?.data?.data?.permissions);
         }
       } catch (err) {
         console.error("Error fetching leads:", err);
@@ -24,127 +27,26 @@ const RoleManagementPage = () => {
     fetchInvitation();
   }, []);
 
-  // Helper function to get role display name
-  const getRoleDisplayName = (roleName) => {
-    switch (roleName) {
-      case "super_admin":
-        return "Super Admin";
-      case "admin":
-        return "Organization Admin";
-      case "staff":
-        return "Organization Member";
-      default:
-        return roleName;
-    }
-  };
-
-  const handleToggleChange = async (roleId, permissionName, currentEnabled) => {
-    try {
-      const newEnabled = !currentEnabled;
-
-      // Get all currently enabled permissions for this role
-      const enabledPermissions = [];
-
-      permissionState.permission_groups.forEach((group) => {
-        group.permissions.forEach((permission) => {
-          const rolePermission = permission.roles.find(
-            (role) => role.id === roleId
-          );
-          if (
-            rolePermission &&
-            rolePermission.enabled &&
-            permission.name !== permissionName
-          ) {
-            // Add currently enabled permissions (except the one we're toggling)
-            enabledPermissions.push(permission.name);
-          }
-        });
-      });
-
-      // If we're enabling the permission, add it to the array
-      if (newEnabled) {
-        enabledPermissions.push(permissionName);
-      }
-      // If we're disabling, it's already excluded from the array above
-
-      // Prepare the data for the API call
-      const updateData = {
-        permissions: enabledPermissions,
-      };
-
-      // Call the API to update the permission
-      await RbacAPI.UpdatePermission(roleId, updateData);
-
-      // Update local state to reflect the change
-      setPermissionState((prevState) => {
-        const newState = { ...prevState };
-        newState.permission_groups = newState.permission_groups.map(
-          (group) => ({
-            ...group,
-            permissions: group.permissions.map((permission) => {
-              if (permission.name === permissionName) {
-                return {
-                  ...permission,
-                  roles: permission.roles.map((role) => {
-                    if (role.id === roleId) {
-                      return { ...role, enabled: newEnabled };
-                    }
-                    return role;
-                  }),
-                };
-              }
-              return permission;
-            }),
-          })
-        );
-        return newState;
-      });
-
-      console.log(
-        `Updated ${permissionName} for role ${roleId} to ${newEnabled}`
-      );
-      console.log("Sent permissions array:", enabledPermissions);
-    } catch (error) {
-      console.error("Error updating permission:", error);
-      // You might want to show a toast notification or error message here
-    }
-  };
-
-  // Helper function to render toggle switch
-  const renderToggle = (isEnabled, id, permissionName) => {
-    return (
-      <div
-        onClick={() => handleToggleChange(id, permissionName, isEnabled)}
-        className={`w-11 h-6 ${
-          isEnabled ? "bg-green-500" : "bg-slate-600"
-        } rounded-full mx-auto relative cursor-pointer transition-all ${
-          isEnabled ? "hover:bg-green-400" : "hover:bg-slate-500"
-        }`}
-      >
-        <div
-          className={`w-5 h-5 bg-white rounded-full absolute top-0.5 ${
-            isEnabled ? "right-0.5" : "left-0.5"
-          } shadow-md transition-all duration-200`}
-        ></div>
-      </div>
+  const handlePermissionToggle = (permissionName) => {
+    setSelectedPermissions((prev) =>
+      prev.includes(permissionName)
+        ? prev.filter((name) => name !== permissionName)
+        : [...prev, permissionName]
     );
   };
 
-  // Get unique roles for table headers (sorted by ID)
-  const getRoles = () => {
-    if (!permissionState?.permission_groups?.[0]?.permissions?.[0]?.roles)
-      return [];
-    return permissionState.permission_groups[0].permissions[0].roles.sort(
-      (a, b) => a.id - b.id
-    );
+  // Check if a permission is selected by comparing names
+  const isPermissionChecked = (permissionName) => {
+    return selectedPermissions.includes(permissionName);
   };
-
-  const roles = getRoles();
 
   return (
     <MainContentWrapper>
       <div className="max-w-7xl mx-auto space-y-8">
-        <StaticComponent />
+        <StaticComponent
+          setSelectedPermissions={setSelectedPermissions}
+          selectedPermissions={selectedPermissions}
+        />
 
         {/* Granular Permission Management */}
         <div className="space-y-6">
@@ -160,58 +62,32 @@ const RoleManagementPage = () => {
                 <thead className="bg-white/10 border-b border-white/10">
                   <tr>
                     <th className="text-left p-4 text-white font-semibold">
-                      Module / Permission
+                      Permission
                     </th>
-                    {roles.map((role) => (
-                      <th
-                        key={role.id}
-                        className="text-center p-4 text-white font-semibold min-w-[140px]"
-                      >
-                        {getRoleDisplayName(role.name)}
-                      </th>
-                    ))}
+                    <th className="text-left p-4 text-white font-semibold">
+                      Key
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {permissionState?.permission_groups?.map((group) => (
-                    <React.Fragment key={group.group}>
-                      {/* Group Header */}
-                      <tr className="bg-white/10">
-                        <td
-                          className="p-4 text-white font-semibold"
-                          colSpan={roles.length + 1}
-                        >
-                          {group.group}
-                        </td>
-                      </tr>
-                      {/* Permissions for this group */}
-                      {group.permissions.map((permission) => (
-                        <tr
-                          key={permission.id}
-                          className="hover:bg-white/5 transition-colors"
-                        >
-                          <td className="p-4 pl-8 text-slate-300">
-                            {permission.name
-                              .replace(/([a-z])([A-Z])/g, "$1 $2")
-                              .replace(/^./, (str) => str.toUpperCase())}
-                          </td>
-                          {roles.map((role) => {
-                            const rolePermission = permission.roles.find(
-                              (r) => r.id === role.id
-                            );
-                            return (
-                              <td key={role.id} className="p-4 text-center">
-                                {renderToggle(
-                                  rolePermission?.enabled || false,
-                                  role.id,
-                                  permission.name
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </React.Fragment>
+                  {allPermission.map((permission) => (
+                    <tr
+                      key={permission.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      <td className="p-4 text-slate-300 flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isPermissionChecked(permission.name)}
+                          onChange={() => handlePermissionToggle(permission.name)}
+                          className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        />
+                        <span>{permission.label}</span>
+                      </td>
+                      <td className="p-4 text-slate-400 text-sm">
+                        {permission.name}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
