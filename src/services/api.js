@@ -76,7 +76,7 @@ api.interceptors.response.use(
 // Auth API - Fixed URLs to match your Django urls.py
 export const authAPI = {
   login: (credentials) => AllPOSTHeader.post("/api/auth/login", credentials), // Matches your URL pattern
-  register: (userData) => AllPOSTHeader.post("/create-user/", userData), // Matches your URL pattern
+  register: (userData) => AllPOSTHeader.post("/api/auth/register", userData), // Matches your URL pattern
   logout: () => api.post("/logout/"),
   getCurrentUser: () => api.get("/user/"),
   getAllUsers: () => api.get("/users/"),
@@ -127,7 +127,7 @@ export const campaignsAPI = {
   getCampaign: (id) => AllGETHeader.get(`/campaigns/${id}/`),
   createCampaign: (data) => AllPOSTHeader.post("/campaigns/", data),
   updateCampaign: (id, data) => AllPOSTHeader.put(`/campaigns/${id}/`, data),
-  deleteCampaign: (id) => api.delete(`/campaigns/${id}/`),
+  deleteCampaign: (id) => AllPOSTHeader.delete(`/campaigns/${id}/`),
   getRecipients: (id) => api.get(`/campaigns/${id}/recipients/`),
   getActiveCampaigns: () => AllGETHeader.get("/active_campaign_summary/"),
   getCampaignStats: () => AllGETHeader.get("/campaign_property_stats/"),
@@ -160,12 +160,12 @@ export const OrganizationAPI = {
 };
 
 export const RbacAPI = {
-  createRole: (data) => AllPOSTHeader.post("/create_role/", data),
-  getRoles: () => AllGETHeader.get("/get_roles/"),
-  getPermissions: () => AllGETHeader.get("/get_permissions/"),
+  createRole: (data) => api.post("/roles/", data),
+  getRoles: () => api.get("/roles/"),
+  getPermissions: () => api.get("/permissions/"),
   UpdatePermission: (id, data) => AllPOSTHeader.put(`/rbac/roles/${id}/`, data),
   UpdateRole: (data) => AllPOSTHeader.put(`/users/${data.id}/roles/`, data),
-  getRoleById: (data) => AllPOSTHeader.post(`/get_role_by_id/`, data),
+  getRoleById: (id) => api.get(`/roles/${id}`),
   deleteRole: (roleId) =>
     AllPOSTHeader.post(`/delete_role`, {
       role_id: roleId,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AddForm from "./add/AddForm";
 import { RbacAPI } from "../../services/api";
 
-function StaticComponent() {
+function StaticComponent({ setSelectedPermissions }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [allRoles, setAllRoles] = useState([]);
 
@@ -10,7 +10,6 @@ function StaticComponent() {
     const fetchRoles = async () => {
       try {
         const response = await RbacAPI.getRoles();
-        console.log(response.data.data);
 
         // Handle the API response format
         if (response.data.status === "success") {
@@ -26,16 +25,14 @@ function StaticComponent() {
 
   const fetchSinglePermissionHandler = async (id) => {
     try {
-      const formattedRequest = {
-        role_id: id,
-      };
-      const response = await RbacAPI.getRoleById(formattedRequest);
-      console.log(response.data);
+      const response = await RbacAPI.getRoleById(id);
+      console.log(response.data.data);
 
       // Handle the API response format
-      // if (response.data.status === "success") {
-      //   setAllRoles(response.data.data.roles);
-      // }
+      if (response.data.status === "success") {
+        console.log(JSON.stringify(response.data.data?.permissions));
+        setSelectedPermissions(response?.data?.data?.permissions);
+      }
     } catch (err) {
       console.error("Error fetching leads:", err);
     }
@@ -46,9 +43,9 @@ function StaticComponent() {
       console.log(response.data);
 
       // Handle the API response format
-      // if (response.data.status === "success") {
-      //   setAllRoles(response.data.data.roles);
-      // }
+      if (response.data.status === "success") {
+        setAllRoles(response.data.data.roles);
+      }
     } catch (err) {
       console.error("Error fetching leads:", err);
     }

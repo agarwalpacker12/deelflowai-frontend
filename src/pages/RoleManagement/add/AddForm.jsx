@@ -1,161 +1,78 @@
-import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import React, { useState, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { RbacAPI } from "../../../services/api";
 
 function AddForm({ isModalOpen, setIsModalOpen }) {
+  const [roleName, setRoleName] = useState("");
+  const [roleLabel, setRoleLabel] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  // Static permissions data based on your structure
-  const staticPermissions = [
-    {
-      group: "User Management",
-      permissions: [
-        {
-          id: 1,
-          name: "create_users",
-          label: "Create Users",
-          enabled: true,
-        },
-        {
-          id: 3,
-          name: "view_users",
-          label: "View Users",
-          enabled: true,
-        },
-        {
-          id: 4,
-          name: "edit_users",
-          label: "Edit Users",
-          enabled: true,
-        },
-        {
-          id: 5,
-          name: "delete_users",
-          label: "Delete Users",
-          enabled: true,
-        },
-      ],
+  // 🟢 Fetch all permissions dynamically
+  const {
+    data: permissions,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["permissions"],
+    queryFn: async () => {
+      const res = await RbacAPI.getPermissions(); // Must return { data: { data: { permissions: [...] } } }
+      return res.data.data.permissions;
     },
-    {
-      group: "Billing",
-      permissions: [
-        {
-          id: 2,
-          name: "manage_billing",
-          label: "Manage Billing",
-          enabled: true,
-        },
-        {
-          id: 6,
-          name: "view_billing",
-          label: "View Billing",
-          enabled: true,
-        },
-        {
-          id: 7,
-          name: "export_billing",
-          label: "Export Billing Reports",
-          enabled: true,
-        },
-      ],
-    },
-    {
-      group: "Content Management",
-      permissions: [
-        {
-          id: 8,
-          name: "create_content",
-          label: "Create Content",
-          enabled: true,
-        },
-        {
-          id: 9,
-          name: "edit_content",
-          label: "Edit Content",
-          enabled: true,
-        },
-        {
-          id: 10,
-          name: "delete_content",
-          label: "Delete Content",
-          enabled: true,
-        },
-        {
-          id: 11,
-          name: "publish_content",
-          label: "Publish Content",
-          enabled: true,
-        },
-      ],
-    },
-    {
-      group: "Reports",
-      permissions: [
-        {
-          id: 12,
-          name: "view_reports",
-          label: "View Reports",
-          enabled: true,
-        },
-        {
-          id: 13,
-          name: "export_reports",
-          label: "Export Reports",
-          enabled: true,
-        },
-        {
-          id: 14,
-          name: "create_reports",
-          label: "Create Custom Reports",
-          enabled: true,
-        },
-      ],
-    },
-  ];
+  });
 
+  // 🧠 Group permissions by inferred category name
+  const groupedPermissions = useMemo(() => {
+    if (!permissions) return [];
+
+    const groups = {};
+
+    permissions.forEach((perm) => {
+      // Infer group name from last word in snake_case
+      const parts = perm.name.split("_");
+      const suffix = parts[parts.length - 1]; // e.g., users, billing, reports
+      const groupName =
+        suffix.charAt(0).toUpperCase() + suffix.slice(1).replace("_", " ");
+
+      if (!groups[groupName]) groups[groupName] = [];
+      groups[groupName].push(perm);
+    });
+
+    return Object.entries(groups).map(([group, perms]) => ({
+      group,
+      permissions: perms,
+    }));
+  }, [permissions]);
+
+  // 🧩 Checkbox logic
   const handlePermissionChange = (permissionName, checked) => {
-    let updatedPermissions;
-    if (checked) {
-      updatedPermissions = [...selectedPermissions, permissionName];
-    } else {
-      updatedPermissions = selectedPermissions.filter(
-        (p) => p !== permissionName
-      );
-    }
-    setSelectedPermissions(updatedPermissions);
-  };
-
-  const handleSelectAll = (groupPermissions, checked) => {
-    const groupPermissionNames = groupPermissions.map((p) => p.name);
-
-    let updatedPermissions;
-    if (checked) {
-      // Add all group permissions that aren't already selected
-      const newPermissions = groupPermissionNames.filter(
-        (name) => !selectedPermissions.includes(name)
-      );
-      updatedPermissions = [...selectedPermissions, ...newPermissions];
-    } else {
-      // Remove all group permissions
-      updatedPermissions = selectedPermissions.filter(
-        (p) => !groupPermissionNames.includes(p)
-      );
-    }
-    setSelectedPermissions(updatedPermissions);
-  };
-
-  const isGroupFullySelected = (groupPermissions) => {
-    return groupPermissions.every((p) => selectedPermissions.includes(p.name));
-  };
-
-  const isGroupPartiallySelected = (groupPermissions) => {
-    return (
-      groupPermissions.some((p) => selectedPermissions.includes(p.name)) &&
-      !isGroupFullySelected(groupPermissions)
+    setSelectedPermissions((prev) =>
+      checked
+        ? [...prev, permissionName]
+        : prev.filter((p) => p !== permissionName)
     );
   };
 
+  const handleSelectAll = (groupPermissions, checked) => {
+    const names = groupPermissions.map((p) => p.name);
+    setSelectedPermissions((prev) => {
+      if (checked) {
+        const newOnes = names.filter((n) => !prev.includes(n));
+        return [...prev, ...newOnes];
+      } else {
+        return prev.filter((p) => !names.includes(p));
+      }
+    });
+  };
+
+  const isGroupFullySelected = (groupPermissions) =>
+    groupPermissions.every((p) => selectedPermissions.includes(p.name));
+
+  const isGroupPartiallySelected = (groupPermissions) =>
+    groupPermissions.some((p) => selectedPermissions.includes(p.name)) &&
+    !isGroupFullySelected(groupPermissions);
+
+  // 🧭 API: Create Role Mutation
   const mutation = useMutation({
     mutationFn: async (data) => {
       const res = await RbacAPI.createRole(data);
@@ -163,15 +80,8 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
     },
     onSuccess: (response) => {
       if (response.data.status === "success") {
-        const newRole = response.data.data;
-        console.log("Role created successfully:", newRole);
-
         toast.success(response.data.message || "Role created successfully!");
-
-        // Reset form and close modal
-        document.querySelector('input[name="name"]').value = "";
-        document.querySelector('input[name="label"]').value = "";
-        setSelectedPermissions([]);
+        resetForm();
         setIsModalOpen(false);
       } else {
         throw new Error(response.data.message || "Failed to create role");
@@ -179,81 +89,90 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
     },
     onError: (error) => {
       console.error("Error creating role:", error);
-
-      const errorMessage =
+      toast.error(
         error.response?.data?.message ||
-        error.message ||
-        "An error occurred while creating the role";
-
-      toast.error(errorMessage);
+          error.message ||
+          "An error occurred while creating the role"
+      );
     },
   });
 
-  const onSubmit = (data) => {
-    // Group selected permissions by their categories
-    const groupedPermissions = staticPermissions
-      .map((group) => {
-        const selectedPermissionsInGroup = group.permissions.filter(
-          (permission) => selectedPermissions.includes(permission.name)
-        );
+  // 🧾 Form submit
+  const onSubmit = () => {
+    if (!roleName || !roleLabel) {
+      toast.error("Please fill in both Role Name and Label");
+      return;
+    }
+    if (selectedPermissions.length === 0) {
+      toast.error("Please select at least one permission");
+      return;
+    }
 
+    const groupedSelection = groupedPermissions
+      .map((group) => {
+        const selectedInGroup = group.permissions.filter((p) =>
+          selectedPermissions.includes(p.name)
+        );
         return {
           group: group.group,
-          count: `${selectedPermissionsInGroup.length} / ${group.permissions.length}`,
-          permissions: selectedPermissionsInGroup.map((permission) => ({
-            id: permission.id,
-            name: permission.name,
-            label: permission.label,
+          count: `${selectedInGroup.length} / ${group.permissions.length}`,
+          permissions: selectedInGroup.map((p) => ({
+            id: p.id,
+            name: p.name,
+            label: p.label,
             enabled: true,
           })),
         };
       })
-      .filter((group) => group.permissions.length > 0); // Only include groups with selected permissions
+      .filter((g) => g.permissions.length > 0);
 
     const formData = {
-      ...data,
-      permissions: groupedPermissions,
+      name: roleName.trim().toLowerCase(),
+      label: roleLabel.trim(),
+      permissions: groupedSelection,
     };
 
-    console.log(JSON.stringify(formData, null, 2));
-
-    // Uncomment when ready to make API call
     mutation.mutate(formData);
   };
 
-  const handleCloseModal = () => {
-    // Reset form when closing
-    const nameInput = document.querySelector('input[name="name"]');
-    const labelInput = document.querySelector('input[name="label"]');
-    if (nameInput) nameInput.value = "";
-    if (labelInput) labelInput.value = "";
+  const resetForm = () => {
+    setRoleName("");
+    setRoleLabel("");
     setSelectedPermissions([]);
+  };
+
+  const handleCloseModal = () => {
+    resetForm();
     setIsModalOpen(false);
   };
 
-  // Show button to open modal when closed
-  //   if (!isModalOpen) {
-  //     return (
-  //       <div className="flex items-center justify-center min-h-screen bg-gray-900">
-  //         <button
-  //           onClick={() => setIsModalOpen(true)}
-  //           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
-  //         >
-  //           Create New Role
-  //         </button>
-  //       </div>
-  //     );
-  //   }
+  // 🕓 Loading & Error States
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center text-white text-lg">
+        Loading permissions...
+      </div>
+    );
+  }
 
-  // Show modal when open
+  if (isError) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center text-red-400 text-lg">
+        Failed to load permissions.
+      </div>
+    );
+  }
+
+  // 🧱 Modal UI
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 backdrop-blur-lg rounded-xl p-6 border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Create New Role</h2>
           <button
             onClick={handleCloseModal}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="text-gray-400 hover:text-white p-1"
           >
             <svg
               className="w-6 h-6"
@@ -271,8 +190,9 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
           </button>
         </div>
 
+        {/* Form Fields */}
         <div className="space-y-6">
-          {/* Basic Information */}
+          {/* Basic Info */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-white mb-2">
@@ -280,28 +200,27 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
               </label>
               <input
                 type="text"
-                name="name"
-                required
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                value={roleName}
+                onChange={(e) => setRoleName(e.target.value)}
                 placeholder="e.g., content_manager"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-1 focus:ring-blue-500"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-white mb-2">
                 Display Label <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
-                name="label"
-                required
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                value={roleLabel}
+                onChange={(e) => setRoleLabel(e.target.value)}
                 placeholder="e.g., Content Manager"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          {/* Permissions Section */}
+          {/* Permissions */}
           <div>
             <div className="flex justify-between items-center mb-4">
               <label className="block text-sm font-medium text-white">
@@ -313,11 +232,12 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
             </div>
 
             <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-              {staticPermissions.map((group) => (
+              {groupedPermissions.map((group) => (
                 <div
                   key={group.group}
                   className="border border-gray-700 rounded-lg p-4 bg-gray-800/50"
                 >
+                  {/* Group Header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center">
                       <input
@@ -348,6 +268,7 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
                     </span>
                   </div>
 
+                  {/* Group Permissions */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-7">
                     {group.permissions.map((permission) => (
                       <label
@@ -389,43 +310,20 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
             )}
           </div>
 
-          {/* Form Actions */}
+          {/* Actions */}
           <div className="flex gap-3 pt-4 border-t border-gray-700">
             <button
               type="button"
               onClick={handleCloseModal}
-              className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white hover:bg-gray-600 transition-colors font-medium"
+              className="flex-1 px-4 py-3 bg-gray-700 rounded-lg text-white hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
-              onClick={() => {
-                const roleName =
-                  document.querySelector('input[name="name"]')?.value;
-                const roleLabel = document.querySelector(
-                  'input[name="label"]'
-                )?.value;
-
-                if (!roleName || !roleLabel) {
-                  toast.error("Please fill in both role name and label");
-                  return;
-                }
-
-                if (selectedPermissions.length === 0) {
-                  toast.error("Please select at least one permission");
-                  return;
-                }
-
-                const data = {
-                  name: roleName,
-                  label: roleLabel,
-                };
-
-                onSubmit(data);
-              }}
+              onClick={onSubmit}
               disabled={selectedPermissions.length === 0 || mutation.isPending}
-              className="flex-1 px-4 py-3 bg-blue-600 border border-blue-600 rounded-lg text-white hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {mutation.isPending ? "Creating..." : "Create Role"}
             </button>
