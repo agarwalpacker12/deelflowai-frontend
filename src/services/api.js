@@ -166,10 +166,7 @@ export const RbacAPI = {
   UpdatePermission: (id, data) => api.put(`/roles/${id}/`, data),
   UpdateRole: (data) => AllPOSTHeader.put(`/users/${data.id}/roles/`, data),
   getRoleById: (id) => api.get(`/roles/${id}`),
-  deleteRole: (roleId) =>
-    AllPOSTHeader.post(`/delete_role`, {
-      role_id: roleId,
-    }),
+  deleteRole: (roleId) => api.delete(`/roles/${roleId}`),
 };
 
 export const PaymentAPI = {

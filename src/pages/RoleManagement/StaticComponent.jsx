@@ -1,79 +1,81 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AddForm from "./add/AddForm";
 import { RbacAPI } from "../../services/api";
+import toast from "react-hot-toast";
 
 function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [allRoles, setAllRoles] = useState([]);
+  const [loading, setLoading] = useState(true); // ✅ new loading state
+
+  // ✅ useCallback to avoid redefining on every render
+  const fetchRoles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await RbacAPI.getRoles();
+
+      if (response.data.status === "success") {
+        setAllRoles(response.data.data.roles);
+      }
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      toast.error("Failed to load roles");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const response = await RbacAPI.getRoles();
-
-        // Handle the API response format
-        if (response.data.status === "success") {
-          setAllRoles(response.data.data.roles);
-        }
-      } catch (err) {
-        console.error("Error fetching leads:", err);
-      }
-    };
-
     fetchRoles();
-  }, []);
+  }, [fetchRoles]);
 
   const fetchSinglePermissionHandler = async (id) => {
     try {
       const response = await RbacAPI.getRoleById(id);
 
-      // Handle the API response format
       if (response.data.status === "success") {
-        // console.log(JSON.stringify(response?.data?.data?.permissions));
         setSelectedPermissions(response?.data?.data?.permissions);
         setSelectedRoleId(id);
       }
     } catch (err) {
-      console.error("Error fetching leads:", err);
+      console.error("Error fetching role:", err);
     }
   };
-  const deleteRoleHandler = async (id) => {
+
+  const deleteRoleHandler = async (id, e) => {
+    e.stopPropagation(); // ✅ prevent triggering fetchSinglePermissionHandler
     try {
       const response = await RbacAPI.deleteRole(id);
-      console.log(response.data);
 
-      // Handle the API response format
       if (response.data.status === "success") {
-        setAllRoles(response.data.data.roles);
+        toast.success(response?.data?.message || "Role deleted successfully!");
+        await fetchRoles(); // ✅ reload roles with loading indicator
       }
     } catch (err) {
-      console.error("Error fetching leads:", err);
+      console.error("Error deleting role:", err);
+      toast.error("Failed to delete role");
     }
+  };
+
+  // Standardize role names
+  const formatRoleName = (name) => {
+    if (!name) return "";
+    return name
+      .trim()
+      .replace(/[_-]+/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   };
 
   const stats = [
-    {
-      value: "12",
-      label: "Total Tenants",
-      color: "text-indigo-400",
-    },
-    {
-      value: "156",
-      label: "Total Users",
-      color: "text-purple-400",
-    },
-    {
-      value: "3",
-      label: "System Roles",
-      color: "text-blue-400",
-    },
-    {
-      value: "89%",
-      label: "Active Tenants",
-      color: "text-green-400",
-      isWide: true,
-    },
+    { value: "12", label: "Total Tenants", color: "text-indigo-400" },
+    { value: "156", label: "Total Users", color: "text-purple-400" },
+    { value: "3", label: "System Roles", color: "text-blue-400" },
+    { value: "89%", label: "Active Tenants", color: "text-green-400" },
   ];
+
   return (
     <>
       <div className="flex justify-between items-center">
@@ -89,6 +91,7 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
           Create Role
         </button>
       </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
@@ -107,6 +110,7 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
           </div>
         ))}
       </div>
+
       {/* System Roles Overview */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -115,98 +119,64 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
           </h2>
         </div>
 
-        {allRoles.length < 1 ? (
-          <div class="mx-auto w-full rounded-md border border-blue-300 p-4">
-            <div class="flex animate-pulse space-x-4">
-              {/* <div class="size-10 rounded-full bg-gray-200 "></div> */}
-              <div class="flex-1 space-y-6 py-1">
-                {/* <div class="h-2 rounded bg-gray-200"></div>
-                <div class="h-2 rounded bg-gray-200"></div> */}
-
-                <div class="space-y-3">
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
-                    <div class="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
+        {loading ? ( // ✅ Show skeleton while loading
+          <div className="mx-auto w-full rounded-md border border-blue-300 p-4">
+            <div className="flex animate-pulse space-x-4">
+              <div className="flex-1 space-y-6 py-1">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="grid grid-cols-3 gap-4">
+                    <div className="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
+                    <div className="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
                   </div>
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
-                    <div class="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
-                    <div class="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
-                    <div class="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
-                    <div class="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-1 h-10 rounded bg-gray-200 opacity-40"></div>
-                    <div class="col-span-2 h-10 rounded bg-gray-200 opacity-40"></div>
-                  </div>
-                  {/* <div class="h-2 rounded bg-gray-200"></div> */}
-                </div>
+                ))}
               </div>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Super Admin Card */}
+            {allRoles?.map((role) => (
+              <div
+                key={role.id}
+                className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 relative hover:border-red-500/50 transition-all duration-300 cursor-pointer"
+                onClick={() => fetchSinglePermissionHandler(role.id)}
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-t-xl"></div>
 
-            {allRoles?.map((role) => {
-              return (
-                <>
-                  <div
-                    key={role.id}
-                    className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 relative hover:border-red-500/50 transition-all duration-300 cursor-pointer"
-                    onClick={() => fetchSinglePermissionHandler(role.id)}
+                {/* Delete Icon */}
+                <button
+                  onClick={(e) => deleteRoleHandler(role.id, e)}
+                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 transition-all duration-200 group"
+                  title="Delete Role"
+                >
+                  <svg
+                    className="w-4 h-4 text-red-400 group-hover:text-red-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-t-xl"></div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
 
-                    {/* Delete Icon */}
-                    <button
-                      onClick={(e) => deleteRoleHandler(role.id, e)}
-                      className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 transition-all duration-200 group"
-                      title="Delete Role"
-                    >
-                      <svg
-                        className="w-4 h-4 text-red-400 group-hover:text-red-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
+                <div className="flex justify-between items-start mb-4 pr-8">
+                  <h3 className="text-white text-xl font-bold">
+                    {formatRoleName(role?.name)}
+                  </h3>
+                </div>
 
-                    <div className="flex justify-between items-start mb-4 pr-8">
-                      <h3 className="text-white text-xl font-bold">
-                        {role?.name}
-                      </h3>
-                      {/* <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full font-medium">
-                        {role?.label}
-                      </span> */}
-                    </div>
-
-                    <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-                      Platform-wide administrator with complete system control.
-                      Manages all tenants, subscriptions, and platform
-                      configuration. No operational capabilities.
-                    </p>
-                  </div>
-                </>
-              );
-            })}
+                <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                  Platform-wide administrator with complete system control.
+                  Manages all tenants, subscriptions, and platform
+                  configuration.
+                </p>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -214,7 +184,11 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <AddForm setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+          <AddForm
+            setIsModalOpen={setIsModalOpen}
+            isModalOpen={isModalOpen}
+            fetchRoles={fetchRoles}
+          />
         </div>
       )}
     </>

@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { RbacAPI } from "../../../services/api";
 
-function AddForm({ isModalOpen, setIsModalOpen }) {
+function AddForm({ setIsModalOpen, fetchRoles }) {
   const [roleName, setRoleName] = useState("");
   const [roleLabel, setRoleLabel] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState([]);
@@ -83,6 +83,7 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
         toast.success(response.data.message || "Role created successfully!");
         resetForm();
         setIsModalOpen(false);
+        fetchRoles();
       } else {
         throw toast.error(response.data.message || "Failed to create role");
       }
