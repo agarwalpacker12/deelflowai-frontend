@@ -193,9 +193,9 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
                       <h3 className="text-white text-xl font-bold">
                         {role?.name}
                       </h3>
-                      <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full font-medium">
+                      {/* <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full font-medium">
                         {role?.label}
-                      </span>
+                      </span> */}
                     </div>
 
                     <p className="text-slate-300 text-sm mb-6 leading-relaxed">

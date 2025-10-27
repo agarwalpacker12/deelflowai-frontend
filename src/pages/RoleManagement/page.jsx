@@ -92,7 +92,7 @@ const RoleManagementPage = () => {
               <button
                 onClick={() => onSubmit()}
                 // className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-                className={`w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center mb-4 text-white`}
+                className={`w-100 p-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center mb-4 text-white`}
               >
                 Update
               </button>
