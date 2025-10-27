@@ -1,21 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Brain,
-  Target,
   Zap,
-  TrendingUp,
   Users,
-  Award,
-  Clock,
   Eye,
   Heart,
-  Star,
-  Trophy,
-  Flame,
   Crown,
-  Diamond,
-  Rocket,
-  Sparkles,
   Layers,
   Activity,
   Radar,

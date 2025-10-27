@@ -84,7 +84,7 @@ function AddForm({ isModalOpen, setIsModalOpen }) {
         resetForm();
         setIsModalOpen(false);
       } else {
-        throw new Error(response.data.message || "Failed to create role");
+        throw toast.error(response.data.message || "Failed to create role");
       }
     },
     onError: (error) => {
