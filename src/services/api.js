@@ -102,6 +102,9 @@ export const propertiesAPI = {
   updateProperty: (id, data) => api.put(`/properties/${id}/`, data),
   deleteProperty: (id) => api.delete(`/properties/${id}/`),
   getAIAnalysis: (id) => api.get(`/properties/${id}/ai-analysis/`),
+
+  getCombinedProperties: (params) =>
+    api.get("/properties/combined", { params }),
 };
 
 export const dealsAPI = {
@@ -167,6 +170,8 @@ export const RbacAPI = {
   UpdateRole: (data) => AllPOSTHeader.put(`/users/${data.id}/roles/`, data),
   getRoleById: (id) => api.get(`/roles/${id}`),
   deleteRole: (roleId) => api.delete(`/roles/${roleId}`),
+  userAssignment: (roleId, data) =>
+    api.post(`/roles/${roleId}/assign-user/`, data),
 };
 
 export const PaymentAPI = {

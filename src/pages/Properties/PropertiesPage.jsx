@@ -56,7 +56,7 @@ const PropertiesPage = () => {
       try {
         const params = {
           page: currentPage,
-          per_page: perPage,
+          limit: perPage,
         };
         if (searchTerm) params.search = searchTerm;
         if (statusFilter) params.status = statusFilter;
@@ -69,17 +69,12 @@ const PropertiesPage = () => {
         if (transactionType) params.transaction_type = transactionType;
         if (minAiScore) params.ai_score_min = minAiScore;
 
-        const response = await propertiesAPI.getProperties(params);
+        const response = await propertiesAPI.getCombinedProperties(params);
         if (response.data.status === "success") {
-          setProperties(response.data.data);
-          // If meta exists, use it for pagination
-          if (response.data.meta) {
-            setTotal(response.data.meta.total);
-            setTotalPages(response.data.meta.last_page);
-          } else {
-            setTotal(response.data.data.length);
-            setTotalPages(1);
-          }
+          setProperties(response.data.data.properties);
+          // Use pagination data from API response
+          setTotal(response.data.data.total);
+          setTotalPages(Math.ceil(response.data.data.total / perPage));
         } else {
           setError("Failed to fetch properties");
         }
@@ -414,19 +409,63 @@ const PropertiesPage = () => {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-1">
-                {[...Array(totalPages)].map((_, i) => (
+                {/* First page */}
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                    currentPage === 1
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-400 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  1
+                </button>
+
+                {/* Left ellipsis */}
+                {currentPage > 3 && (
+                  <span className="px-2 text-gray-400">...</span>
+                )}
+
+                {/* Pages around current */}
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1;
+                  if (page === 1 || page === totalPages) return null;
+                  if (Math.abs(page - currentPage) <= 1) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                          currentPage === page
+                            ? "bg-blue-500 text-white"
+                            : "text-gray-400 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Right ellipsis */}
+                {currentPage < totalPages - 2 && (
+                  <span className="px-2 text-gray-400">...</span>
+                )}
+
+                {/* Last page */}
+                {totalPages > 1 && (
                   <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => setCurrentPage(totalPages)}
                     className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                      currentPage === i + 1
+                      currentPage === totalPages
                         ? "bg-blue-500 text-white"
                         : "text-gray-400 hover:text-white hover:bg-white/10"
                     }`}
                   >
-                    {i + 1}
+                    {totalPages}
                   </button>
-                ))}
+                )}
               </div>
               <button
                 onClick={() =>
