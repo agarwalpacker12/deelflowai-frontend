@@ -124,7 +124,7 @@ const RoleManagementPage = () => {
                             onChange={() => handleToggle(perm.id)}
                             className="mx-4 accent-blue-500 cursor-pointer"
                           />
-                          {perm?.name}
+                          {/* {perm?.name} */}
                         </td>
                         <td className="p-4 text-slate-300">{perm?.label}</td>
                       </tr>

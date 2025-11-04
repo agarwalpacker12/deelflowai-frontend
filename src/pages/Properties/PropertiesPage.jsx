@@ -235,7 +235,7 @@ const PropertiesPage = () => {
       if (radius) params.radius = radius;
       if (bedrooms) params.bedrooms = bedrooms;
       if (transactionType) params.transaction_type = transactionType;
-      if (max_sqft) params.ai_score_min = max_sqft;
+      if (max_sqft) params.square_feet = square_feet;
       const response = await propertiesAPI.getCombinedProperties(params);
       if (response.data.status === "success") {
         setProperties(response.data.data.properties);

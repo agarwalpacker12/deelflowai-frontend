@@ -136,12 +136,11 @@ const Layout = () => {
   const getSaaSManagementNavLinks = () => {
     if (userRole === "superadmin") {
       return saasManagementNavLinks;
+    } else if (userRole === "admin") {
+      return saasManagementNavLinks.filter(
+        (link) => link.to !== "/app/tenant-management"
+      );
     }
-    // else if (userRole === "admin") {
-    //   return saasManagementNavLinks.filter(
-    //     (link) => link.to !== "/app/tenant-management"
-    //   );
-    // }
     return [];
   };
 
