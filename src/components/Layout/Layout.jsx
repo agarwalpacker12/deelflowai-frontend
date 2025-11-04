@@ -80,7 +80,6 @@ const superAdminSettingsNavLinks = [
 ];
 
 const saasManagementNavLinks = [
-  { to: "/app/tenant-management", label: "Tenant Management" },
   { to: "/app/role-management", label: "Role Management" },
 
   { to: "/app/pricing", label: "Pricing Plans" },
@@ -90,7 +89,7 @@ const saasManagementNavLinks = [
 ];
 
 const whiteLabelNavLinks = [
-  { to: "/app/white-label/tenant-management", label: "Tenant Management" },
+  { to: "/app/tenant-management", label: "Tenant Management" },
   { to: "/app/white-label/branding-settings", label: "Branding Settings" },
   { to: "/app/white-label/domain-management", label: "Domain Management" },
 ];
@@ -137,11 +136,12 @@ const Layout = () => {
   const getSaaSManagementNavLinks = () => {
     if (userRole === "superadmin") {
       return saasManagementNavLinks;
-    } else if (userRole === "admin") {
-      return saasManagementNavLinks.filter(
-        (link) => link.to !== "/app/tenant-management"
-      );
     }
+    // else if (userRole === "admin") {
+    //   return saasManagementNavLinks.filter(
+    //     (link) => link.to !== "/app/tenant-management"
+    //   );
+    // }
     return [];
   };
 

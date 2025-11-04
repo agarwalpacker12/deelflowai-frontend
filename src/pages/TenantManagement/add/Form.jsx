@@ -1,11 +1,5 @@
-import React, { useState, useEffect } from "react";
 import { Save, X } from "lucide-react";
-import {
-  channels,
-  DefaultValues,
-  subscriptionPlans,
-  tenantSchema,
-} from "./utility";
+import { DefaultValues, tenantSchema } from "./utility";
 import { TenantAPI } from "../../../services/api";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
@@ -71,7 +65,7 @@ const CreateTenantForm = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">Add New Tenant</h1>
@@ -82,201 +76,152 @@ const CreateTenantForm = ({ onClose }) => {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-          <div className="space-y-6">
-            {/* Organization Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Organization Information
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Organization Name
-                    <span className="text-red-700">*</span>
-                  </label>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-8">
+          {/* Organization Information */}
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Organization Information
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Organization Name <span className="text-red-700">*</span>
+                </label>
+                <input
+                  type="text"
+                  {...register("name")}
+                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="ABC Wholesalers"
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name?.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Slug / URL Path <span className="text-red-700">*</span>
+                </label>
+                <div className="flex items-center">
+                  <span className="bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg px-3 py-3 text-gray-600 text-sm">
+                    dealflow.ai/
+                  </span>
                   <input
                     type="text"
-                    {...register("organization_name")}
-                    className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    {...register("slug")}
+                    className="flex-1 px-4 py-3 border rounded-r-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="abc-wholesalers"
                   />
-                  {errors.organization_name && (
-                    <p className="text-sm text-red-500">
-                      {errors.organization_name?.message}
-                    </p>
-                  )}
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    URL Path
-                    <span className="text-red-700">*</span>
-                  </label>
-                  <div className="flex items-center">
-                    <span className="bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg px-3 py-3 text-gray-600 text-sm">
-                      dealflow.ai/
-                    </span>
-                    <input
-                      name="url_path"
-                      type="text"
-                      {...register("url_path")}
-                      className="flex-1 px-4 py-3 border rounded-r-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="abc-wholesalers"
-                    />
-                  </div>
-                  {errors.url_path && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.url_path?.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Channel
-                    <span className="text-red-700">*</span>
-                  </label>
-                  <select
-                    name="channel"
-                    {...register("channel")}
-                    className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select a channel</option>
-                    {channels.map((channel) => (
-                      <option key={channel.value} value={channel.value}>
-                        {channel.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.channel && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.channel?.message}
-                    </p>
-                  )}
-                </div>
+                {errors.slug && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.slug?.message}
+                  </p>
+                )}
               </div>
-            </div>
 
-            {/* Admin Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Admin Information
-              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Admin First Name
-                    <span className="text-red-700">*</span>
+                    Status <span className="text-red-700">*</span>
                   </label>
-                  <input
-                    name="admin_first_name"
-                    type="text"
-                    {...register("admin_first_name")}
+                  <select
+                    {...register("status")}
                     className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="John"
-                  />
-                  {errors.admin_first_name && (
+                  >
+                    <option value="">Select status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                  {errors.status && (
                     <p className="text-sm text-red-500 mt-1">
-                      {errors.admin_first_name?.message}
+                      {errors.status?.message}
                     </p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Admin Last Name
-                    <span className="text-red-700">*</span>
+                    Max Users
                   </label>
                   <input
-                    name="admin_last_name"
-                    type="text"
-                    {...register("admin_last_name")}
+                    type="number"
+                    {...register("max_users")}
                     className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Doe"
+                    placeholder="10"
                   />
-                  {errors.admin_last_name && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.admin_last_name?.message}
-                    </p>
-                  )}
                 </div>
               </div>
 
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Admin Email
-                  <span className="text-red-700">*</span>
-                </label>
-                <input
-                  name="admin_email"
-                  type="email"
-                  {...register("admin_email")}
-                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="admin@example.com"
-                />
-                {errors.admin_email && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.admin_email?.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Subscription Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Subscription Plan
-              </h2>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subscription Plan
-                  <span className="text-red-700">*</span>
-                </label>
-                <select
-                  name="subscription_plan"
-                  {...register("subscription_plan")}
-                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select a plan</option>
-                  {subscriptionPlans.map((plan) => (
-                    <option key={plan.value} value={plan.value}>
-                      {plan.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.subscription_plan && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.subscription_plan?.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="mt-4">
-                <div className="flex items-center space-x-3">
-                  <input
-                    name="send_welcome_email"
-                    type="checkbox"
-                    id="send_welcome_email"
-                    {...register("send_welcome_email")}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="send_welcome_email"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Send welcome email with setup instructions
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Current User Count
                   </label>
+                  <input
+                    type="number"
+                    {...register("current_user_count")}
+                    className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                  />
                 </div>
-                <p className="text-sm text-gray-500 mt-2 ml-7">
-                  The admin will receive an email with login credentials and
-                  setup instructions
-                </p>
               </div>
             </div>
           </div>
 
+          {/* Subscription Information */}
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Subscription Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subscription Status
+                </label>
+                <select
+                  {...register("subscription_status")}
+                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select status</option>
+                  <option value="trial">Trial</option>
+                  <option value="active">Active</option>
+                  <option value="expired">Expired</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subscription Start Date
+                </label>
+                <input
+                  type="date"
+                  {...register("subscription_start_date")}
+                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subscription End Date
+                </label>
+                <input
+                  type="date"
+                  {...register("subscription_end_date")}
+                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Database Information */}
+
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
@@ -287,13 +232,13 @@ const CreateTenantForm = ({ onClose }) => {
             </button>
 
             <button
+              type="submit"
+              disabled={mutation.isPending}
               className={`flex px-8 py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-opacity ${
                 mutation.isPending
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:brightness-110"
               }`}
-              type="submit"
-              disabled={mutation.isPending}
             >
               {mutation.isPending ? (
                 <ButtonLoader className="mr-2" />

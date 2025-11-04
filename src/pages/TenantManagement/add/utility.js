@@ -2,41 +2,27 @@
 import * as yup from "yup";
 
 export const DefaultValues = {
-  organization_name: "",
-  url_path: "",
-  channel: "",
-  admin_first_name: "",
-  admin_last_name: "",
-  admin_email: "",
+  id: null,
+  uuid: "",
+  name: "",
+  slug: "",
+  subscription_status: "",
+  current_user_count: 0,
+  max_users: 0,
+  status: "",
+  subscription_end_date: "",
   subscription_plan: "",
-  send_welcome_email: true,
+  subscription_start_date: "",
 };
 
+// Validation schema
 export const tenantSchema = yup.object().shape({
-  organization_name: yup.string().required("Organization name is required"),
-  url_path: yup.string().required("Url is required"),
-  channel: yup.string().required("Channel is required"),
-  admin_first_name: yup.string().required("First name is required"),
-  admin_last_name: yup.string().required("Last name is required"),
-  admin_email: yup
-    .string()
-    .required("Admin email is required")
-    .typeError("Admin email must be a valid date"),
+  name: yup.string().required("Organization name is required"),
+  slug: yup.string().required("Slug is required"),
+  subscription_status: yup.string().required("Subscription status is required"),
+  status: yup.string().required("Status is required"),
   subscription_plan: yup.string().optional(),
-  send_welcome_email: yup.boolean().optional(),
+  subscription_start_date: yup.date().nullable(),
+  subscription_end_date: yup.date().nullable(),
+  max_users: yup.number().required("Max users is required"),
 });
-
-// Subscription plans
-export const subscriptionPlans = [
-  { value: "starter", label: "Starter - $299/month" },
-  { value: "professional", label: "Professional - $499/month" },
-  { value: "enterprise", label: "Enterprise - $999/month" },
-  { value: "custom", label: "Custom Plan" },
-];
-
-// Channels
-export const channels = [
-  { value: "email", label: "Email" },
-  { value: "sms", label: "SMS" },
-  { value: "voice", label: "Voice" },
-];
