@@ -152,8 +152,10 @@ export const TenantAPI = {
   getTenant: (id) => api.get(`/admin/tenants/${id}/`),
   createTenant: (data) => api.post("/admin/tenants/", data),
   updateTenant: (id, data) => api.put(`/admin/tenants/${id}/`, data),
-  deleteTenant: (id) => api.delete(`/admin/tenants/${id}/suspend/`),
-  activateTenant: (id) => api.post(`/admin/tenants/${id}/activate/`),
+  suspendTenant: (data) =>
+    api.post(`/admin/tenants/${data.tenant_id}/suspend/`),
+  activateTenant: (data) =>
+    api.post(`/admin/tenants/${data.tenant_id}/activate/`),
 };
 
 export const OrganizationAPI = {

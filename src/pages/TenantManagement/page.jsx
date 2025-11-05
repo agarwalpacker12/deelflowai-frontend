@@ -4,12 +4,13 @@ import DialogBox from "../../components/UI/DialogBox";
 import CreateTenantForm from "./add/Form";
 import { TenantAPI } from "../../services/api"; // Import TenantAPI
 import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const TenantManagementPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All Status");
-  const [planFilter, setPlanFilter] = useState("All Plans");
-  const [paymentFilter, setPaymentFilter] = useState("Payment Status");
+  // const [searchTerm, setSearchTerm] = useState("");
+  // const [statusFilter, setStatusFilter] = useState("All Status");
+  // const [planFilter, setPlanFilter] = useState("All Plans");
+  // const [paymentFilter, setPaymentFilter] = useState("Payment Status");
   const [apiTenants, setApiTenants] = useState([]); // State to store API data
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -122,13 +123,11 @@ const TenantManagementPage = () => {
     },
     onSuccess: (data) => {
       if (data.data.status === "success") {
+        debugger;
         // Show success message
-        if (typeof toast !== "undefined") {
-          toast.success(data.data.message);
-        }
-
-        // Close the popup
-        onClose();
+        // if (typeof toast !== "undefined") {
+        toast.success(data.data.message);
+        // }
 
         // Reload the page
         window.location.reload();
@@ -148,6 +147,36 @@ const TenantManagementPage = () => {
       tenant_id: id,
     };
     activeMutation.mutate(formData);
+  };
+
+  const suspendMutation = useMutation({
+    mutationFn: async (data) => {
+      const res = await TenantAPI.suspendTenant(data);
+      return res;
+    },
+    onSuccess: (data) => {
+      if (data.data.status === "success") {
+        // Show success message
+        toast.success(data.data.message);
+
+        // Reload the page
+        window.location.reload();
+      }
+    },
+    onError: (error) => {
+      console.log("error", error.response?.data?.message || error.message);
+      // Fixed: Make sure toast is imported or available
+      if (typeof toast !== "undefined") {
+        toast.error(error.response?.data?.message || "An error occurred");
+      }
+    },
+  });
+
+  const suspendTenant = (id) => {
+    const formData = {
+      tenant_id: id,
+    };
+    suspendMutation.mutate(formData);
   };
 
   return (
@@ -359,20 +388,24 @@ const TenantManagementPage = () => {
                       {/* Actions */}
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
-                          <button
-                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                            onClick={() => activateTenant(tenant.id)}
-                          >
-                            {/* <Eye className="h-4 w-4" /> */}
-                            Active
-                          </button>
-                          <button
-                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                            // onClick={() => suspendTenant(tenant.id)}
-                          >
-                            {/* <Eye className="h-4 w-4" /> */}
-                            Suspend
-                          </button>
+                          {tenant.status == "active" ? (
+                            <button
+                              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                              onClick={() => suspendTenant(tenant.id)}
+                            >
+                              {/* <Eye className="h-4 w-4" /> */}
+                              Suspend
+                            </button>
+                          ) : (
+                            <button
+                              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                              onClick={() => activateTenant(tenant.id)}
+                            >
+                              {/* <Eye className="h-4 w-4" /> */}
+                              Active
+                            </button>
+                          )}
+
                           {/* <button className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors">
                             <Edit className="h-4 w-4" />
                           </button>
