@@ -80,10 +80,9 @@ export const authAPI = {
   logout: () => api.post("/logout/"),
   getCurrentUser: () => api.get("/user/"),
   getAllUsers: () => api.get("/users/"),
-  invite: (data) => api.post("/invitations/", data),
-  getInvitation: (invitationtoken) =>
-    api.get(`/validate-invitation/?token=${invitationtoken}`),
-  inviteeRegister: (userData) => api.post("/invitee-register/", userData),
+  invite: (id, data) => api.post(`/tenants/${id}/invitations/`, data),
+  getInvitation: (id) => api.get(`/tenants/${id}/invitations`),
+  acceptInvitation: (id, data) => api.post(`/invitations/${id}/accept`, data),
 };
 
 export const leadsAPI = {
@@ -149,11 +148,12 @@ export const propertySaveAPI = {
 };
 
 export const TenantAPI = {
-  getTenants: (params) => api.get("/tenant/", { params }),
-  getTenant: (id) => api.get(`/tenant/${id}/`),
-  createTenant: (data) => api.post("/tenant/", data),
-  updateTenant: (id, data) => api.put(`/tenant/${id}/`, data),
-  deleteTenant: (id) => api.delete(`/tenant/${id}/`),
+  getTenants: (params) => api.get("/admin/tenants/", { params }),
+  getTenant: (id) => api.get(`/admin/tenants/${id}/`),
+  createTenant: (data) => api.post("/admin/tenants/", data),
+  updateTenant: (id, data) => api.put(`/admin/tenants/${id}/`, data),
+  deleteTenant: (id) => api.delete(`/admin/tenants/${id}/suspend/`),
+  activateTenant: (id) => api.post(`/admin/tenants/${id}/activate/`),
 };
 
 export const OrganizationAPI = {
@@ -175,11 +175,12 @@ export const RbacAPI = {
 };
 
 export const PaymentAPI = {
-  getSubscriptionPack: () => api.get(`/subscription-packs/`),
-  createCheckout: (id) => api.post(`/create-checkout-session/`, id),
-  createCustomerPortal: () => api.post(`/create-customer-portal-session/`),
-  getTransactionList: () => api.post(`/stripe-invoice/`),
-  getCurrentPack: () => api.get(`/current-subscription/`),
+  getSubscriptionPack: () => AllPOSTHeader.get(`/subscription-packs/`),
+  createCheckout: (id) => AllPOSTHeader.post(`/create-checkout-session/`, id),
+  createCustomerPortal: () =>
+    AllPOSTHeader.post(`/create-customer-portal-session/`),
+  getTransactionList: () => AllPOSTHeader.post(`/stripe-invoice/`),
+  getCurrentPack: () => AllPOSTHeader.get(`/current-subscription/`),
 };
 
 export const DashboardAPI = {

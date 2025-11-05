@@ -248,6 +248,10 @@ const ProfilePage = () => {
                 <button className="mt-4 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition">
                   Edit Profile
                 </button>
+                {/* Upgrade Profile Button */}
+                <button className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold shadow transition">
+                  Upgrade your profile
+                </button>
                 {/* Logout Button */}
                 <button
                   className="mt-2 px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition"

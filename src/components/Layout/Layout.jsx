@@ -16,6 +16,7 @@ const marketplaceNavLinks = [
   { to: "/app/deals", label: "Deals" },
   { to: "/app/transaction", label: "transaction" },
   { to: "/app/Funding Partners", label: "funding" },
+  { to: "/app/pricing", label: "pricing" },
 ];
 
 const marketingHubNavLinks = [

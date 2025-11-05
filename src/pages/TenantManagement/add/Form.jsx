@@ -32,22 +32,17 @@ const CreateTenantForm = ({ onClose }) => {
       return res;
     },
     onSuccess: (data) => {
-      if (data.data.status == "success") {
-        // Fixed: Make sure toast is imported or available
+      if (data.data.status === "success") {
+        // Show success message
         if (typeof toast !== "undefined") {
           toast.success(data.data.message);
         }
 
-        // Fixed: Use proper tenants array with fallback
-        const updatedTenants = Array.isArray(tenants)
-          ? [...tenants, data.data.data]
-          : [data.data.data];
-        dispatch(setTenants(updatedTenants));
+        // Close the popup
+        onClose();
 
-        // Fixed: Make sure navigate is imported or available
-        if (typeof navigate !== "undefined") {
-          navigate("/app/tenant-management");
-        }
+        // Reload the page
+        window.location.reload();
       }
     },
     onError: (error) => {
@@ -60,7 +55,12 @@ const CreateTenantForm = ({ onClose }) => {
   });
 
   const onSubmit = (data) => {
-    mutation.mutate(data);
+    // Ensure settings field is included as empty object if not provided
+    const formData = {
+      ...data,
+      settings: data.settings || {},
+    };
+    mutation.mutate(formData);
   };
 
   return (
@@ -92,7 +92,7 @@ const CreateTenantForm = ({ onClose }) => {
                   type="text"
                   {...register("name")}
                   className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="ABC Wholesalers"
+                  placeholder="New Organization"
                 />
                 {errors.name && (
                   <p className="text-sm text-red-500">{errors.name?.message}</p>
@@ -111,7 +111,7 @@ const CreateTenantForm = ({ onClose }) => {
                     type="text"
                     {...register("slug")}
                     className="flex-1 px-4 py-3 border rounded-r-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="abc-wholesalers"
+                    placeholder="new-org"
                   />
                 </div>
                 {errors.slug && (
@@ -131,6 +131,7 @@ const CreateTenantForm = ({ onClose }) => {
                     className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select status</option>
+                    <option value="trial">Trial</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
@@ -144,7 +145,7 @@ const CreateTenantForm = ({ onClose }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Max Users
+                    Max Users <span className="text-red-700">*</span>
                   </label>
                   <input
                     type="number"
@@ -152,20 +153,11 @@ const CreateTenantForm = ({ onClose }) => {
                     className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="10"
                   />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Current User Count
-                  </label>
-                  <input
-                    type="number"
-                    {...register("current_user_count")}
-                    className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0"
-                  />
+                  {errors.max_users && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.max_users?.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -179,46 +171,47 @@ const CreateTenantForm = ({ onClose }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subscription Status
+                  Subscription Status <span className="text-red-700">*</span>
                 </label>
                 <select
                   {...register("subscription_status")}
                   className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select status</option>
+                  <option value="new">New</option>
                   <option value="trial">Trial</option>
                   <option value="active">Active</option>
                   <option value="expired">Expired</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+                {errors.subscription_status && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.subscription_status?.message}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subscription Start Date
+                  Subscription Plan <span className="text-red-700">*</span>
                 </label>
-                <input
-                  type="date"
-                  {...register("subscription_start_date")}
+                <select
+                  {...register("subscription_plan")}
                   className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subscription End Date
-                </label>
-                <input
-                  type="date"
-                  {...register("subscription_end_date")}
-                  className="w-full px-4 py-3 border rounded-lg text-black border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
+                  <option value="">Select plan</option>
+                  <option value="free">Free</option>
+                  <option value="basic">Basic</option>
+                  <option value="premium">Premium</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+                {errors.subscription_plan && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.subscription_plan?.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
-
-          {/* Database Information */}
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

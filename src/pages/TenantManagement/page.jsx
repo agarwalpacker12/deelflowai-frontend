@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Eye, Edit, Mail, MoreHorizontal } from "lucide-react";
 import DialogBox from "../../components/UI/DialogBox";
 import CreateTenantForm from "./add/Form";
+import { TenantAPI } from "../../services/api"; // Import TenantAPI
+import { useMutation } from "@tanstack/react-query";
 
 const TenantManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [planFilter, setPlanFilter] = useState("All Plans");
   const [paymentFilter, setPaymentFilter] = useState("Payment Status");
+  const [apiTenants, setApiTenants] = useState([]); // State to store API data
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTenant, setNewTenant] = useState({
@@ -19,6 +22,27 @@ const TenantManagementPage = () => {
     subscriptionPlan: "Starter - $299/month",
     sendWelcomeEmail: true,
   });
+
+  // Fetch tenants data from API
+  useEffect(() => {
+    const fetchTenants = async () => {
+      try {
+        const response = await TenantAPI.getTenants();
+        console.log("Tenants API Response:", response);
+        console.log("Tenants Data:", response.data.data.tenants);
+
+        // Store the data in state if needed
+        if (response.data && response.data.data) {
+          setApiTenants(response.data.data.tenants);
+        }
+      } catch (error) {
+        console.error("Error fetching tenants:", error);
+        console.error("Error details:", error.response?.data || error.message);
+      }
+    };
+
+    fetchTenants();
+  }, []); // Empty dependency array means this runs once on component mount
 
   const stats = [
     {
@@ -40,54 +64,6 @@ const TenantManagementPage = () => {
       value: "$24.5K",
       label: "Monthly Revenue",
       color: "text-green-400",
-    },
-  ];
-
-  const tenants = [
-    {
-      id: "DW",
-      name: "Dallas Wholesalers",
-      company: "LLC",
-      domain: "dealflow.ai/dallas",
-      status: "Active",
-      plan: "Professional",
-      users: "24 / 50",
-      payment: "Paid",
-      paymentStatus: "paid",
-      api: "45K/100K",
-      storage: "23GB",
-      created: "Jan 15, 2024",
-      color: "bg-blue-500",
-    },
-    {
-      id: "TP",
-      name: "Texas Property",
-      company: "Investors",
-      domain: "dealflow.ai/texasprop",
-      status: "Active",
-      plan: "Enterprise",
-      users: "156 / ∞",
-      payment: "Overdue",
-      paymentStatus: "overdue",
-      api: "234K/∞",
-      storage: "124GB",
-      created: "Nov 23, 2023",
-      color: "bg-purple-500",
-    },
-    {
-      id: "NR",
-      name: "National RE Group",
-      company: "",
-      domain: "dealflow.ai/nationalre",
-      status: "Suspended",
-      plan: "Professional",
-      users: "32 / 50",
-      payment: "Overdue",
-      paymentStatus: "overdue",
-      api: "0/100K",
-      storage: "45GB",
-      created: "Dec 10, 2023",
-      color: "bg-red-500",
     },
   ];
 
@@ -138,6 +114,42 @@ const TenantManagementPage = () => {
   const handleDialogCancel = () => {
     setShowAddModal(!showAddModal);
   };
+
+  const activeMutation = useMutation({
+    mutationFn: async (data) => {
+      const res = await TenantAPI.activateTenant(data);
+      return res;
+    },
+    onSuccess: (data) => {
+      if (data.data.status === "success") {
+        // Show success message
+        if (typeof toast !== "undefined") {
+          toast.success(data.data.message);
+        }
+
+        // Close the popup
+        onClose();
+
+        // Reload the page
+        window.location.reload();
+      }
+    },
+    onError: (error) => {
+      console.log("error", error.response?.data?.message || error.message);
+      // Fixed: Make sure toast is imported or available
+      if (typeof toast !== "undefined") {
+        toast.error(error.response?.data?.message || "An error occurred");
+      }
+    },
+  });
+
+  const activateTenant = (id) => {
+    const formData = {
+      tenant_id: id,
+    };
+    activeMutation.mutate(formData);
+  };
+
   return (
     <div className="min-h-screen bg-transparent p-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -182,9 +194,9 @@ const TenantManagementPage = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
+        {/* <div className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
+            
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <input
@@ -196,7 +208,7 @@ const TenantManagementPage = () => {
               />
             </div>
 
-            {/* Status Filter */}
+            
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -208,7 +220,7 @@ const TenantManagementPage = () => {
               <option value="Inactive">Inactive</option>
             </select>
 
-            {/* Plan Filter */}
+            
             <select
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value)}
@@ -220,7 +232,7 @@ const TenantManagementPage = () => {
               <option value="Starter">Starter</option>
             </select>
 
-            {/* Payment Status Filter */}
+            
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
@@ -232,7 +244,7 @@ const TenantManagementPage = () => {
               <option value="Pending">Pending</option>
             </select>
           </div>
-        </div>
+        </div> */}
 
         {/* Tenants Table */}
         <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">
@@ -253,10 +265,7 @@ const TenantManagementPage = () => {
                     Users
                   </th>
                   <th className="text-left p-4 text-white font-semibold">
-                    Payment
-                  </th>
-                  <th className="text-left p-4 text-white font-semibold">
-                    Usage
+                    Subscription
                   </th>
                   <th className="text-left p-4 text-white font-semibold">
                     Created
@@ -266,97 +275,127 @@ const TenantManagementPage = () => {
                   </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-white/10">
-                {tenants.map((tenant) => (
-                  <tr
-                    key={tenant.id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-10 h-10 rounded-lg ${tenant.color} flex items-center justify-center text-white font-bold text-sm`}
+                {apiTenants && apiTenants.length > 0 ? (
+                  apiTenants.map((tenant) => (
+                    <tr
+                      key={tenant.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      {/* Organization */}
+                      <td className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm`}
+                          >
+                            {tenant.name
+                              ? tenant.name
+                                  .split(" ")
+                                  .map((word) => word[0])
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase()
+                              : "NA"}
+                          </div>
+                          <div>
+                            <div className="text-white font-semibold">
+                              {tenant.name}
+                            </div>
+                            <div className="text-slate-400 text-sm">
+                              {tenant.slug ? `dealflow.ai/${tenant.slug}` : "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                            tenant.status
+                          )}`}
                         >
-                          {tenant.id}
+                          {tenant.status || "—"}
+                        </span>
+                      </td>
+
+                      {/* Plan */}
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPlanColor(
+                            tenant.subscription_plan || "starter"
+                          )}`}
+                        >
+                          {tenant.subscription_plan || "Free"}
+                        </span>
+                      </td>
+
+                      {/* Users */}
+                      <td className="p-4">
+                        <div className="text-white font-medium">
+                          {tenant.user_count} / {tenant.max_users}
                         </div>
-                        <div>
-                          <div className="text-white font-semibold">
-                            {tenant.name}
-                          </div>
-                          <div className="text-slate-400 text-sm">
-                            {tenant.company}
-                          </div>
-                          <div className="text-slate-500 text-xs">
-                            {tenant.domain}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                          tenant.status
-                        )}`}
-                      >
-                        {tenant.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPlanColor(
-                          tenant.plan
-                        )}`}
-                      >
-                        {tenant.plan}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-white font-medium">
-                        {tenant.users}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPaymentColor(
-                          tenant.paymentStatus
-                        )}`}
-                      >
-                        {tenant.payment}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="space-y-1">
+                      </td>
+
+                      {/* Subscription Status */}
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPaymentColor(
+                            tenant.subscription_status || "pending"
+                          )}`}
+                        >
+                          {tenant.subscription_status || "Pending"}
+                        </span>
+                      </td>
+
+                      {/* Created At */}
+                      <td className="p-4">
                         <div className="text-slate-300 text-sm">
-                          API: {tenant.api}
+                          {new Date(tenant.created_at).toLocaleDateString()}
                         </div>
-                        <div className="text-slate-400 text-xs">
-                          Storage: {tenant.storage}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                            onClick={() => activateTenant(tenant.id)}
+                          >
+                            {/* <Eye className="h-4 w-4" /> */}
+                            Active
+                          </button>
+                          <button
+                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                            // onClick={() => suspendTenant(tenant.id)}
+                          >
+                            {/* <Eye className="h-4 w-4" /> */}
+                            Suspend
+                          </button>
+                          {/* <button className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button className="p-2 text-gray-400 hover:bg-gray-500/20 rounded-lg transition-colors">
+                            <Mail className="h-4 w-4" />
+                          </button>
+                          <button className="p-2 text-gray-400 hover:bg-gray-500/20 rounded-lg transition-colors">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button> */}
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-slate-300 text-sm">
-                        {tenant.created}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:bg-gray-500/20 rounded-lg transition-colors">
-                          <Mail className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:bg-gray-500/20 rounded-lg transition-colors">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                      </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="text-center text-slate-400 py-6 text-sm"
+                    >
+                      No tenants found.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
