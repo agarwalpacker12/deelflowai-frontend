@@ -76,7 +76,7 @@ const baseSettingsNavLinks = [
 ];
 
 // Super admin only settings
-const superAdminSettingsNavLinks = [
+const super_adminSettingsNavLinks = [
   { to: "/app/ai-settings", label: "AI Settings" },
 ];
 
@@ -125,8 +125,8 @@ const Layout = () => {
 
   // Generate settings links based on role
   const getSettingsNavLinks = () => {
-    if (userRole === "superadmin") {
-      return [...baseSettingsNavLinks, ...superAdminSettingsNavLinks];
+    if (userRole === "super_admin") {
+      return [...baseSettingsNavLinks, ...super_adminSettingsNavLinks];
     } else if (userRole === "admin") {
       return [...baseSettingsNavLinks];
     }
@@ -135,7 +135,7 @@ const Layout = () => {
 
   // Generate SaaS Management links based on role
   const getSaaSManagementNavLinks = () => {
-    if (userRole === "superadmin") {
+    if (userRole === "super_admin") {
       return saasManagementNavLinks;
     } else if (userRole === "admin") {
       return saasManagementNavLinks.filter(
@@ -151,24 +151,24 @@ const Layout = () => {
   // Check if sections should be shown based on role
   const shouldShowSettings = userRole !== "staff";
   const shouldShowSaaSManagement =
-    userRole === "superadmin" || userRole === "admin";
+    userRole === "super_admin" || userRole === "admin";
   const shouldShowPropertyList = userRole !== "staff";
   const shouldShowMarketplace = userRole !== "staff";
   const shouldShowMarketingHub = userRole !== "staff";
   const shouldShowAIFeatures = true;
   const shouldShowAnalyticsReports = userRole !== "staff";
   const shouldShowSystemSettings =
-    userRole === "admin" || userRole === "superadmin";
+    userRole === "admin" || userRole === "super_admin";
   const shouldShowAiManagement =
-    userRole === "admin" || userRole === "superadmin";
+    userRole === "admin" || userRole === "super_admin";
   const shouldShowIntegrations =
-    userRole === "admin" || userRole === "superadmin";
+    userRole === "admin" || userRole === "super_admin";
 
   const shouldShowWhiteLabel =
-    userRole === "admin" || userRole === "superadmin";
+    userRole === "admin" || userRole === "super_admin";
 
   const shouldShowLandingPageBuilder =
-    userRole === "admin" || userRole === "superadmin";
+    userRole === "admin" || userRole === "super_admin";
 
   // Check if any submenu items are currently active
   const isSettingsActive = settingsNavLinks.some((link) =>
