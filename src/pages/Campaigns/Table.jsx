@@ -76,10 +76,12 @@ const CampaignsTable = () => {
           setTotalPages(calculatedTotalPages);
         } else {
           setError("Failed to fetch campaigns");
+          setCampaigns([]);
         }
       } catch (err) {
         console.error("Error fetching campaigns:", err);
         setError(err.response?.data?.message || "Failed to fetch campaigns");
+        setCampaigns([]);
       } finally {
         setLoading(false);
       }
