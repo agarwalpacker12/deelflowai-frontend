@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { propertySaveAPI } from "../../services/api";
+import { Mail, X, Check, Crown, Zap, Star, Shield } from "lucide-react";
 import SavedPropertiesPage from "../PropertiesSave/Table";
-import { Mail, X } from "lucide-react";
-import { authAPI } from "../../services/api";
 import DealsPage from "../Deals/DealsPage";
-
+import PricingTable from "../pricing/page";
 const mockUser = {
   name: "John Doe",
   email: "john.doe@example.com",
   role: "Investor",
   phone: "+1 234 567 890",
+  currentPlan: "free",
 };
-
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("profile");
-
-  const [savedProperty, setSavedProperty] = useState();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   // Get user details from localStorage
   let userDetails = null;
@@ -28,7 +26,6 @@ const ProfilePage = () => {
     userDetails = null;
   }
 
-  // Fallback to mockUser if no localStorage data
   const user = userDetails
     ? {
         name: `${userDetails.first_name || ""} ${
@@ -37,199 +34,163 @@ const ProfilePage = () => {
         email: userDetails.email || "",
         role: userDetails.role || "",
         phone: userDetails.phone || "",
+        currentPlan: userDetails.plan || "free",
       }
     : mockUser;
 
-  // Fetch saved properties
-  useEffect(() => {
-    const fetchSavedProperties = async () => {
-      try {
-        const response = await propertySaveAPI.getPropertySave({
-          per_page: 100,
-        }); // adjust per_page as needed
-        if (response.data.status === "success") {
-          setSavedProperty(response.data.data.data);
-        }
-      } catch (err) {
-        // Optionally handle error
-      }
-    };
-    fetchSavedProperties();
-  }, []);
-
-  // Back navigation handler
   const handleBackNavigation = () => {
-    // Option 1: Use browser history
     window.history.back();
+  };
 
-    // Option 2: Navigate to specific route (uncomment and modify as needed)
-    // window.location.href = "/dashboard"; // or your desired route
+  const handleUpgrade = (plan) => {
+    setSelectedPlan(plan);
+    setShowUpgradeModal(true);
+  };
 
-    // Option 3: If using React Router, you can use navigate
-    // navigate(-1); // or navigate('/dashboard')
+  const confirmUpgrade = () => {
+    // Handle upgrade logic here
+    console.log("Upgrading to:", selectedPlan);
+    setShowUpgradeModal(false);
+    // Update user plan in localStorage
+    if (userDetails) {
+      userDetails.plan = selectedPlan.id;
+      localStorage.setItem("user", JSON.stringify(userDetails));
+    }
   };
 
   return (
-    <>
-      {/* Header with Back Navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-100 dark:text-white">
-          Profile
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-white">My Account</h1>
         <button
           onClick={handleBackNavigation}
-          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all"
           aria-label="Go back"
         >
-          <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <X className="w-5 h-5 text-white" />
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
-          <li className="me-2">
+      <div className="border-b border-white/20 mb-8">
+        <ul className="flex flex-wrap gap-2">
+          <li>
             <button
               onClick={() => setActiveTab("profile")}
-              className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group focus:outline-none ${
+              className={`px-6 py-3 rounded-t-lg font-medium transition-all ${
                 activeTab === "profile"
-                  ? "text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500"
-                  : "border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+                  ? "bg-white/10 text-white border-b-2 border-purple-400"
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
               }`}
             >
-              <svg
-                className="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z" />
-              </svg>
               Profile
             </button>
           </li>
-          <li className="me-2">
+          <li>
             <button
-              onClick={() => setActiveTab("property")}
-              className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group focus:outline-none ${
-                activeTab === "property"
-                  ? "text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500"
-                  : "border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+              onClick={() => setActiveTab("subscription")}
+              className={`px-6 py-3 rounded-t-lg font-medium transition-all ${
+                activeTab === "subscription"
+                  ? "bg-white/10 text-white border-b-2 border-purple-400"
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
               }`}
             >
-              <svg
-                className="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M5 11.424V1a1 1 0 1 0-2 0v10.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.228 3.228 0 0 0 0-6.152ZM19.25 14.5A3.243 3.243 0 0 0 17 11.424V1a1 1 0 0 0-2 0v10.424a3.227 3.227 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.243 3.243 0 0 0 2.25-3.076Zm-6-9A3.243 3.243 0 0 0 11 2.424V1a1 1 0 0 0-2 0v1.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0V8.576A3.243 3.243 0 0 0 13.25 5.5Z" />
-              </svg>
-              Property
+              Subscription
             </button>
           </li>
-
-          <li className="me-2">
+          <li>
             <button
-              onClick={() => setActiveTab("deal-property")}
-              className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group focus:outline-none ${
-                activeTab === "deal-property"
-                  ? "text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500"
-                  : "border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+              onClick={() => setActiveTab("property")}
+              className={`px-6 py-3 rounded-t-lg font-medium transition-all ${
+                activeTab === "property"
+                  ? "bg-white/10 text-white border-b-2 border-purple-400"
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
               }`}
             >
-              <svg
-                className="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M5 11.424V1a1 1 0 1 0-2 0v10.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.228 3.228 0 0 0 0-6.152ZM19.25 14.5A3.243 3.243 0 0 0 17 11.424V1a1 1 0 0 0-2 0v10.424a3.227 3.227 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.243 3.243 0 0 0 2.25-3.076Zm-6-9A3.243 3.243 0 0 0 11 2.424V1a1 1 0 0 0-2 0v1.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0V8.576A3.243 3.243 0 0 0 13.25 5.5Z" />
-              </svg>
-              Deal
+              Properties
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("deal-property")}
+              className={`px-6 py-3 rounded-t-lg font-medium transition-all ${
+                activeTab === "deal-property"
+                  ? "bg-white/10 text-white border-b-2 border-purple-400"
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              Deals
             </button>
           </li>
         </ul>
       </div>
 
       {/* Tab Content */}
-      <div className="mt-6">
-        {activeTab === "profile" && (
-          <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 rounded-2xl shadow-xl p-8 w-full max-w-lg border border-white/10">
-              <div className="flex flex-col items-center gap-4">
-                {/* Avatar */}
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-800">
-                  {/* SVG Avatar */}
-                  <svg
-                    width="64"
-                    height="64"
-                    viewBox="0 0 32 32"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="16"
-                      cy="16"
-                      r="15"
-                      stroke="url(#profile-gradient)"
-                      strokeWidth="2"
-                      fill="white"
-                    />
-                    <defs>
-                      <linearGradient
-                        id="profile-gradient"
-                        x1="0"
-                        y1="0"
-                        x2="32"
-                        y2="32"
-                        gradientUnits="userSpaceOnUse"
-                      >
-                        <stop stopColor="#a78bfa" />
-                        <stop offset="1" stopColor="#6366f1" />
-                      </linearGradient>
-                    </defs>
-                    <ellipse
-                      cx="16"
-                      cy="13"
-                      rx="5"
-                      ry="5.5"
-                      fill="#6366f1"
-                      fillOpacity="0.15"
-                    />
-                    <ellipse cx="16" cy="13" rx="3.5" ry="3.5" fill="#6366f1" />
-                    <path
-                      d="M8.5 24c1.5-3 5-4 7.5-4s6 1 7.5 4"
-                      stroke="#6366f1"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      fill="none"
-                    />
-                  </svg>
+      {activeTab === "profile" && (
+        <div className="flex justify-center">
+          <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-2xl border border-white/10">
+            <div className="flex flex-col items-center gap-6">
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 p-1">
+                  <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
+                    <span className="text-5xl font-bold text-white">
+                      {user.name.charAt(0)}
+                    </span>
+                  </div>
                 </div>
-                {/* Name */}
-                <div className="text-2xl font-bold text-white text-center">
-                  {user.name}
+                <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-2">
+                  <Star className="w-5 h-5 text-white" />
                 </div>
-                {/* Role badge */}
+              </div>
+
+              {/* User Info */}
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-white">{user.name}</h2>
                 {user.role && (
-                  <span className="inline-block bg-indigo-600/80 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm mb-1">
+                  <span className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold px-4 py-1 rounded-full">
                     {user.role}
                   </span>
                 )}
-                {/* Email */}
-                <div className="text-gray-300 text-sm flex items-center gap-2">
-                  <Mail />
-                  {user.email}
+              </div>
+
+              {/* Current Plan Badge */}
+              <div className="w-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-2xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full p-2">
+                      <Crown className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Current Plan</p>
+                      <p className="text-white font-semibold text-lg capitalize">
+                        {user.currentPlan}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("subscription")}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all transform hover:scale-105"
+                  >
+                    Upgrade
+                  </button>
                 </div>
-                {/* Phone */}
+              </div>
+
+              {/* Contact Info */}
+              <div className="w-full space-y-4">
+                <div className="flex items-center gap-3 bg-white/5 rounded-xl p-4">
+                  <Mail className="w-5 h-5 text-purple-400" />
+                  <div>
+                    <p className="text-gray-400 text-xs">Email</p>
+                    <p className="text-white">{user.email}</p>
+                  </div>
+                </div>
                 {user.phone && (
-                  <div className="text-gray-400 text-sm flex items-center gap-2">
+                  <div className="flex items-center gap-3 bg-white/5 rounded-xl p-4">
                     <svg
-                      className="w-4 h-4 text-indigo-300"
+                      className="w-5 h-5 text-purple-400"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
@@ -238,26 +199,27 @@ const ProfilePage = () => {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm10-10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                       ></path>
                     </svg>
-                    {user.phone}
+                    <div>
+                      <p className="text-gray-400 text-xs">Phone</p>
+                      <p className="text-white">{user.phone}</p>
+                    </div>
                   </div>
                 )}
-                {/* Edit Profile Button (optional, for future) */}
-                <button className="mt-4 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition">
+              </div>
+
+              {/* Action Buttons */}
+              <div className="w-full space-y-3 mt-4">
+                <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg transition-all transform hover:scale-105">
                   Edit Profile
                 </button>
-                {/* Upgrade Profile Button */}
-                <button className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold shadow transition">
-                  Upgrade your profile
-                </button>
-                {/* Logout Button */}
                 <button
-                  className="mt-2 px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition"
+                  className="w-full px-6 py-3 rounded-xl bg-red-600/80 hover:bg-red-700 text-white font-semibold transition-all"
                   onClick={async () => {
                     try {
-                      await authAPI.logout();
+                      // await authAPI.logout();
                     } catch (e) {}
                     localStorage.removeItem("token");
                     localStorage.removeItem("user");
@@ -269,11 +231,188 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
-        )}
-        {activeTab === "property" && <SavedPropertiesPage />}
-        {activeTab === "deal-property" && <DealsPage />}
-      </div>
-    </>
+        </div>
+      )}
+
+      {activeTab === "subscription" && (
+        // <div className="max-w-7xl mx-auto">
+        //   {/* Header */}
+        //   <div className="text-center mb-12">
+        //     <h2 className="text-4xl font-bold text-white mb-4">
+        //       Choose Your Plan
+        //     </h2>
+        //     <p className="text-gray-300 text-lg">
+        //       Unlock premium features and take your investment journey to the
+        //       next level
+        //     </p>
+        //   </div>
+
+        //   {/* Plans Grid */}
+        //   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        //     {subscriptionPlans.map((plan) => {
+        //       const Icon = plan.icon;
+        //       const isCurrentPlan = user.currentPlan === plan.id;
+
+        //       return (
+        //         <div
+        //           key={plan.id}
+        //           className={`relative bg-white/5 backdrop-blur-xl rounded-3xl p-8 border transition-all transform hover:scale-105 ${
+        //             plan.popular
+        //               ? "border-purple-500 shadow-2xl shadow-purple-500/20"
+        //               : "border-white/10 hover:border-white/20"
+        //           } ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`}
+        //         >
+        //           {plan.popular && (
+        //             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+        //               <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold px-4 py-1 rounded-full shadow-lg">
+        //                 MOST POPULAR
+        //               </span>
+        //             </div>
+        //           )}
+
+        //           {isCurrentPlan && (
+        //             <div className="absolute -top-4 right-8">
+        //               <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+        //                 CURRENT
+        //               </span>
+        //             </div>
+        //           )}
+
+        //           {/* Icon */}
+        //           <div
+        //             className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-6`}
+        //           >
+        //             <Icon className="w-8 h-8 text-white" />
+        //           </div>
+
+        //           {/* Plan Name */}
+        //           <h3 className="text-2xl font-bold text-white mb-2">
+        //             {plan.name}
+        //           </h3>
+        //           <p className="text-gray-400 text-sm mb-6">{plan.limits}</p>
+
+        //           {/* Price */}
+        //           <div className="mb-8">
+        //             <span className="text-5xl font-bold text-white">
+        //               {plan.price}
+        //             </span>
+        //             <span className="text-gray-400">/ {plan.period}</span>
+        //           </div>
+
+        //           {/* Features */}
+        //           <ul className="space-y-4 mb-8">
+        //             {plan.features.map((feature, index) => (
+        //               <li key={index} className="flex items-start gap-3">
+        //                 <div className="mt-1 bg-green-500/20 rounded-full p-1">
+        //                   <Check className="w-4 h-4 text-green-400" />
+        //                 </div>
+        //                 <span className="text-gray-300">{feature}</span>
+        //               </li>
+        //             ))}
+        //           </ul>
+
+        //           {/* CTA Button */}
+        //           <button
+        //             onClick={() => handleUpgrade(plan)}
+        //             disabled={isCurrentPlan}
+        //             className={`w-full py-4 rounded-xl font-semibold transition-all transform hover:scale-105 ${
+        //               isCurrentPlan
+        //                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+        //                 : plan.popular
+        //                 ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
+        //                 : "bg-white/10 hover:bg-white/20 text-white"
+        //             }`}
+        //           >
+        //             {isCurrentPlan
+        //               ? "Current Plan"
+        //               : plan.id === "free"
+        //               ? "Downgrade"
+        //               : "Upgrade Now"}
+        //           </button>
+        //         </div>
+        //       );
+        //     })}
+        //   </div>
+
+        //   {/* FAQ or Additional Info */}
+        //   <div className="mt-16 text-center">
+        //     <p className="text-gray-400">
+        //       Need a custom plan?{" "}
+        //       <a
+        //         href="#"
+        //         className="text-purple-400 hover:text-purple-300 font-semibold"
+        //       >
+        //         Contact us
+        //       </a>
+        //     </p>
+        //   </div>
+        // </div>
+        <PricingTable />
+      )}
+
+      {activeTab === "property" && <SavedPropertiesPage />}
+
+      {activeTab === "deal-property" && <DealsPage />}
+
+      {/* Upgrade Confirmation Modal */}
+      {showUpgradeModal && selectedPlan && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gradient-to-br from-slate-900 to-purple-900 rounded-3xl p-8 max-w-md w-full border border-white/20 shadow-2xl">
+            <div className="text-center mb-6">
+              <div
+                className={`w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br ${selectedPlan.color} flex items-center justify-center mb-4`}
+              >
+                {React.createElement(selectedPlan.icon, {
+                  className: "w-10 h-10 text-white",
+                })}
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Upgrade to {selectedPlan.name}?
+              </h3>
+              <p className="text-gray-300">
+                You'll be charged{" "}
+                <span className="font-bold text-white">
+                  {selectedPlan.price}
+                </span>{" "}
+                {selectedPlan.period}
+              </p>
+            </div>
+
+            <div className="bg-white/5 rounded-xl p-4 mb-6">
+              <p className="text-gray-300 text-sm mb-3">
+                You'll get access to:
+              </p>
+              <ul className="space-y-2">
+                {selectedPlan.features.slice(0, 3).map((feature, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center gap-2 text-gray-300 text-sm"
+                  >
+                    <Check className="w-4 h-4 text-green-400" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUpgrade}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold transition-all transform hover:scale-105"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

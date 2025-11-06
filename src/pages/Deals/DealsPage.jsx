@@ -34,49 +34,48 @@ const DealsPage = () => {
   const [success, setSuccess] = useState(null);
 
   useEffect(() => {
+    let ignore = false;
+
     const fetchDeals = async () => {
+      if (ignore) return; // prevent second call
       setLoading(true);
       setError(null);
 
       try {
-        // Prepare API parameters
         const params = {
           page: currentPage,
           per_page: perPage,
+          ...(searchTerm && { search: searchTerm }),
+          ...(statusFilter && { status: statusFilter }),
+          ...(dealTypeFilter && { deal_type: dealTypeFilter }),
         };
 
-        if (searchTerm) {
-          params.search = searchTerm;
-        }
-
-        if (statusFilter) {
-          params.status = statusFilter;
-        }
-
-        if (dealTypeFilter) {
-          params.deal_type = dealTypeFilter;
-        }
-
         const response = await dealsAPI.getDeals(params);
-
-        // Handle the API response format
-        if (response.data.status === "success") {
-          setDeals(response.data.data.data); // deals array
+        if (
+          response.data.status === "success" &&
+          response.data.data.data.length > 0
+        ) {
+          setDeals(response.data.data.data);
           setTotal(response.data.data.meta.total);
           setTotalPages(response.data.data.meta.last_page);
-          // Do NOT setCurrentPage here to avoid infinite loop
         } else {
-          setError("Failed to fetch deals");
+          // setError("Failed to fetch deals");
+          setDeals([]);
         }
       } catch (err) {
         console.error("Error fetching deals:", err);
-        setError(err.response?.data?.message || "Failed to fetch deals");
+        // setError(err.response?.data?.message || "Failed to fetch deals");
+        setDeals([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchDeals();
+
+    return () => {
+      ignore = true; // prevents duplicate invocation from StrictMode
+    };
   }, [searchTerm, statusFilter, dealTypeFilter, perPage, currentPage]);
 
   // Add a guard to prevent currentPage from being out of bounds
@@ -264,7 +263,7 @@ const DealsPage = () => {
             <div className="p-8 text-center text-gray-400">
               Loading deals...
             </div>
-          ) : deals.length === 0 ? (
+          ) : deals?.length == 0 ? (
             <div className="p-8 text-center text-gray-400">No deals found</div>
           ) : (
             <div className="overflow-x-auto">
