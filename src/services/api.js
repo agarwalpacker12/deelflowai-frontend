@@ -87,7 +87,8 @@ export const authAPI = {
 
 export const leadsAPI = {
   getLeads: (params) => api.get("/leads/", { params }),
-  getLead: (id) => api.get(`/leads/${id}/`),
+  getLead: (id) => AllGETHeader.get(`/leads/${id}/`),
+
   createLead: (data) => AllPOSTHeader.post("/leads/", data),
   updateLead: (id, data) => api.put(`/leads/${id}/`, data),
   deleteLead: (id) => api.delete(`/leads/${id}/`),
@@ -169,11 +170,14 @@ export const RbacAPI = {
   getRoles: () => api.get("/roles/"),
   getPermissions: () => api.get("/permissions/"),
   UpdatePermission: (id, data) => api.put(`/roles/${id}/`, data),
-  UpdateRole: (data) => AllPOSTHeader.put(`/users/${data.id}/roles/`, data),
+  AssignUser: (data) =>
+    api.post(`/roles/${data.role_id}/assign-user/${data.user_id}`, data),
   getRoleById: (id) => api.get(`/roles/${id}`),
   deleteRole: (roleId) => api.delete(`/roles/${roleId}`),
-  userAssignment: (roleId, data) =>
-    api.post(`/roles/${roleId}/assign-user/`, data),
+
+  getTenantRoles: (id) => api.get(`/tenants/${id}/roles`),
+  createTenantRole: (data) =>
+    api.post(`/tenants/${data.tenant_id}/roles`, data),
 };
 
 export const PaymentAPI = {

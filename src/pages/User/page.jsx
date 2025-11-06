@@ -26,7 +26,9 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editRole, setEditRole] = useState("member");
+  const [editRole, setEditRole] = useState();
+  const [roles, setRoles] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
 
   // Helper function to generate avatar initials
   const generateAvatar = (firstName, lastName) => {
@@ -188,40 +190,34 @@ const UserManagement = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = async (user) => {
     setEditingUser(user);
-    setEditRole(user.role); // ✅ pre-fill with current role
+    // setEditRole(user.role); // ✅ pre-fill with current role
     setShowEditModal(true);
+
+    // Fetch tenant roles when modal opens
+    const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
+    const tenantId = userDetails.tenant_id;
+
+    if (tenantId) {
+      try {
+        setLoadingRoles(true);
+        const response = await RbacAPI.getTenantRoles(tenantId);
+        console.log("Tenant roles response:", response);
+
+        // Handle the response format
+        if (response.data) {
+          const rolesData = response.data.data.roles;
+          setRoles(Array.isArray(rolesData) ? rolesData : []);
+        }
+      } catch (error) {
+        console.error("Error fetching tenant roles:", error);
+        setRoles([]);
+      } finally {
+        setLoadingRoles(false);
+      }
+    }
   };
-
-  //   const handleRemoveUser = (user) => {
-  //     if (user.role === "admin" && adminCount <= 1) {
-  //       alert(
-  //         "Cannot remove the last Organization Admin. At least one admin must remain in the organization."
-  //       );
-  //       return;
-  //     }
-
-  //     if (
-  //       window.confirm(
-  //         `Are you sure you want to remove ${user.full_name} from the organization? This action cannot be undone.`
-  //       )
-  //     ) {
-  //       setUsers(users.filter((u) => u.id !== user.id));
-  //     }
-  //   };
-
-  //   const handleResetPassword = (user) => {
-  //     if (window.confirm(`Send password reset email to ${user.full_name}?`)) {
-  //       alert(`Password reset email sent to ${user.full_name}`);
-  //     }
-  //   };
-
-  //   const handleResendInvite = (user) => {
-  //     if (window.confirm(`Resend invitation email to ${user.full_name}?`)) {
-  //       alert(`Invitation resent to ${user.full_name}`);
-  //     }
-  //   };
 
   const Modal = ({ show, onClose, title, children }) => {
     if (!show) return null;
@@ -300,13 +296,14 @@ const UserManagement = () => {
     fetchUsers();
   }, [token]);
 
-  const updateRole = async (id, role) => {
+  const updateRole = async () => {
     try {
       const formattedData = {
-        id: id,
-        roles: [role],
+        user_id: editingUser.id,
+        role_id: editRole,
       };
-      const response = await RbacAPI.UpdateRole(formattedData);
+      const response = await RbacAPI.AssignUser(formattedData);
+
       console.log("response", response);
     } catch (error) {}
   };
@@ -620,11 +617,21 @@ const UserManagement = () => {
               </label>
               <select
                 value={editRole}
-                onChange={(e) => setEditRole(e.target.value)} // ✅ keep state updated
-                className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
+                onChange={(e) => setEditRole(e.target.value)}
+                disabled={loadingRoles}
+                className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <option value="admin">Admin</option>
-                <option value="staff">Staff</option>
+                {loadingRoles ? (
+                  <option>Loading roles...</option>
+                ) : roles.length > 0 ? (
+                  roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                    </option>
+                  ))
+                ) : (
+                  <></>
+                )}
               </select>
             </div>
 
@@ -652,7 +659,7 @@ const UserManagement = () => {
           </button>
           <button
             onClick={() => {
-              updateRole(editingUser.id, editRole); // ✅ pass new role
+              updateRole(); // ✅ pass new role
               setShowEditModal(false);
             }}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white rounded-lg transition-colors"

@@ -9,11 +9,30 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
   const [loading, setLoading] = useState(true); // ✅ new loading state
 
   // ✅ useCallback to avoid redefining on every render
+  // const fetchRoles = useCallback(async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await RbacAPI.getRoles();
+
+  //     if (response.data.status === "success") {
+  //       setAllRoles(response.data.data.roles);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching roles:", err);
+  //     toast.error("Failed to load roles");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
+
   const fetchRoles = useCallback(async () => {
+    // Fetch tenant roles when modal opens
+    const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
+    const tenantId = userDetails.tenant_id;
     try {
       setLoading(true);
-      const response = await RbacAPI.getRoles();
-
+      // const response = await RbacAPI.getRoles();
+      const response = await RbacAPI.getTenantRoles(tenantId);
       if (response.data.status === "success") {
         setAllRoles(response.data.data.roles);
       }

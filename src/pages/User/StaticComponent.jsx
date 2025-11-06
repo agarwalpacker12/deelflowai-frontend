@@ -12,9 +12,8 @@ function StaticContent({ stats }) {
           </h1>
           <p className="text-slate-400">Manage users in your organization</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            // onClick={() => setShowInviteModal(true)}
+        {/* <div className="flex items-center gap-3">
+          <button 
             onClick={() => navigate("/app/invite")}
             className="group relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-blue-500/30 hover:border-blue-400/50 overflow-hidden"
           >
@@ -23,7 +22,7 @@ function StaticContent({ stats }) {
             <span className="relative z-10">Invite User</span>
             <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></div>
           </button>
-        </div>
+        </div> */}
       </div>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -75,7 +75,7 @@ function AddForm({ setIsModalOpen, fetchRoles }) {
   // 🧭 API: Create Role Mutation
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await RbacAPI.createRole(data);
+      const res = await RbacAPI.createTenantRole(data);
       return res;
     },
     onSuccess: (response) => {
@@ -127,10 +127,15 @@ function AddForm({ setIsModalOpen, fetchRoles }) {
       })
       .filter((g) => g.permissions.length > 0);
 
+    // Fetch tenant roles when modal opens
+    const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
+    const tenantId = userDetails.tenant_id;
+
     const formData = {
       name: roleName.trim().toLowerCase(),
       label: roleLabel.trim(),
       permissions: groupedSelection,
+      tenant_id: tenantId,
     };
 
     mutation.mutate(formData);
