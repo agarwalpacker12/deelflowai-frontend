@@ -13,6 +13,8 @@ const Table = ({
   onPropertySaved, // <-- add this prop
   onDelete,
 }) => {
+  console.log("101", properties);
+
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
@@ -24,7 +26,7 @@ const Table = ({
   // Remove direct API call, just handle loading/error UI
   const handleDeleteClick = async (property) => {
     setDeleteError("");
-    setDeletingId(property.id);
+    setDeletingId(property.source_id);
     try {
       await onDelete(property); // <-- delegate to parent
     } catch (err) {
@@ -38,13 +40,15 @@ const Table = ({
   const handleSaveClick = async (property) => {
     setSaveError("");
     setSaveSuccess(null);
-    setSavingId(property.id);
+    setSavingId(property.source_id);
     try {
       // Assuming API expects { property_id: ... }
-      await propertySaveAPI.createPropertySave({ property_id: property.id });
-      setSaveSuccess(property.id);
+      await propertySaveAPI.createPropertySave({
+        property_id: property.source_id,
+      });
+      setSaveSuccess(property.source_id);
       setTimeout(() => setSaveSuccess(null), 1500);
-      if (onPropertySaved) onPropertySaved(property.id); // <-- notify parent
+      if (onPropertySaved) onPropertySaved(property.source_id); // <-- notify parent
     } catch (err) {
       setSaveError(
         err?.response?.data?.message ||
@@ -221,7 +225,7 @@ const Table = ({
                           className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-colors"
                           onClick={() => handleSaveClick(property)}
                           title="Save Property"
-                          disabled={savingId === property.id}
+                          disabled={savingId === property.source_id}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -242,27 +246,27 @@ const Table = ({
                       <button
                         className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors"
                         onClick={() =>
-                          navigate(`/app/properties/${property.id}`)
+                          navigate(`/app/properties/${property.source_id}`)
                         }
                       >
                         <Edit className="h-4 w-4" />
                       </button>
 
-                      <button
+                      {/* <button
                         className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                         onClick={() =>
                           navigate(`/app/properties/${property.id}/bid`)
                         }
                       >
                         Bid
-                      </button>
+                      </button> */}
 
                       <button
                         className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                         onClick={() => handleDeleteClick(property)}
-                        disabled={deletingId === property.id}
+                        disabled={deletingId == property.source_id}
                       >
-                        {deletingId === property.id ? (
+                        {deletingId == property.source_id ? (
                           <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
                         ) : (
                           <Trash2 className="h-4 w-4" />

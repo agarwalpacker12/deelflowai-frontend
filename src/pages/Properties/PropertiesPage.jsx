@@ -171,7 +171,7 @@ const PropertiesPage = () => {
     if (!window.confirm("Are you sure you want to delete this property?"))
       return;
     try {
-      await propertiesAPI.deleteProperty(property.id);
+      await propertiesAPI.deleteProperty(property.source_id);
       // Refetch properties after delete
       const params = {
         page: currentPage,
