@@ -483,9 +483,10 @@ const ContentManagementPage = () => {
                   >
                     <div className="relative">
                       <img
-                        src={item.thumbnail}
+                        // src={item.thumbnail}
+                        src={`/images/${item.title}.jpg`}
                         alt={item.title}
-                        className="w-full h-32 object-cover"
+                        className="w-full h-32 object-fill"
                       />
                       <div className="absolute top-3 left-3">
                         <div className="flex items-center gap-1 bg-purple-900/90 backdrop-blur-sm rounded-full px-2 py-1 border border-purple-600/50">
