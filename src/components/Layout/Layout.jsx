@@ -24,6 +24,7 @@ const Layout = () => {
 
   const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
   const userPermissions = userDetails.permissions || [];
+  const hasNoPermissions = !userPermissions || userPermissions.length === 0;
 
   // Get filtered navigation links based on user permissions
   const {
@@ -43,6 +44,13 @@ const Layout = () => {
     landingPageBuilderNavLinks,
   } = useFilteredNavigation(userPermissions);
 
+  // Default fallback links when user has no permissions
+  const defaultNavLinks = useMemo(() => ({
+    propertyList: [{ to: "/app/properties", label: "Property List" }],
+    deals: [{ to: "/app/deals", label: "Deals" }],
+    leads: [{ to: "/app/leads", label: "Leads" }],
+  }), []);
+
   // Combine settings links
   const settingsNavLinks = useMemo(
     () => [...baseSettingsNavLinks, ...super_adminSettingsNavLinks],
@@ -50,18 +58,21 @@ const Layout = () => {
   );
 
   // Check if sections should be shown based on filtered results
-  const shouldShowSettings = settingsNavLinks.length > 0;
-  const shouldShowSaaSManagement = saasManagementNavLinks.length > 0;
-  const shouldShowPropertyList = propertyNavLinks.length > 0;
-  const shouldShowMarketplace = marketplaceNavLinks.length > 0;
-  const shouldShowMarketingHub = marketingHubNavLinks.length > 0;
-  const shouldShowAIFeatures = aiFeatureNavLinks.length > 0;
-  const shouldShowAnalyticsReports = analyticsReportsNavLinks.length > 0;
-  const shouldShowSystemSettings = systemSettingsNavLinks.length > 0;
-  const shouldShowAiManagement = aiManagementNavLinks.length > 0;
-  const shouldShowIntegrations = integrationNavLinks.length > 0;
-  const shouldShowWhiteLabel = whiteLabelNavLinks.length > 0;
-  const shouldShowLandingPageBuilder = landingPageBuilderNavLinks.length > 0;
+  // If no permissions, show only default pages
+  const shouldShowSettings = !hasNoPermissions && settingsNavLinks.length > 0;
+  const shouldShowSaaSManagement = !hasNoPermissions && saasManagementNavLinks.length > 0;
+  const shouldShowPropertyList = hasNoPermissions || propertyNavLinks.length > 0;
+  const shouldShowMarketplace = !hasNoPermissions && marketplaceNavLinks.length > 0;
+  const shouldShowMarketingHub = !hasNoPermissions && marketingHubNavLinks.length > 0;
+  const shouldShowAIFeatures = !hasNoPermissions && aiFeatureNavLinks.length > 0;
+  const shouldShowAnalyticsReports = !hasNoPermissions && analyticsReportsNavLinks.length > 0;
+  const shouldShowSystemSettings = !hasNoPermissions && systemSettingsNavLinks.length > 0;
+  const shouldShowAiManagement = !hasNoPermissions && aiManagementNavLinks.length > 0;
+  const shouldShowIntegrations = !hasNoPermissions && integrationNavLinks.length > 0;
+  const shouldShowWhiteLabel = !hasNoPermissions && whiteLabelNavLinks.length > 0;
+  const shouldShowLandingPageBuilder = !hasNoPermissions && landingPageBuilderNavLinks.length > 0;
+  const shouldShowDeals = hasNoPermissions;
+  const shouldShowLeads = hasNoPermissions;
 
   // Check if any submenu items are currently active
   const isSettingsActive = settingsNavLinks.some((link) =>
@@ -192,10 +203,34 @@ const Layout = () => {
               <Link
                 to="/app/properties"
                 className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white ${
-                  isPropertyListActive ? "bg-indigo-600 text-white" : ""
+                  location.pathname.startsWith("/app/properties") ? "bg-indigo-600 text-white" : ""
                 }`}
               >
                 Property List
+              </Link>
+            )}
+
+            {/* Deals - shown when no permissions */}
+            {shouldShowDeals && (
+              <Link
+                to="/app/deals"
+                className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white ${
+                  location.pathname.startsWith("/app/deals") ? "bg-indigo-600 text-white" : ""
+                }`}
+              >
+                Deals
+              </Link>
+            )}
+
+            {/* Leads - shown when no permissions */}
+            {shouldShowLeads && (
+              <Link
+                to="/app/leads"
+                className={`px-3 py-2 rounded text-slate-200 font-medium transition hover:bg-indigo-700 hover:text-white ${
+                  location.pathname.startsWith("/app/leads") ? "bg-indigo-600 text-white" : ""
+                }`}
+              >
+                Leads
               </Link>
             )}
 
