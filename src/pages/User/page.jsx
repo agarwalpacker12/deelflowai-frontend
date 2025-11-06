@@ -254,10 +254,12 @@ const UserManagement = () => {
   };
 
   useEffect(() => {
+    const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
+    const tenantId = userDetails.tenant_id;
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await authAPI.getAllUsers(token);
+        const response = await authAPI.getAllUsers(tenantId);
 
         // Handle the API response format
         if (response.data.status === "success") {
