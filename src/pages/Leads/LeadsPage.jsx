@@ -54,20 +54,22 @@ const LeadsPage = () => {
         if (minAiScore) {
           params.ai_score_min = parseInt(minAiScore);
         }
-
+        debugger;
         const response = await leadsAPI.getLeads(params);
 
         // Handle the API response format
         if (response.data.status === "success") {
-          setLeads(response.data.data.data); // leads array
-          setTotal(response.data.data.meta.total);
-          setTotalPages(response.data.data.meta.last_page);
+          setLeads(response.data.data); // leads array
+          setTotal(response.data.total);
+          setTotalPages(response.data.total);
         } else {
-          setError("Failed to fetch leads");
+          // setError("Failed to fetch leads");
+          setLeads([]);
         }
       } catch (err) {
         console.error("Error fetching leads:", err);
-        setError(err.response?.data?.message || "Failed to fetch leads");
+        // setError(err.response?.data?.message || "Failed to fetch leads");
+        setLeads([]);
       } finally {
         setLoading(false);
       }
