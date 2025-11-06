@@ -55,16 +55,16 @@ const DealsPage = () => {
           response.data.status === "success" &&
           response.data.data.data.length > 0
         ) {
-          setDeals(response.data.data.data);
-          setTotal(response.data.data.meta.total);
-          setTotalPages(response.data.data.meta.last_page);
+          setDeals(response.data.data);
+          setTotal(response.data.total);
+          setTotalPages(response.data.total);
         } else {
           // setError("Failed to fetch deals");
           setDeals([]);
         }
       } catch (err) {
         console.error("Error fetching deals:", err);
-        // setError(err.response?.data?.message || "Failed to fetch deals");
+        setError(err.response?.data?.message || "Failed to fetch deals");
         setDeals([]);
       } finally {
         setLoading(false);

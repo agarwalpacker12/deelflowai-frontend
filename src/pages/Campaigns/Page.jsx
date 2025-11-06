@@ -63,7 +63,7 @@ const CampaignPage = () => {
             {[
               { id: "dashboard", label: "Dashboard", icon: "📊" },
               { id: "wizard", label: "Campaign Wizard", icon: "🎯" },
-              { id: "leads", label: "Lead Management", icon: "👥" },
+              { id: "leads", label: "Campaigning Management", icon: "👥" },
               { id: "ai", label: "AI Messages", icon: "🤖" },
             ].map((tab) => (
               <button
@@ -109,7 +109,9 @@ const CampaignPage = () => {
               setHeatMapHover={setHeatMapHover}
             />
           )}
-          {activeTab === "wizard" && <AddCampaign open={open} setOpen={setOpen} />}
+          {activeTab === "wizard" && (
+            <AddCampaign open={open} setOpen={setOpen} />
+          )}
           {activeTab === "leads" && <CampaignsTable />}
           {activeTab === "ai" && <AIMessageView />}
         </div>
