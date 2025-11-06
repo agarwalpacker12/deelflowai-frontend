@@ -43,12 +43,17 @@ const Table = ({
     setSavingId(property.source_id);
     try {
       // Assuming API expects { property_id: ... }
-      await propertySaveAPI.createPropertySave({
+      const response = await propertySaveAPI.createPropertySave({
         property_id: property.source_id,
       });
-      setSaveSuccess(property.source_id);
-      setTimeout(() => setSaveSuccess(null), 1500);
-      if (onPropertySaved) onPropertySaved(property.source_id); // <-- notify parent
+
+      // Check if the save was successful
+      if (response.data.status === "success") {
+        setSaveSuccess(property.source_id);
+        setTimeout(() => setSaveSuccess(null), 1500);
+        // Notify parent to update savedPropertyIds
+        if (onPropertySaved) onPropertySaved(property.source_id);
+      }
     } catch (err) {
       setSaveError(
         err?.response?.data?.message ||
@@ -200,7 +205,7 @@ const Table = ({
                     <div className="flex gap-2">
                       {/* Heart icon for saved property */}
                       {savedPropertyIds &&
-                      savedPropertyIds.includes(property.id) ? (
+                      savedPropertyIds.includes(property.source_id) ? (
                         <button
                           className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-default"
                           title="Saved Property"
@@ -225,7 +230,7 @@ const Table = ({
                           className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-colors"
                           onClick={() => handleSaveClick(property)}
                           title="Save Property"
-                          disabled={savingId === property.source_id}
+                          disabled={savingId == property.source_id}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

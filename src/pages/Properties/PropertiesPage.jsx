@@ -205,50 +205,14 @@ const PropertiesPage = () => {
   };
 
   // Add handler for saving property (to update savedPropertyIds)
-  const handlePropertySaved = async (propertyId) => {
-    // Refetch saved properties and properties list
-    try {
-      // Refetch saved properties
-      const savedResponse = await propertySaveAPI.getPropertySave({
-        per_page: 100,
-      });
-      if (savedResponse.data.status === "success") {
-        setSavedPropertyIds(
-          savedResponse.data.data.data.map((item) => item.property_id)
-        );
+  const handlePropertySaved = (propertyId) => {
+    // Simply add the property ID to the saved list
+    setSavedPropertyIds((prev) => {
+      if (!prev.includes(propertyId)) {
+        return [...prev, propertyId];
       }
-      // Refetch properties
-      const params = {
-        page: currentPage,
-        limit: perPage,
-      };
-      if (searchTerm) params.search = searchTerm;
-      if (statusFilter) params.status = statusFilter;
-      if (cityFilter) params.city = cityFilter;
-      if (zipcode) params.zipcode = zipcode;
-      if (state) params.state = state;
-      if (propertyType) params.property_type = propertyType;
-      if (priceMin) params.min_price = priceMin;
-      if (priceMax) params.max_price = priceMax;
-      if (latitude) params.latitude = latitude;
-      if (longitude) params.longitude = longitude;
-      if (radius) params.radius = radius;
-      if (bedrooms) params.bedrooms = bedrooms;
-      if (transactionType) params.transaction_type = transactionType;
-      if (max_sqft) params.square_feet = square_feet;
-      const response = await propertiesAPI.getCombinedProperties(params);
-      if (response.data.status === "success") {
-        setProperties(response.data.data.properties);
-        setTotal(response.data.data.total);
-        setTotalPages(Math.ceil(response.data.data.total / perPage));
-      } else {
-        setError("Failed to fetch properties");
-      }
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to refresh after saving property"
-      );
-    }
+      return prev;
+    });
   };
 
   return (
