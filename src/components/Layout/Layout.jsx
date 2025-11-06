@@ -1,105 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import NotificationBar from "../UI/NotificationBar";
-
-const topLevelNavLinks = [
-  { to: "/app/dashboard", label: "Dashboard" },
-  { to: "/app/analytics", label: "Analytics" },
-  { to: "/app/psychology", label: "Psychological Dashboard" },
-];
-
-// Property List as independent menu
-const propertyNavLinks = [{ to: "/app/properties", label: "Property List" }];
-
-const marketplaceNavLinks = [
-  { to: "/app/live-activity", label: "Live Feed" },
-  { to: "/app/deals", label: "Deals" },
-  { to: "/app/transaction", label: "transaction" },
-  { to: "/app/Funding Partners", label: "funding" },
-  { to: "/app/pricing", label: "pricing" },
-];
-
-const marketingHubNavLinks = [
-  { to: "/app/campaigns", label: "Campaigns" },
-  { to: "/app/content-management", label: "Content Management" },
-  { to: "/app/duplicate", label: "Duplicate Management" },
-  { to: "/app/leads", label: "Leads" },
-  { to: "/app/clients", label: "Clients" },
-  { to: "/app/marketing/advanced", label: "Advanced" },
-  { to: "/app/marketing/contacts", label: "Contacts" },
-  { to: "/app/marketing/communications", label: "Communications" },
-];
-
-// AI Features navigation links
-const aiFeatureNavLinks = [
-  { to: "/app/ai/vision", label: "Vision AI" },
-  { to: "/app/ai/voice", label: "Voice AI" },
-  { to: "/app/ai/nlp-center", label: "NLP Center" },
-];
-
-// Analytics & Reports navigation links
-const analyticsReportsNavLinks = [
-  { to: "/app/reports/overview", label: "Overview" },
-  { to: "/app/reports/custom", label: "Custom Reports" },
-  { to: "/app/reports/data-export", label: "Data Exports" },
-];
-
-// System Settings navigation links
-const systemSettingsNavLinks = [
-  { to: "/app/system/general", label: "General" },
-  { to: "/app/system/security", label: "Security" },
-  { to: "/app/system/notification", label: "Notification" },
-  { to: "/app/system/backup", label: "Backup" },
-];
-
-// AI management navigation links
-const aiManagementNavLinks = [
-  { to: "/app/ai-management/conversation", label: "AI Conversation" },
-  { to: "/app/ai-management/training", label: "Training" },
-  { to: "/app/ai-management/automation-rule", label: "Automation Rules" },
-];
-
-// Integration navigation links
-const integrationNavLinks = [
-  { to: "/app/integrations/api", label: "API Keys" },
-  { to: "/app/payment-gateway", label: "Payment Methods" },
-  { to: "/app/integrations/webhooks", label: "Webhooks" },
-  { to: "/app/integrations/third-party", label: "Third Party Apps" },
-];
-
-// Base settings for all roles (except staff)
-const baseSettingsNavLinks = [
-  { to: "/app/settings", label: "Organization Settings" },
-  { to: "/app/user-management", label: "User Management" },
-  { to: "/app/billing", label: "Billing & Subscription" },
-  { to: "/app/page-management", label: "Page Management" },
-];
-
-// Super admin only settings
-const super_adminSettingsNavLinks = [
-  { to: "/app/ai-settings", label: "AI Settings" },
-];
-
-const saasManagementNavLinks = [
-  { to: "/app/role-management", label: "Role Management" },
-
-  { to: "/app/pricing", label: "Pricing Plans" },
-  { to: "/app/billing", label: "Billing Settings" },
-  { to: "/app/revenue", label: "Revenue Analytics" },
-  { to: "/app/subscription", label: "Subscription" },
-];
-
-const whiteLabelNavLinks = [
-  { to: "/app/tenant-management", label: "Tenant Management" },
-  { to: "/app/white-label/branding-settings", label: "Branding Settings" },
-  { to: "/app/white-label/domain-management", label: "Domain Management" },
-];
-
-const landingPageBuilderNavLinks = [
-  { to: "/app/landing-page-builder/templates", label: "Templates" },
-  { to: "/app/landing-page-builder/page-builder", label: "Page Builder" },
-  { to: "/app/landing-page-builder/ab-testing", label: "A/B Testing" },
-];
+import { useFilteredNavigation } from "../../../navigationConfig";
 
 const Layout = () => {
   const location = useLocation();
@@ -121,54 +23,45 @@ const Layout = () => {
     useState(false);
 
   const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = userDetails.role || "staff";
+  const userPermissions = userDetails.permissions || [];
 
-  // Generate settings links based on role
-  const getSettingsNavLinks = () => {
-    if (userRole === "super_admin") {
-      return [...baseSettingsNavLinks, ...super_adminSettingsNavLinks];
-    } else if (userRole === "admin") {
-      return [...baseSettingsNavLinks];
-    }
-    return [];
-  };
+  // Get filtered navigation links based on user permissions
+  const {
+    topLevelNavLinks,
+    propertyNavLinks,
+    marketplaceNavLinks,
+    marketingHubNavLinks,
+    aiFeatureNavLinks,
+    analyticsReportsNavLinks,
+    systemSettingsNavLinks,
+    aiManagementNavLinks,
+    integrationNavLinks,
+    baseSettingsNavLinks,
+    super_adminSettingsNavLinks,
+    saasManagementNavLinks,
+    whiteLabelNavLinks,
+    landingPageBuilderNavLinks,
+  } = useFilteredNavigation(userPermissions);
 
-  // Generate SaaS Management links based on role
-  const getSaaSManagementNavLinks = () => {
-    if (userRole === "super_admin") {
-      return saasManagementNavLinks;
-    } else if (userRole === "admin") {
-      return saasManagementNavLinks.filter(
-        (link) => link.to !== "/app/tenant-management"
-      );
-    }
-    return [];
-  };
+  // Combine settings links
+  const settingsNavLinks = useMemo(
+    () => [...baseSettingsNavLinks, ...super_adminSettingsNavLinks],
+    [baseSettingsNavLinks, super_adminSettingsNavLinks]
+  );
 
-  const settingsNavLinks = getSettingsNavLinks();
-  const filteredSaaSManagementNavLinks = getSaaSManagementNavLinks();
-
-  // Check if sections should be shown based on role
-  const shouldShowSettings = userRole !== "staff";
-  const shouldShowSaaSManagement =
-    userRole === "super_admin" || userRole === "admin";
-  const shouldShowPropertyList = userRole !== "staff";
-  const shouldShowMarketplace = userRole !== "staff";
-  const shouldShowMarketingHub = userRole !== "staff";
-  const shouldShowAIFeatures = true;
-  const shouldShowAnalyticsReports = userRole !== "staff";
-  const shouldShowSystemSettings =
-    userRole === "admin" || userRole === "super_admin";
-  const shouldShowAiManagement =
-    userRole === "admin" || userRole === "super_admin";
-  const shouldShowIntegrations =
-    userRole === "admin" || userRole === "super_admin";
-
-  const shouldShowWhiteLabel =
-    userRole === "admin" || userRole === "super_admin";
-
-  const shouldShowLandingPageBuilder =
-    userRole === "admin" || userRole === "super_admin";
+  // Check if sections should be shown based on filtered results
+  const shouldShowSettings = settingsNavLinks.length > 0;
+  const shouldShowSaaSManagement = saasManagementNavLinks.length > 0;
+  const shouldShowPropertyList = propertyNavLinks.length > 0;
+  const shouldShowMarketplace = marketplaceNavLinks.length > 0;
+  const shouldShowMarketingHub = marketingHubNavLinks.length > 0;
+  const shouldShowAIFeatures = aiFeatureNavLinks.length > 0;
+  const shouldShowAnalyticsReports = analyticsReportsNavLinks.length > 0;
+  const shouldShowSystemSettings = systemSettingsNavLinks.length > 0;
+  const shouldShowAiManagement = aiManagementNavLinks.length > 0;
+  const shouldShowIntegrations = integrationNavLinks.length > 0;
+  const shouldShowWhiteLabel = whiteLabelNavLinks.length > 0;
+  const shouldShowLandingPageBuilder = landingPageBuilderNavLinks.length > 0;
 
   // Check if any submenu items are currently active
   const isSettingsActive = settingsNavLinks.some((link) =>
@@ -177,7 +70,7 @@ const Layout = () => {
 
   const isSaaSManagementActive =
     shouldShowSaaSManagement &&
-    filteredSaaSManagementNavLinks.some((link) =>
+    saasManagementNavLinks.some((link) =>
       location.pathname.startsWith(link.to)
     );
 
@@ -276,7 +169,7 @@ const Layout = () => {
 
                 {isSaaSManagementExpanded && (
                   <div className="ml-4 mt-2 flex flex-col gap-2">
-                    {filteredSaaSManagementNavLinks.map((link) => (
+                    {saasManagementNavLinks.map((link) => (
                       <Link
                         key={link.to}
                         to={link.to}
