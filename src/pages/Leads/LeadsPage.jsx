@@ -54,7 +54,7 @@ const LeadsPage = () => {
         if (minAiScore) {
           params.ai_score_min = parseInt(minAiScore);
         }
-        debugger;
+
         const response = await leadsAPI.getLeads(params);
 
         // Handle the API response format
@@ -68,7 +68,7 @@ const LeadsPage = () => {
         }
       } catch (err) {
         console.error("Error fetching leads:", err);
-        // setError(err.response?.data?.message || "Failed to fetch leads");
+        setError(err.response?.data?.message || "Failed to fetch leads");
         setLeads([]);
       } finally {
         setLoading(false);
@@ -124,6 +124,7 @@ const LeadsPage = () => {
   };
 
   const handleDelete = async (id) => {
+    debugger;
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
       await leadsAPI.deleteLead(id);
@@ -273,108 +274,106 @@ const LeadsPage = () => {
               </thead>
               <tbody>
                 {leads.length > 0 &&
-                  leads?.map((lead) => (
+                  leads.map((lead) => (
                     <tr
                       key={lead.id}
-                      className="border-b border-white/10 hover:bg-white/5"
+                      className="border-b border-white/10 hover:bg-white/5 transition-colors"
                     >
+                      {/* Lead Info */}
                       <td className="p-4">
                         <div className="space-y-2">
                           <div className="text-white font-medium">
-                            {lead.first_name} {lead.last_name}
+                            {lead.name ||
+                              `${lead.first_name || ""} ${
+                                lead.last_name || ""
+                              }`}
                           </div>
-                          <div className="flex items-center gap-2 text-gray-400 text-sm">
-                            <Mail className="h-3 w-3" />
-                            {lead.email}
-                          </div>
-                          <div className="flex items-center gap-2 text-gray-400 text-sm">
-                            <Phone className="h-3 w-3" />
-                            {lead.phone}
-                          </div>
+                          {lead.email && (
+                            <div className="flex items-center gap-2 text-gray-400 text-sm">
+                              <Mail className="h-3 w-3" />
+                              {lead.email}
+                            </div>
+                          )}
+                          {lead.phone && (
+                            <div className="flex items-center gap-2 text-gray-400 text-sm">
+                              <Phone className="h-3 w-3" />
+                              {lead.phone}
+                            </div>
+                          )}
                           <div className="text-xs text-gray-500">
-                            Source: {lead.source}
+                            Source:{" "}
+                            {lead.source
+                              ?.replaceAll("_", " ")
+                              ?.replace(/\b\w/g, (char) =>
+                                char.toUpperCase()
+                              ) || "N/A"}
                           </div>
                         </div>
                       </td>
+
+                      {/* Property Info */}
                       <td className="p-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-gray-300 text-sm">
                             <MapPin className="h-3 w-3" />
-                            {lead.property_address}
+                            {lead.address || "N/A"}
                           </div>
                           <div className="text-gray-400 text-sm">
-                            {lead.property_city}, {lead.property_state}{" "}
-                            {lead.property_zip}
+                            {lead.city}, {lead.state} {lead.zipcode}
                           </div>
-                          <div className="text-xs text-gray-500 capitalize">
-                            {lead.property_type?.replace("_", " ")}
+                          <div className="text-xs text-gray-500">
+                            Created: {formatDate(lead.created_at)}
                           </div>
                         </div>
                       </td>
+
+                      {/* Scores */}
                       <td className="p-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">AI:</span>
-                            <span
-                              className={`text-sm font-medium ${getScoreColor(
-                                lead.ai_score
-                              )}`}
-                            >
-                              {lead.ai_score}
-                            </span>
-                          </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-400">
                               Motivation:
                             </span>
                             <span
                               className={`text-sm font-medium ${getScoreColor(
-                                lead.motivation_score
+                                lead.motivation_score || 0
                               )}`}
                             >
-                              {lead.motivation_score}
+                              {lead.motivation_score || 0}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-400">
-                              Urgency:
+                              Responded:
                             </span>
                             <span
-                              className={`text-sm font-medium ${getScoreColor(
-                                lead.urgency_score
-                              )}`}
+                              className={`text-sm font-medium ${
+                                lead.responded
+                                  ? "text-green-400"
+                                  : "text-gray-400"
+                              }`}
                             >
-                              {lead.urgency_score}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">
-                              Financial:
-                            </span>
-                            <span
-                              className={`text-sm font-medium ${getScoreColor(
-                                lead.financial_score
-                              )}`}
-                            >
-                              {lead.financial_score}
+                              {lead.responded ? "Yes" : "No"}
                             </span>
                           </div>
                         </div>
                       </td>
+
+                      {/* Financial */}
                       <td className="p-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-green-400 text-sm">
-                            <DollarSign className="h-3 w-3" />
-                            {formatCurrency(lead.estimated_value)}
+                          <div className="text-gray-400 text-sm">
+                            {lead.financial_situation || "Not Provided"}
                           </div>
-                          <div className="text-gray-400 text-xs">
-                            Mortgage: {formatCurrency(lead.mortgage_balance)}
-                          </div>
-                          <div className="text-gray-400 text-xs">
-                            Asking: {formatCurrency(lead.asking_price)}
+                          <div className="text-xs text-gray-500">
+                            {lead.timeline_urgency
+                              ? `Urgency: ${lead.timeline_urgency}`
+                              : "Urgency: N/A"}
                           </div>
                         </div>
                       </td>
+
+                      {/* Status */}
                       <td className="p-4">
                         <div className="space-y-2">
                           <span
@@ -384,27 +383,12 @@ const LeadsPage = () => {
                           >
                             {lead.status}
                           </span>
-                          <div className="text-xs text-gray-500">
-                            Contact: {lead.preferred_contact_method}
-                          </div>
                         </div>
                       </td>
-                      {/* <td className="p-4">
-                        <div className="space-y-1">
-                          <div className="text-sm text-gray-300">
-                            {lead.next_action}
-                          </div>
-                          <div className="flex items-center gap-2 text-gray-400 text-xs">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(lead.next_action_date)}
-                          </div>
-                        </div>
-                      </td> */}
+
+                      {/* Actions */}
                       <td className="p-4">
                         <div className="flex gap-2">
-                          {/* <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
-                            <Eye className="h-4 w-4" />
-                          </button> */}
                           <button
                             className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors"
                             onClick={() => navigate(`/app/leads/${lead.id}`)}
