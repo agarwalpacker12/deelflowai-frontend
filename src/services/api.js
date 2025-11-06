@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Base URLs - matching your Django server
-const BASE_URL = "http://localhost:8140";
-// const BASE_URL = "http://dev.deelflowai.com:8140";
+// const BASE_URL = "http://localhost:8140";
+const BASE_URL = "http://dev.deelflowai.com:8140";
 const API_BASE_URL = `${BASE_URL}/api`;
 
 // Create a single API instance for all requests
@@ -78,7 +78,7 @@ export const authAPI = {
   login: (credentials) => AllPOSTHeader.post("/api/auth/login", credentials), // Matches your URL pattern
   register: (userData) => AllPOSTHeader.post("/api/auth/register", userData), // Matches your URL pattern
   logout: () => api.post("/logout/"),
-  getCurrentUser: () => api.get("/user/"),
+  getCurrentUser: () => api.get("/auth/me/"),
   getAllUsers: (tenantId) => api.get(`/tenants/${tenantId}/users/`),
   invite: (id, data) => api.post(`/tenants/${id}/invitations/`, data),
   getInvitation: (id) => api.get(`/tenants/${id}/invitations`),
