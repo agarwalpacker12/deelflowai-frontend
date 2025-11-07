@@ -17,9 +17,12 @@ export default defineConfig({
     host: "0.0.0.0", // Allow external connections (needed for Codespaces)
     hmr: {
       port: 5175,
-      host: "0.0.0.0", // Allow external connections
-      // Disable WebSocket in proxy environments to prevent loops
+      // Use localhost for HMR client connection (browser can't connect to 0.0.0.0)
+      // The server will still listen on 0.0.0.0, but the client connects to localhost
+      host: process.env.NODE_ENV === 'development' ? 'localhost' : "0.0.0.0",
       clientPort: process.env.NODE_ENV === 'development' ? 5175 : undefined,
+      // Protocol for HMR WebSocket
+      protocol: process.env.NODE_ENV === 'development' ? 'ws' : 'wss',
     },
     // Add middleware to handle proxy detection
     middlewares: [

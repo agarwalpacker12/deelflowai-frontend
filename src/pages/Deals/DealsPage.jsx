@@ -53,14 +53,18 @@ const DealsPage = () => {
         const response = await dealsAPI.getDeals(params);
         if (
           response.data.status === "success" &&
-          response.data.data.data.length > 0
+          response.data.data &&
+          Array.isArray(response.data.data) &&
+          response.data.data.length > 0
         ) {
           setDeals(response.data.data);
-          setTotal(response.data.total);
-          setTotalPages(response.data.total);
+          setTotal(response.data.total || response.data.data.length);
+          setTotalPages(Math.ceil((response.data.total || response.data.data.length) / perPage));
         } else {
           // setError("Failed to fetch deals");
           setDeals([]);
+          setTotal(0);
+          setTotalPages(1);
         }
       } catch (err) {
         console.error("Error fetching deals:", err);

@@ -1,7 +1,10 @@
 import axios from "axios";
 
 // Base URLs - matching your Django server
-const BASE_URL = "http://localhost:8140";
+// Use environment variable if available, otherwise default to localhost
+const API_HOST = import.meta.env.VITE_API_HOST || "localhost";
+const API_PORT = import.meta.env.VITE_API_PORT || "8140";
+const BASE_URL = import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
 // const BASE_URL = "http://dev.deelflowai.com:8140";
 const API_BASE_URL = `${BASE_URL}/api`;
 

@@ -14,13 +14,25 @@ export function initializeErrorSuppression() {
         message.includes('CORS policy') ||
         message.includes('localhost:5175') ||
         message.includes('localhost:5174') ||
+        message.includes('0.0.0.0:5175') ||
         message.includes('WebSocket connection to') ||
         message.includes('Error: WebSocket') ||
         message.includes('net::ERR_FAILED') ||
+        message.includes('net::ERR_CONNECTION_REFUSED') ||
+        message.includes('net::ERR_ADDRESS_INVALID') ||
         message.includes('Failed to fetch CSRF cookie') ||
         message.includes('net::ERR_BLOCKED_BY_CLIENT') ||
         message.includes('sanctum/csrf-cookie') ||
-        message.includes('AxiosError')
+        message.includes('AxiosError') ||
+        message.includes('Network Error') ||
+        message.includes('ERR_CONNECTION_REFUSED') ||
+        message.includes('SecurityError') ||
+        message.includes('Failed to read a named property') ||
+        message.includes('Blocked a frame with origin') ||
+        message.includes('js.stripe.com') ||
+        message.includes('three-ds-2-challenge') ||
+        message.includes('hcaptcha') ||
+        message.includes('stripecdn.com')
       ) {
         console.warn('🔇 Suppressed development error:', message);
         return;
@@ -38,9 +50,20 @@ export function initializeErrorSuppression() {
         message.includes('WebSocket') ||
         message.includes('localhost:5175') ||
         message.includes('localhost:5174') ||
-        message.includes('failed to connect')
+        message.includes('0.0.0.0:5175') ||
+        message.includes('ERR_ADDRESS_INVALID') ||
+        message.includes('failed to connect') ||
+        message.includes('React Router Future Flag Warning') ||
+        message.includes('v7_startTransition') ||
+        message.includes('v7_relativeSplatPath') ||
+        message.includes('SecurityError') ||
+        message.includes('Stripe') ||
+        message.includes('3D Secure') ||
+        message.includes('hCaptcha') ||
+        message.includes('WebGL') ||
+        message.includes('swiftshader')
       ) {
-        console.info('🔇 Suppressed WebSocket warning:', message);
+        console.info('🔇 Suppressed warning:', message);
         return;
       }
       
@@ -55,7 +78,14 @@ export function initializeErrorSuppression() {
         message.includes('manifest') ||
         message.includes('localhost:5175') ||
         message.includes('localhost:5174') ||
-        message.includes('CORS')
+        message.includes('CORS') ||
+        message.includes('SecurityError') ||
+        message.includes('Failed to read a named property') ||
+        message.includes('Blocked a frame') ||
+        message.includes('js.stripe.com') ||
+        message.includes('three-ds-2-challenge') ||
+        message.includes('hcaptcha') ||
+        message.includes('Cannot find module')
       ) {
         console.info('🔇 Suppressed unhandled rejection:', message);
         event.preventDefault();
@@ -70,7 +100,15 @@ export function initializeErrorSuppression() {
         message.includes('WebSocket') ||
         message.includes('localhost:5175') ||
         message.includes('localhost:5174') ||
-        message.includes('manifest')
+        message.includes('manifest') ||
+        message.includes('SecurityError') ||
+        message.includes('Failed to read a named property') ||
+        message.includes('Blocked a frame') ||
+        message.includes('js.stripe.com') ||
+        message.includes('three-ds-2-challenge') ||
+        message.includes('hcaptcha') ||
+        message.includes('Cannot find module') ||
+        message.includes('stripecdn.com')
       ) {
         console.info('🔇 Suppressed global error:', message);
         event.preventDefault();
