@@ -33,8 +33,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCampaigns } from "../../../store/slices/campaignsSlice";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import PriceRangeSlider from "../PriceRangeSlider";
+import { geographicAPI } from "../../../services/api";
 
 const CreateCampaignForm = ({ fillMode }) => {
   const navigate = useNavigate();
@@ -48,6 +49,18 @@ const CreateCampaignForm = ({ fillMode }) => {
     { id: 2, name: "Broward" },
     { id: 3, name: "Palm Beach" },
   ]);
+
+  // Geographic data state
+  const [countries, setCountries] = useState([]);
+  const [buyerStates, setBuyerStates] = useState([]);
+  const [sellerStates, setSellerStates] = useState([]);
+  const [selectedBuyerCountryId, setSelectedBuyerCountryId] = useState(null);
+  const [selectedBuyerStateId, setSelectedBuyerStateId] = useState(null);
+  const [selectedSellerCountryId, setSelectedSellerCountryId] = useState(null);
+  const [selectedSellerStateId, setSelectedSellerStateId] = useState(null);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingBuyerStates, setLoadingBuyerStates] = useState(false);
+  const [loadingSellerStates, setLoadingSellerStates] = useState(false);
 
   const {
     register,
@@ -145,6 +158,78 @@ const CreateCampaignForm = ({ fillMode }) => {
     },
     [setValue]
   );
+
+  // Fetch countries on component mount
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoadingCountries(true);
+      try {
+        const response = await geographicAPI.getCountries();
+        if (response.status === 'success') {
+          setCountries(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+        toast.error('Failed to load countries');
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  // Fetch buyer states when buyer country changes
+  useEffect(() => {
+    if (!selectedBuyerCountryId) {
+      setBuyerStates([]);
+      setSelectedBuyerStateId(null);
+      return;
+    }
+
+    const fetchStates = async () => {
+      setLoadingBuyerStates(true);
+      try {
+        const response = await geographicAPI.getStatesByCountry(selectedBuyerCountryId);
+        if (response.status === 'success') {
+          setBuyerStates(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching buyer states:', error);
+        toast.error('Failed to load states');
+      } finally {
+        setLoadingBuyerStates(false);
+      }
+    };
+
+    fetchStates();
+  }, [selectedBuyerCountryId]);
+
+  // Fetch seller states when seller country changes
+  useEffect(() => {
+    if (!selectedSellerCountryId) {
+      setSellerStates([]);
+      setSelectedSellerStateId(null);
+      return;
+    }
+
+    const fetchStates = async () => {
+      setLoadingSellerStates(true);
+      try {
+        const response = await geographicAPI.getStatesByCountry(selectedSellerCountryId);
+        if (response.status === 'success') {
+          setSellerStates(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching seller states:', error);
+        toast.error('Failed to load states');
+      } finally {
+        setLoadingSellerStates(false);
+      }
+    };
+
+    fetchStates();
+  }, [selectedSellerCountryId]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -618,14 +703,28 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-                          {...register("geographic_scope_type")}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                          value={selectedBuyerCountryId || ''}
+                          onChange={(e) => {
+                            const countryId = e.target.value ? parseInt(e.target.value) : null;
+                            setSelectedBuyerCountryId(countryId);
+                            setSelectedBuyerStateId(null);
+                            const countryName = countryId ? countries.find(c => c.id === countryId)?.name : '';
+                            setValue('buyer_country', countryName);
+                            setValue('buyer_state', '');
+                          }}
+                          disabled={loadingCountries}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">Select Country</option>
-                          <option value="us">United States</option>
-                          <option value="ca">Canada</option>
-                          <option value="mx">Mexico</option>
+                          {countries.map((country) => (
+                            <option key={country.id} value={country.id}>
+                              {country.emoji} {country.name}
+                            </option>
+                          ))}
                         </select>
+                        {loadingCountries && (
+                          <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
+                        )}
                       </div>
 
                       {/* State */}
@@ -634,11 +733,29 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <MapPin className="w-4 h-4 mr-2 text-blue-600" />
                           State
                         </label>
-                        <input
-                          {...register("buyer_state")}
-                          placeholder="e.g., Florida, Texas"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
-                        />
+                        <select
+                          value={selectedBuyerStateId || ''}
+                          onChange={(e) => {
+                            const stateId = e.target.value ? parseInt(e.target.value) : null;
+                            setSelectedBuyerStateId(stateId);
+                            const stateName = stateId ? buyerStates.find(s => s.id === stateId)?.name : '';
+                            setValue('buyer_state', stateName);
+                          }}
+                          disabled={!selectedBuyerCountryId || loadingBuyerStates}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedBuyerCountryId ? 'Select a country first' : loadingBuyerStates ? 'Loading states...' : 'Select State'}
+                          </option>
+                          {buyerStates.map((state) => (
+                            <option key={state.id} value={state.id}>
+                              {state.name} {state.state_code ? `(${state.state_code})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                        {loadingBuyerStates && (
+                          <p className="text-sm text-gray-500 mt-2">Loading states...</p>
+                        )}
                       </div>
 
                       {/* Counties */}
@@ -818,14 +935,28 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-                          {...register("geographic_scope_type")}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                          value={selectedSellerCountryId || ''}
+                          onChange={(e) => {
+                            const countryId = e.target.value ? parseInt(e.target.value) : null;
+                            setSelectedSellerCountryId(countryId);
+                            setSelectedSellerStateId(null);
+                            const countryName = countryId ? countries.find(c => c.id === countryId)?.name : '';
+                            setValue('seller_country', countryName);
+                            setValue('seller_state', '');
+                          }}
+                          disabled={loadingCountries}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">Select Country</option>
-                          <option value="us">United States</option>
-                          <option value="ca">Canada</option>
-                          <option value="mx">Mexico</option>
+                          {countries.map((country) => (
+                            <option key={country.id} value={country.id}>
+                              {country.emoji} {country.name}
+                            </option>
+                          ))}
                         </select>
+                        {loadingCountries && (
+                          <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
+                        )}
                       </div>
 
                       {/* State */}
@@ -834,11 +965,29 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
                           State
                         </label>
-                        <input
-                          {...register("seller_state")}
-                          placeholder="e.g., Florida, Texas"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
-                        />
+                        <select
+                          value={selectedSellerStateId || ''}
+                          onChange={(e) => {
+                            const stateId = e.target.value ? parseInt(e.target.value) : null;
+                            setSelectedSellerStateId(stateId);
+                            const stateName = stateId ? sellerStates.find(s => s.id === stateId)?.name : '';
+                            setValue('seller_state', stateName);
+                          }}
+                          disabled={!selectedSellerCountryId || loadingSellerStates}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedSellerCountryId ? 'Select a country first' : loadingSellerStates ? 'Loading states...' : 'Select State'}
+                          </option>
+                          {sellerStates.map((state) => (
+                            <option key={state.id} value={state.id}>
+                              {state.name} {state.state_code ? `(${state.state_code})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                        {loadingSellerStates && (
+                          <p className="text-sm text-gray-500 mt-2">Loading states...</p>
+                        )}
                       </div>
 
                       {/* Counties */}

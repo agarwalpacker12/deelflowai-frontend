@@ -265,4 +265,29 @@ export const DashboardAPI = {
   getMarketAlerts: () => api.get(`/market-alerts/recent/`),
 };
 
+// Geographic Data API
+export const geographicAPI = {
+  // Get all countries
+  getCountries: async (search = null) => {
+    const params = search ? { search } : {};
+    const response = await AllGETHeader.get('/api/countries/', { params });
+    return response.data;
+  },
+
+  // Get states by country ID
+  getStatesByCountry: async (countryId, search = null) => {
+    const params = search ? { search } : {};
+    const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
+    return response.data;
+  },
+
+  // Get cities by state ID (optional, for future use)
+  getCitiesByState: async (stateId, search = null, page = 1, perPage = 50) => {
+    const params = { page, per_page: perPage };
+    if (search) params.search = search;
+    const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
+    return response.data;
+  }
+};
+
 export default api;
