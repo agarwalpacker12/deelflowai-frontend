@@ -3,6 +3,8 @@ import { Mail, X, Check, Crown, Zap, Star, Shield } from "lucide-react";
 import SavedPropertiesPage from "../PropertiesSave/Table";
 import DealsPage from "../Deals/DealsPage";
 import PricingTable from "../pricing/page";
+import { authAPI, PaymentAPI } from "../../services/api";
+
 const mockUser = {
   name: "John Doe",
   email: "john.doe@example.com",
@@ -10,10 +12,13 @@ const mockUser = {
   phone: "+1 234 567 890",
   currentPlan: "free",
 };
+
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(true);
 
   // Get user details from localStorage
   let userDetails = null;
@@ -34,9 +39,49 @@ const ProfilePage = () => {
         email: userDetails.email || "",
         role: userDetails.role || "",
         phone: userDetails.phone || "",
-        currentPlan: userDetails.plan || "free",
+        currentPlan: currentPlan?.name || userDetails.plan || "free",
       }
     : mockUser;
+
+  // Fetch current plan
+  useEffect(() => {
+    const fetchCurrentPlan = async () => {
+      try {
+        setLoadingPlan(true);
+        const response = await PaymentAPI.getPacks();
+        console.log("Current plan response:", response);
+
+        // Handle the response format
+        if (response.data && response.data.status === "success") {
+          const plans = response.data.data.plans;
+
+          // Find the plan where is_active is true
+          if (Array.isArray(plans) && plans.length > 0) {
+            const activePlan = plans.find(plan => plan.is_active === true);
+
+            if (activePlan) {
+              setCurrentPlan(activePlan);
+            } else {
+              // If no active plan, check for is_current or use current_plan from response
+              const currentPlanFromResponse = response.data.data.current_plan;
+              if (currentPlanFromResponse) {
+                setCurrentPlan(currentPlanFromResponse);
+              } else {
+                const markedCurrentPlan = plans.find(plan => plan.is_current === true);
+                setCurrentPlan(markedCurrentPlan || null);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching current plan:", error);
+      } finally {
+        setLoadingPlan(false);
+      }
+    };
+
+    fetchCurrentPlan();
+  }, []);
 
   const handleBackNavigation = () => {
     window.history.back();
@@ -164,9 +209,15 @@ const ProfilePage = () => {
                     </div>
                     <div>
                       <p className="text-gray-400 text-sm">Current Plan</p>
-                      <p className="text-white font-semibold text-lg capitalize">
-                        {user.currentPlan}
-                      </p>
+                      {loadingPlan ? (
+                        <p className="text-white font-semibold text-lg">
+                          Loading...
+                        </p>
+                      ) : (
+                        <p className="text-white font-semibold text-lg capitalize">
+                          {user.currentPlan}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <button
@@ -234,121 +285,7 @@ const ProfilePage = () => {
         </div>
       )}
 
-      {activeTab === "subscription" && (
-        // <div className="max-w-7xl mx-auto">
-        //   {/* Header */}
-        //   <div className="text-center mb-12">
-        //     <h2 className="text-4xl font-bold text-white mb-4">
-        //       Choose Your Plan
-        //     </h2>
-        //     <p className="text-gray-300 text-lg">
-        //       Unlock premium features and take your investment journey to the
-        //       next level
-        //     </p>
-        //   </div>
-
-        //   {/* Plans Grid */}
-        //   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        //     {subscriptionPlans.map((plan) => {
-        //       const Icon = plan.icon;
-        //       const isCurrentPlan = user.currentPlan === plan.id;
-
-        //       return (
-        //         <div
-        //           key={plan.id}
-        //           className={`relative bg-white/5 backdrop-blur-xl rounded-3xl p-8 border transition-all transform hover:scale-105 ${
-        //             plan.popular
-        //               ? "border-purple-500 shadow-2xl shadow-purple-500/20"
-        //               : "border-white/10 hover:border-white/20"
-        //           } ${isCurrentPlan ? "ring-2 ring-green-500" : ""}`}
-        //         >
-        //           {plan.popular && (
-        //             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-        //               <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold px-4 py-1 rounded-full shadow-lg">
-        //                 MOST POPULAR
-        //               </span>
-        //             </div>
-        //           )}
-
-        //           {isCurrentPlan && (
-        //             <div className="absolute -top-4 right-8">
-        //               <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-        //                 CURRENT
-        //               </span>
-        //             </div>
-        //           )}
-
-        //           {/* Icon */}
-        //           <div
-        //             className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-6`}
-        //           >
-        //             <Icon className="w-8 h-8 text-white" />
-        //           </div>
-
-        //           {/* Plan Name */}
-        //           <h3 className="text-2xl font-bold text-white mb-2">
-        //             {plan.name}
-        //           </h3>
-        //           <p className="text-gray-400 text-sm mb-6">{plan.limits}</p>
-
-        //           {/* Price */}
-        //           <div className="mb-8">
-        //             <span className="text-5xl font-bold text-white">
-        //               {plan.price}
-        //             </span>
-        //             <span className="text-gray-400">/ {plan.period}</span>
-        //           </div>
-
-        //           {/* Features */}
-        //           <ul className="space-y-4 mb-8">
-        //             {plan.features.map((feature, index) => (
-        //               <li key={index} className="flex items-start gap-3">
-        //                 <div className="mt-1 bg-green-500/20 rounded-full p-1">
-        //                   <Check className="w-4 h-4 text-green-400" />
-        //                 </div>
-        //                 <span className="text-gray-300">{feature}</span>
-        //               </li>
-        //             ))}
-        //           </ul>
-
-        //           {/* CTA Button */}
-        //           <button
-        //             onClick={() => handleUpgrade(plan)}
-        //             disabled={isCurrentPlan}
-        //             className={`w-full py-4 rounded-xl font-semibold transition-all transform hover:scale-105 ${
-        //               isCurrentPlan
-        //                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-        //                 : plan.popular
-        //                 ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
-        //                 : "bg-white/10 hover:bg-white/20 text-white"
-        //             }`}
-        //           >
-        //             {isCurrentPlan
-        //               ? "Current Plan"
-        //               : plan.id === "free"
-        //               ? "Downgrade"
-        //               : "Upgrade Now"}
-        //           </button>
-        //         </div>
-        //       );
-        //     })}
-        //   </div>
-
-        //   {/* FAQ or Additional Info */}
-        //   <div className="mt-16 text-center">
-        //     <p className="text-gray-400">
-        //       Need a custom plan?{" "}
-        //       <a
-        //         href="#"
-        //         className="text-purple-400 hover:text-purple-300 font-semibold"
-        //       >
-        //         Contact us
-        //       </a>
-        //     </p>
-        //   </div>
-        // </div>
-        <PricingTable />
-      )}
+      {activeTab === "subscription" && <PricingTable />}
 
       {activeTab === "property" && <SavedPropertiesPage />}
 
