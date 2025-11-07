@@ -14,7 +14,21 @@ const Table = ({
   onDelete,
 }) => {
   console.log("101", properties);
+  const staticImages = [
+    "house1.jpg",
+    "house2.jpg",
+    "house3.jpg",
+    "house4.jpg",
+    "house5.jpg",
+    "house6.jpg",
+    "house7.jpg",
+    "house8.jpg",
+    "house9.jpg",
+    "house10.jpg",
+  ];
 
+  const randomStaticImage =
+    staticImages[Math.floor(Math.random() * staticImages.length)];
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
@@ -112,152 +126,156 @@ const Table = ({
               </tr>
             </thead>
             <tbody>
-              {properties.map((property) => (
-                <tr
-                  key={property.id}
-                  className="border-b border-white/10 hover:bg-white/5"
-                >
-                  <td className="p-4">
-                    {property.images && property.images.length > 0 ? (
-                      <img
-                        src={property.images[0]}
-                        alt="Property"
-                        className="w-20 h-16 object-cover rounded-lg border border-white/10"
-                      />
-                    ) : (
-                      <div className="w-20 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
-                        <Home className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    <div className="text-white font-medium">
-                      {property.address}{" "}
-                      {property.unit && (
-                        <span className="text-xs text-gray-400">
-                          {property.unit}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-gray-400 text-sm">
-                      {property.city}, {property.state} {property.zip}
-                    </div>
-                    <div className="text-xs text-gray-500 capitalize">
-                      {property.property_type?.replace("_", " ")}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2 text-gray-300 text-sm">
-                      <BedDouble className="h-4 w-4" /> {property.bedrooms}{" "}
-                      <span className="ml-2">
-                        <Bath className="h-4 w-4 inline" /> {property.bathrooms}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {property.square_feet} sqft
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Lot: {property.lot_size} ac
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Year: {property.year_built}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-green-400 text-sm">
-                        <DollarSign className="h-3 w-3" />
-                        {formatCurrency(property.purchase_price)}
-                      </div>
-                      <div className="text-gray-400 text-xs">
-                        ARV: {formatCurrency(property.arv)}
-                      </div>
-                      <div className="text-gray-400 text-xs">
-                        Repairs: {formatCurrency(property.repair_estimate)}
-                      </div>
-                      <div className="text-gray-400 text-xs">
-                        Profit: {formatCurrency(property.profit_potential)}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`text-sm font-medium ${getScoreColor(
-                        property.ai_score
-                      )}`}
-                    >
-                      {property.ai_score}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                        property.status
-                      )}`}
-                    >
-                      {property.status}
-                    </span>
-                    <div className="text-xs text-gray-500 capitalize">
-                      {property.transaction_type}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      {/* Heart icon for saved property */}
-                      {savedPropertyIds &&
-                      savedPropertyIds.includes(property.source_id) ? (
-                        <button
-                          className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-default"
-                          title="Saved Property"
-                          disabled
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 fill-red-500"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 21C12 21 4 13.5 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.5 16 21 16 21H12Z"
-                            />
-                          </svg>
-                        </button>
+              {properties.map((property) => {
+                const randomStaticImage =
+                  staticImages[Math.floor(Math.random() * staticImages.length)];
+                return (
+                  <tr
+                    key={property.id}
+                    className="border-b border-white/10 hover:bg-white/5"
+                  >
+                    <td className="p-4">
+                      {property.images && property.images.length > 0 ? (
+                        <img
+                          src={`/images/${randomStaticImage}`}
+                          alt="Property"
+                          className="w-20 h-16 object-cover rounded-lg border border-white/10"
+                        />
                       ) : (
-                        <button
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-colors"
-                          onClick={() => handleSaveClick(property)}
-                          title="Save Property"
-                          disabled={savingId == property.source_id}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 21C12 21 4 13.5 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.5 16 21 16 21H12Z"
-                            />
-                          </svg>
-                        </button>
+                        <div className="w-20 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
+                          <Home className="h-8 w-8 text-gray-400" />
+                        </div>
                       )}
-                      <button
-                        className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors"
-                        onClick={() =>
-                          navigate(`/app/properties/${property.source_id}`)
-                        }
+                    </td>
+                    <td className="p-4">
+                      <div className="text-white font-medium">
+                        {property.address}{" "}
+                        {property.unit && (
+                          <span className="text-xs text-gray-400">
+                            {property.unit}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-gray-400 text-sm">
+                        {property.city}, {property.state} {property.zip}
+                      </div>
+                      <div className="text-xs text-gray-500 capitalize">
+                        {property.property_type?.replace("_", " ")}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 text-gray-300 text-sm">
+                        <BedDouble className="h-4 w-4" /> {property.bedrooms}{" "}
+                        <span className="ml-2">
+                          <Bath className="h-4 w-4 inline" />{" "}
+                          {property.bathrooms}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {property.square_feet} sqft
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Lot: {property.lot_size} ac
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Year: {property.year_built}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-green-400 text-sm">
+                          <DollarSign className="h-3 w-3" />
+                          {formatCurrency(property.purchase_price)}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          ARV: {formatCurrency(property.arv)}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          Repairs: {formatCurrency(property.repair_estimate)}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          Profit: {formatCurrency(property.profit_potential)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`text-sm font-medium ${getScoreColor(
+                          property.ai_score
+                        )}`}
                       >
-                        <Edit className="h-4 w-4" />
-                      </button>
+                        {property.ai_score}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                          property.status
+                        )}`}
+                      >
+                        {property.status}
+                      </span>
+                      <div className="text-xs text-gray-500 capitalize">
+                        {property.transaction_type}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
+                        {/* Heart icon for saved property */}
+                        {savedPropertyIds &&
+                        savedPropertyIds.includes(property.source_id) ? (
+                          <button
+                            className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors cursor-default"
+                            title="Saved Property"
+                            disabled
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 fill-red-500"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 21C12 21 4 13.5 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.5 16 21 16 21H12Z"
+                              />
+                            </svg>
+                          </button>
+                        ) : (
+                          <button
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-colors"
+                            onClick={() => handleSaveClick(property)}
+                            title="Save Property"
+                            disabled={savingId == property.source_id}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 21C12 21 4 13.5 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.5 16 21 16 21H12Z"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors"
+                          onClick={() =>
+                            navigate(`/app/properties/${property.source_id}`)
+                          }
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
 
-                      {/* <button
+                        {/* <button
                         className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                         onClick={() =>
                           navigate(`/app/properties/${property.id}/bid`)
@@ -266,21 +284,22 @@ const Table = ({
                         Bid
                       </button> */}
 
-                      <button
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                        onClick={() => handleDeleteClick(property)}
-                        disabled={deletingId == property.source_id}
-                      >
-                        {deletingId == property.source_id ? (
-                          <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <button
+                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                          onClick={() => handleDeleteClick(property)}
+                          disabled={deletingId == property.source_id}
+                        >
+                          {deletingId == property.source_id ? (
+                            <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

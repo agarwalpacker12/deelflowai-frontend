@@ -3,23 +3,65 @@ import { propertySaveAPI } from "../../services/api";
 import MainContentWrapper from "../../components/Layout/MainContentWrapper";
 
 const SavedPropertiesPage = () => {
+  // const navigate = useNavigate();
   const [savedProperties, setSavedProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [minAiScore, setMinAiScore] = useState("");
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   useEffect(() => {
     const fetchSavedProperties = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await propertySaveAPI.getPropertySave({
-          per_page: 100,
-        });
+        // Prepare API parameters
+        const params = {
+          page: currentPage,
+          per_page: perPage,
+        };
+
+        if (searchTerm) {
+          params.search = searchTerm;
+        }
+
+        if (statusFilter) {
+          params.status = statusFilter;
+        }
+
+        if (minAiScore) {
+          params.ai_score_min = parseInt(minAiScore);
+        }
+
+        const response = await propertySaveAPI.getPropertySave(params);
+
+        // Handle the API response format
         if (response.data.status === "success") {
-          setSavedProperties(response.data.data.data);
+          setSavedProperties(response.data.data); // leads array
+          setTotal(response.data.total);
+          setTotalPages(response.data.total);
+        } else {
+          // setError("Failed to fetch leads");
+          setSavedProperties([]);
         }
       } catch (err) {
-        // Optionally handle error
+        console.error("Error fetching leads:", err);
+        setError(err.response?.data?.message || "Failed to fetch leads");
+        setSavedProperties([]);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchSavedProperties();
-  }, []);
+  }, [searchTerm, statusFilter, minAiScore, perPage, currentPage]);
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -101,81 +143,91 @@ const SavedPropertiesPage = () => {
 
         {/* Table */}
         <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/10 border-b border-white/10">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Property ID
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Address
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    City
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    State
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Purchase Price
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    ARV
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Saved Date
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {savedProperties.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-white text-xs">
-                      {item.property.id}
-                    </td>
-                    <td className="px-6 py-4 text-white text-xs font-medium">
-                      {item.property.address}
-                    </td>
-                    <td className="px-6 py-4 text-white text-xs">
-                      {item.property.city}
-                    </td>
-                    <td className="px-6 py-4 text-white text-xs">
-                      {item.property.state}
-                    </td>
-                    <td className="px-6 py-4 text-white text-xs">
-                      {formatCurrency(item.property.purchase_price)}
-                    </td>
-                    <td className="px-6 py-4 text-white text-xs">
-                      {formatCurrency(item.property.arv)}
-                    </td>
-                    <td className="px-6 py-4 text-white text-xs">
-                      {formatDate(item.saved_at)}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button className="text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 rounded text-xs">
-                          View
-                        </button>
-                        <button className="text-green-400 hover:text-green-300 transition-colors px-2 py-1 rounded text-xs">
-                          Edit
-                        </button>
-                        <button className="text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded text-xs">
-                          Remove
-                        </button>
-                      </div>
-                    </td>
+          {loading ? (
+            <div className="p-8 text-center text-gray-400">
+              Loading save properties...
+            </div>
+          ) : savedProperties.length === 0 ? (
+            <div className="p-8 text-center text-gray-400">
+              No save properties found
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-white/10 border-b border-white/10">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Property ID
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Address
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      City
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      State
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Purchase Price
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      ARV
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Saved Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {savedProperties.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-6 py-4 text-white text-xs">
+                        {item.property.id}
+                      </td>
+                      <td className="px-6 py-4 text-white text-xs font-medium">
+                        {item.property.address}
+                      </td>
+                      <td className="px-6 py-4 text-white text-xs">
+                        {item.property.city}
+                      </td>
+                      <td className="px-6 py-4 text-white text-xs">
+                        {item.property.state}
+                      </td>
+                      <td className="px-6 py-4 text-white text-xs">
+                        {formatCurrency(item.property.purchase_price)}
+                      </td>
+                      <td className="px-6 py-4 text-white text-xs">
+                        {formatCurrency(item.property.arv)}
+                      </td>
+                      <td className="px-6 py-4 text-white text-xs">
+                        {formatDate(item.saved_at)}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button className="text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 rounded text-xs">
+                            View
+                          </button>
+                          <button className="text-green-400 hover:text-green-300 transition-colors px-2 py-1 rounded text-xs">
+                            Edit
+                          </button>
+                          <button className="text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded text-xs">
+                            Remove
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Pagination */}
