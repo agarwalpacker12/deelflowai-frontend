@@ -176,6 +176,13 @@ export const campaignsAPI = {
     AllGETHeader.get("/campaign_performance_overview/"),
   getChannelResponseRates: () => AllGETHeader.get("/channel_response_rates/"),
   getLeadConversionFunnel: () => AllGETHeader.get("/lead_conversion_funnel/"),
+  generateAIEmail: (campaignData, recipientInfo = null, generateSubject = true, generateContent = true) =>
+    AllPOSTHeader.post("/campaigns/generate-ai-email/", {
+      campaign_data: campaignData,
+      recipient_info: recipientInfo,
+      generate_subject: generateSubject,
+      generate_content: generateContent,
+    }),
 };
 
 export const propertySaveAPI = {
