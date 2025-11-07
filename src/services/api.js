@@ -116,6 +116,8 @@ export const authAPI = {
   invite: (id, data) => api.post(`/tenants/${id}/invitations/`, data),
   getInvitation: (id) => api.get(`/tenants/${id}/invitations`),
   acceptInvitation: (id, data) => api.post(`/invitations/${id}/accept`, data),
+
+  getCurrentUser: () => api.get("/subscription/payment/success"),
 };
 
 export const leadsAPI = {
