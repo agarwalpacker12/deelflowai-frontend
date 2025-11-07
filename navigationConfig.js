@@ -269,7 +269,7 @@ export const integrationNavLinks = [
  */
 export const baseSettingsNavLinks = [
   {
-    to: "/app/settings",
+    to: "/app/org-settings",
     label: "Organization Settings",
     has_permission: "manage_tenant",
   },

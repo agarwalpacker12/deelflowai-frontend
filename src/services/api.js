@@ -4,8 +4,9 @@ import axios from "axios";
 // Use environment variable if available, otherwise default to localhost
 const API_HOST = import.meta.env.VITE_API_HOST || "localhost";
 const API_PORT = import.meta.env.VITE_API_PORT || "8140";
-const BASE_URL = import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
-// const BASE_URL = "http://dev.deelflowai.com:8140";
+// const BASE_URL =
+//   import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
+const BASE_URL = "http://dev.deelflowai.com:8140";
 const API_BASE_URL = `${BASE_URL}/api`;
 
 // Create a single API instance for all requests
@@ -121,6 +122,7 @@ export const authAPI = {
   acceptInvitation: (id, data) => api.post(`/invitations/${id}/accept`, data),
 
   getCurrentUser: () => api.get("/subscription/payment/success"),
+  getAllUsersForSuperAdmin: () => api.get(`/users/`),
 };
 
 export const leadsAPI = {
@@ -195,6 +197,8 @@ export const TenantAPI = {
     api.post(`/admin/tenants/${data.tenant_id}/suspend/`),
   activateTenant: (data) =>
     api.post(`/admin/tenants/${data.tenant_id}/activate/`),
+
+  AssignUserTenant: (data) => api.post(`/admin/tenants/assign-user`, data),
 };
 
 export const OrganizationAPI = {
