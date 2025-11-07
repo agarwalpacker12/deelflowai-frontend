@@ -8,40 +8,6 @@ const PricingTable = () => {
   const [subscriptionPackState, setSubscriptionPackState] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Feature mappings for each plan type
-  const getFeaturesByPlanName = (planName) => {
-    const features = {
-      Starter: [
-        { text: "50 AI Lead Analyses/Month", highlight: false },
-        { text: "Basic Blockchain Escrow", highlight: false },
-        { text: "Email & SMS Automation", highlight: false },
-        { text: "Standard Reporting", highlight: false },
-        { text: "Mobile App Access", highlight: false },
-        { text: "Email Support", highlight: false },
-      ],
-      Professional: [
-        { text: "Unlimited AI Analyses", highlight: false },
-        { text: "Advanced Blockchain", highlight: false },
-        { text: "Voice AI Agents", highlight: false },
-        { text: "Transactional Funding Access", highlight: false },
-        { text: "Custom Marketing Funnels", highlight: false },
-        { text: "Priority Support", highlight: false },
-        { text: "White-Label Options", highlight: false },
-        { text: "API Access", highlight: false },
-      ],
-      Enterprise: [
-        { text: "Everything in Professional", highlight: false },
-        { text: "Custom AI Model Training", highlight: false },
-        { text: "Dedicated Success Manager", highlight: false },
-        { text: "Custom Integrations", highlight: false },
-        { text: "Advanced Analytics", highlight: false },
-        { text: "Team Collaboration", highlight: false },
-        { text: "99.9% SLA Guarantee", highlight: false },
-      ],
-    };
-    return features[planName] || [];
-  };
-
   useEffect(() => {
     const fetchSubscriptionPacks = async () => {
       try {
@@ -170,7 +136,7 @@ const PricingTable = () => {
                     {/* Current Price */}
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-3xl font-bold text-gray-900">
-                        $
+                        {pack.currency == "usd" ? "$" : "₹"}
                       </span>
                       <span className="text-5xl font-bold text-gray-900">
                         {pack.amount.toLocaleString()}
