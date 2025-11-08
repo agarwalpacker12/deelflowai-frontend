@@ -295,7 +295,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                     <div>
                       <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                         <DollarSign className="w-4 h-4 mr-2 text-green-600" />
-                        Budget <Text className="text-red-500 ml-1">*</Text>
+                        Budget
                       </label>
                       <div className="relative">
                         <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
