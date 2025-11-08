@@ -172,13 +172,60 @@ const CreateCampaignForm = ({ fillMode }) => {
     const fetchCountries = async () => {
       setLoadingCountries(true);
       try {
+        console.log('🌍 Fetching countries...');
         const response = await geographicAPI.getCountries();
-        if (response.status === 'success') {
+        console.log('📦 Countries API response:', response);
+        
+        if (response && response.status === 'success' && response.data) {
+          console.log('✅ Countries loaded:', response.data.length, 'countries');
           setCountries(response.data);
+        } else if (response && response.status === 'error') {
+          console.error('❌ Error fetching countries:', response.message);
+          // Check if it's a database connection error
+          const errorMsg = response.message || 'Failed to load countries';
+          if (errorMsg.toLowerCase().includes('database') || 
+              errorMsg.toLowerCase().includes('connection') ||
+              errorMsg.toLowerCase().includes('timeout')) {
+            toast.error('Database connection failed. Please check if the database server is reachable.', {
+              duration: 5000
+            });
+          } else {
+            toast.error(errorMsg);
+          }
+        } else {
+          console.error('⚠️ Unexpected response format:', response);
+          console.error('Response keys:', response ? Object.keys(response) : 'null');
+          toast.error('Failed to load countries: Invalid response format');
         }
       } catch (error) {
-        console.error('Error fetching countries:', error);
-        toast.error('Failed to load countries');
+        console.error('❌ Exception fetching countries:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          url: error.config?.url
+        });
+        
+        // Check for network/database errors
+        const errorMsg = error.message || 'Failed to load countries';
+        const responseMsg = error.response?.data?.detail || error.response?.data?.message || '';
+        const fullError = responseMsg || errorMsg;
+        
+        if (fullError.toLowerCase().includes('database') || 
+            fullError.toLowerCase().includes('connection') ||
+            fullError.toLowerCase().includes('timeout') ||
+            error.code === 'ECONNREFUSED' ||
+            error.code === 'ETIMEDOUT') {
+          toast.error('⚠️ Database server unreachable. Countries cannot be loaded. Please check database connectivity.', {
+            duration: 6000
+          });
+        } else if (error.response?.status === 500) {
+          toast.error('Server error: Database connection may be unavailable. Please contact support.', {
+            duration: 6000
+          });
+        } else {
+          toast.error(fullError || 'Failed to load countries');
+        }
       } finally {
         setLoadingCountries(false);
       }
@@ -199,12 +246,44 @@ const CreateCampaignForm = ({ fillMode }) => {
       setLoadingBuyerStates(true);
       try {
         const response = await geographicAPI.getStatesByCountry(selectedBuyerCountryId);
-        if (response.status === 'success') {
+        if (response && response.status === 'success' && response.data) {
           setBuyerStates(response.data);
+        } else if (response && response.status === 'error') {
+          console.error('Error fetching buyer states:', response.message);
+          const errorMsg = response.message || 'Failed to load states';
+          if (errorMsg.toLowerCase().includes('database') || 
+              errorMsg.toLowerCase().includes('connection') ||
+              errorMsg.toLowerCase().includes('timeout')) {
+            toast.error('Database connection failed. States cannot be loaded.', {
+              duration: 5000
+            });
+          } else {
+            toast.error(errorMsg);
+          }
+          setBuyerStates([]);
+        } else {
+          console.error('Unexpected response format:', response);
+          toast.error('Failed to load states: Invalid response format');
+          setBuyerStates([]);
         }
       } catch (error) {
         console.error('Error fetching buyer states:', error);
-        toast.error('Failed to load states');
+        const errorMsg = error.message || 'Failed to load states';
+        const responseMsg = error.response?.data?.detail || error.response?.data?.message || '';
+        const fullError = responseMsg || errorMsg;
+        
+        if (fullError.toLowerCase().includes('database') || 
+            fullError.toLowerCase().includes('connection') ||
+            fullError.toLowerCase().includes('timeout') ||
+            error.code === 'ECONNREFUSED' ||
+            error.code === 'ETIMEDOUT') {
+          toast.error('⚠️ Database server unreachable. States cannot be loaded.', {
+            duration: 5000
+          });
+        } else {
+          toast.error(fullError || 'Failed to load states');
+        }
+        setBuyerStates([]);
       } finally {
         setLoadingBuyerStates(false);
       }
@@ -225,12 +304,44 @@ const CreateCampaignForm = ({ fillMode }) => {
       setLoadingSellerStates(true);
       try {
         const response = await geographicAPI.getStatesByCountry(selectedSellerCountryId);
-        if (response.status === 'success') {
+        if (response && response.status === 'success' && response.data) {
           setSellerStates(response.data);
+        } else if (response && response.status === 'error') {
+          console.error('Error fetching seller states:', response.message);
+          const errorMsg = response.message || 'Failed to load states';
+          if (errorMsg.toLowerCase().includes('database') || 
+              errorMsg.toLowerCase().includes('connection') ||
+              errorMsg.toLowerCase().includes('timeout')) {
+            toast.error('Database connection failed. States cannot be loaded.', {
+              duration: 5000
+            });
+          } else {
+            toast.error(errorMsg);
+          }
+          setSellerStates([]);
+        } else {
+          console.error('Unexpected response format:', response);
+          toast.error('Failed to load states: Invalid response format');
+          setSellerStates([]);
         }
       } catch (error) {
         console.error('Error fetching seller states:', error);
-        toast.error('Failed to load states');
+        const errorMsg = error.message || 'Failed to load states';
+        const responseMsg = error.response?.data?.detail || error.response?.data?.message || '';
+        const fullError = responseMsg || errorMsg;
+        
+        if (fullError.toLowerCase().includes('database') || 
+            fullError.toLowerCase().includes('connection') ||
+            fullError.toLowerCase().includes('timeout') ||
+            error.code === 'ECONNREFUSED' ||
+            error.code === 'ETIMEDOUT') {
+          toast.error('⚠️ Database server unreachable. States cannot be loaded.', {
+            duration: 5000
+          });
+        } else {
+          toast.error(fullError || 'Failed to load states');
+        }
+        setSellerStates([]);
       } finally {
         setLoadingSellerStates(false);
       }
@@ -917,18 +1028,33 @@ const CreateCampaignForm = ({ fillMode }) => {
                             setValue('buyer_country', countryName);
                             setValue('buyer_state', '');
                           }}
-                          disabled={loadingCountries}
+                          disabled={loadingCountries || countries.length === 0}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">Select Country</option>
-                          {countries.map((country) => (
-                            <option key={country.id} value={country.id}>
-                              {country.emoji} {country.name}
-                            </option>
-                          ))}
+                          {countries.length > 0 ? (
+                            countries.map((country) => (
+                              <option key={country.id} value={country.id}>
+                                {country.emoji || '🌍'} {country.name}
+                              </option>
+                            ))
+                          ) : (
+                            <option value="" disabled>No countries available</option>
+                          )}
                         </select>
                         {loadingCountries && (
-                          <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
+                          <p className="text-sm text-gray-500 mt-2">⏳ Loading countries...</p>
+                        )}
+                        {!loadingCountries && countries.length === 0 && (
+                          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-600 font-semibold">⚠️ Database Connection Issue</p>
+                            <p className="text-xs text-red-500 mt-1">
+                              Countries cannot be loaded. The database server (44.203.111.241:5432) may be unreachable from localhost.
+                            </p>
+                            <p className="text-xs text-gray-600 mt-2">
+                              <strong>Solution:</strong> Check if the database server is accessible or use a VPN/SSH tunnel if required.
+                            </p>
+                          </div>
                         )}
                       </div>
 

@@ -1,12 +1,23 @@
 import axios from "axios";
 
 // Base URLs - matching your Django server
-// Use environment variable if available, otherwise default to localhost
-const API_HOST = import.meta.env.VITE_API_HOST || "localhost";
+// Use environment variable if available, otherwise default to dev server
+const API_HOST = import.meta.env.VITE_API_HOST || "dev.deelflowai.com";
 const API_PORT = import.meta.env.VITE_API_PORT || "8140";
 const BASE_URL = import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
-// const BASE_URL = "http://dev.deelflowai.com:8140";
-const API_BASE_URL = `${BASE_URL}/api`;
+// Fallback to dev server if environment variable is not set
+const FALLBACK_BASE_URL = "http://dev.deelflowai.com:8140";
+const FINAL_BASE_URL = BASE_URL && BASE_URL !== "undefined" && BASE_URL !== "undefined/api" ? BASE_URL : FALLBACK_BASE_URL;
+const API_BASE_URL = `${FINAL_BASE_URL}/api`;
+
+// Debug: Log API configuration
+console.log('🔧 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  VITE_API_HOST: import.meta.env.VITE_API_HOST,
+  VITE_API_PORT: import.meta.env.VITE_API_PORT,
+  BASE_URL: FINAL_BASE_URL,
+  API_BASE_URL: API_BASE_URL
+});
 
 // Create a single API instance for all requests
 const api = axios.create({
@@ -21,7 +32,7 @@ const api = axios.create({
 });
 
 const AllGETHeader = axios.create({
-  baseURL: BASE_URL, // Use base URL without /api prefix
+  baseURL: FINAL_BASE_URL, // Use base URL without /api prefix
   // withCredentials: true,
   // credentials: "include", // 👈 REQUIRED for session cookies
   method: "GET",
@@ -31,6 +42,39 @@ const AllGETHeader = axios.create({
     "X-Requested-With": "XMLHttpRequest",
   },
 });
+
+// Add request interceptor for debugging
+AllGETHeader.interceptors.request.use(
+  (config) => {
+    console.log('🌐 API Request:', config.method?.toUpperCase(), config.url);
+    console.log('📍 Base URL:', config.baseURL);
+    console.log('🔗 Full URL:', `${config.baseURL}${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('❌ Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+AllGETHeader.interceptors.response.use(
+  (response) => {
+    console.log('✅ API Response:', response.status, response.config.url);
+    console.log('📦 Response data:', response.data);
+    return response;
+  },
+  (error) => {
+    console.error('❌ API Error:', error.config?.url);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
+    return Promise.reject(error);
+  }
+);
 
 // const AllPOSTHeader = axios.create({
 //   baseURL: BASE_URL, // Use base URL without /api prefix
@@ -45,7 +89,7 @@ const AllGETHeader = axios.create({
 // });
 
 const AllPOSTHeader = axios.create({
-  baseURL: BASE_URL, // Use base URL without /api prefix
+  baseURL: FINAL_BASE_URL, // Use base URL without /api prefix
   withCredentials: true,
   credentials: "include", // 👈 REQUIRED for session cookies
   method: "POST",
@@ -276,24 +320,69 @@ export const DashboardAPI = {
 export const geographicAPI = {
   // Get all countries
   getCountries: async (search = null) => {
-    const params = search ? { search } : {};
-    const response = await AllGETHeader.get('/api/countries/', { params });
-    return response.data;
+    try {
+      const params = search ? { search } : {};
+      const response = await AllGETHeader.get('/api/countries/', { params });
+      // Handle both direct response.data and nested response.data.data
+      if (response.data && response.data.status === 'success') {
+        return response.data;
+      }
+      // If response is already the data object
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+      // Return error response in expected format
+      return {
+        status: 'error',
+        message: error.response?.data?.detail || error.message || 'Failed to load countries',
+        data: []
+      };
+    }
   },
 
   // Get states by country ID
   getStatesByCountry: async (countryId, search = null) => {
-    const params = search ? { search } : {};
-    const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
-    return response.data;
+    try {
+      const params = search ? { search } : {};
+      const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
+      // Handle both direct response.data and nested response.data.data
+      if (response.data && response.data.status === 'success') {
+        return response.data;
+      }
+      // If response is already the data object
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching states:', error);
+      // Return error response in expected format
+      return {
+        status: 'error',
+        message: error.response?.data?.detail || error.message || 'Failed to load states',
+        data: []
+      };
+    }
   },
 
   // Get cities by state ID (optional, for future use)
   getCitiesByState: async (stateId, search = null, page = 1, perPage = 50) => {
-    const params = { page, per_page: perPage };
-    if (search) params.search = search;
-    const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
-    return response.data;
+    try {
+      const params = { page, per_page: perPage };
+      if (search) params.search = search;
+      const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
+      // Handle both direct response.data and nested response.data.data
+      if (response.data && response.data.status === 'success') {
+        return response.data;
+      }
+      // If response is already the data object
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      // Return error response in expected format
+      return {
+        status: 'error',
+        message: error.response?.data?.detail || error.message || 'Failed to load cities',
+        data: []
+      };
+    }
   }
 };
 
