@@ -46,7 +46,7 @@ const AllGETHeader = axios.create({
 // });
 
 const AllPOSTHeader = axios.create({
-  baseURL: FINAL_BASE_URL, // Use base URL without /api prefix
+  baseURL: BASE_URL, // Use base URL without /api prefix
   withCredentials: true,
   credentials: "include", // 👈 REQUIRED for session cookies
   method: "POST",
