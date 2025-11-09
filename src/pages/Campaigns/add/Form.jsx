@@ -8,7 +8,7 @@ import {
   propertyTypes,
 } from "./utility";
 import { useMutation } from "@tanstack/react-query";
-import { campaignsAPI, geographicAPI } from "../../../services/api";
+import { campaignsAPI } from "../../../services/api";
 import toast from "react-hot-toast";
 import { Text } from "@radix-ui/themes";
 import ButtonLoader from "../../../components/UI/ButtonLoader";
@@ -35,15 +35,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCampaigns } from "../../../store/slices/campaignsSlice";
 import { useCallback, useState, useEffect } from "react";
 import PriceRangeSlider from "../PriceRangeSlider";
-<<<<<<< HEAD
-import LocationPicker from "../../../components/LocationPicker/LocationPicker";
-import { reverseGeocode } from "../../../services/geocoding";
-import { findBestMatchingCity, extractCityVariations, findCityByCoordinates } from "../../../utils/cityMatcher";
-=======
 import { geographicAPI } from "../../../services/api";
 import LocationPicker from "../../../components/LocationPicker/LocationPicker";
 import { reverseGeocode } from "../../../services/geocoding";
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
 
 const CreateCampaignForm = ({ fillMode }) => {
   const navigate = useNavigate();
@@ -60,27 +54,6 @@ const CreateCampaignForm = ({ fillMode }) => {
 
   // Geographic data state
   const [countries, setCountries] = useState([]);
-<<<<<<< HEAD
-  const [loadingCountries, setLoadingCountries] = useState(false);
-  
-  // Buyer geographic state
-  const [buyerStates, setBuyerStates] = useState([]);
-  const [loadingBuyerStates, setLoadingBuyerStates] = useState(false);
-  const [buyerCities, setBuyerCities] = useState([]);
-  const [loadingBuyerCities, setLoadingBuyerCities] = useState(false);
-  
-  // Seller geographic state
-  const [sellerStates, setSellerStates] = useState([]);
-  const [loadingSellerStates, setLoadingSellerStates] = useState(false);
-  const [sellerCities, setSellerCities] = useState([]);
-  const [loadingSellerCities, setLoadingSellerCities] = useState(false);
-
-  // Map positions for buyer and seller
-  const [buyerMapPosition, setBuyerMapPosition] = useState({ lat: 25.7617, lng: -80.1918 }); // Miami default
-  const [sellerMapPosition, setSellerMapPosition] = useState({ lat: 25.7617, lng: -80.1918 }); // Miami default
-  const [buyerAddress, setBuyerAddress] = useState(null);
-  const [sellerAddress, setSellerAddress] = useState(null);
-=======
   const [buyerStates, setBuyerStates] = useState([]);
   const [sellerStates, setSellerStates] = useState([]);
   const [selectedBuyerCountryId, setSelectedBuyerCountryId] = useState(null);
@@ -96,7 +69,6 @@ const CreateCampaignForm = ({ fillMode }) => {
   const [isGeocodingSeller, setIsGeocodingSeller] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiGeneratedContent, setAiGeneratedContent] = useState(null);
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
 
   const {
     register,
@@ -112,12 +84,6 @@ const CreateCampaignForm = ({ fillMode }) => {
 
   // Watch campaign type to show/hide relevant sections
   const campaignType = watch("campaign_type");
-  
-  // Watch geographic selections
-  const selectedBuyerCountryId = watch("buyer_country");
-  const selectedBuyerStateId = watch("buyer_state");
-  const selectedSellerCountryId = watch("seller_country");
-  const selectedSellerStateId = watch("seller_state");
 
   // Add this state to your component
   const [priceRange, setPriceRange] = useState({
@@ -201,68 +167,22 @@ const CreateCampaignForm = ({ fillMode }) => {
     [setValue]
   );
 
-<<<<<<< HEAD
-  // Fetch countries on mount
-=======
   // Fetch countries on component mount
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
   useEffect(() => {
     const fetchCountries = async () => {
       setLoadingCountries(true);
       try {
         const response = await geographicAPI.getCountries();
-<<<<<<< HEAD
-        if (response && response.data && response.data.status === "success" && response.data.data) {
-          setCountries(response.data.data);
-        } else if (response && response.data && response.data.status === "error") {
-          toast.error(response.data.message || "Failed to load countries");
-        }
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-        toast.error("Failed to load countries");
-=======
         if (response.status === 'success') {
           setCountries(response.data);
         }
       } catch (error) {
         console.error('Error fetching countries:', error);
         toast.error('Failed to load countries');
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
       } finally {
         setLoadingCountries(false);
       }
     };
-<<<<<<< HEAD
-    fetchCountries();
-  }, []);
-
-  // Fetch buyer states when country changes
-  useEffect(() => {
-    if (!selectedBuyerCountryId) {
-      setBuyerStates([]);
-      setBuyerCities([]);
-      setValue("buyer_state", "");
-      setValue("buyer_city", "");
-      return;
-    }
-
-    const fetchBuyerStates = async () => {
-      setLoadingBuyerStates(true);
-      try {
-        const response = await geographicAPI.getStatesByCountry(selectedBuyerCountryId);
-        if (response && response.data && response.data.status === "success" && response.data.data) {
-          setBuyerStates(response.data.data);
-          // Reset state and city when country changes
-          setValue("buyer_state", "");
-          setValue("buyer_city", "");
-          setBuyerCities([]);
-        } else if (response && response.data && response.data.status === "error") {
-          toast.error(response.data.message || "Failed to load states");
-        }
-      } catch (error) {
-        console.error("Error fetching buyer states:", error);
-        toast.error("Failed to load states");
-=======
 
     fetchCountries();
   }, []);
@@ -285,104 +205,10 @@ const CreateCampaignForm = ({ fillMode }) => {
       } catch (error) {
         console.error('Error fetching buyer states:', error);
         toast.error('Failed to load states');
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
       } finally {
         setLoadingBuyerStates(false);
       }
     };
-<<<<<<< HEAD
-    fetchBuyerStates();
-  }, [selectedBuyerCountryId, setValue]);
-
-  // Fetch buyer cities when state changes
-  useEffect(() => {
-    if (!selectedBuyerStateId) {
-      setBuyerCities([]);
-      setValue("buyer_city", "");
-      return;
-    }
-
-    const fetchBuyerCities = async () => {
-      setLoadingBuyerCities(true);
-      try {
-        const response = await geographicAPI.getCitiesByState(selectedBuyerStateId);
-        console.log("Buyer cities response:", response);
-        
-        if (response && response.data) {
-          if (response.data.status === "success") {
-            // Handle both array and paginated response
-            const cities = response.data.data || [];
-            setBuyerCities(cities);
-            // Reset city when state changes
-            setValue("buyer_city", "");
-            
-            if (cities.length === 0) {
-              console.warn("No cities found for state:", selectedBuyerStateId);
-              // Don't show error for empty list, just log it
-            }
-          } else if (response.data.status === "error") {
-            console.error("Error response:", response.data);
-            toast.error(response.data.message || response.data.detail || "Failed to load cities");
-          } else {
-            // Handle case where status is not in response
-            console.warn("Unexpected response structure:", response.data);
-            const cities = response.data.data || response.data || [];
-            setBuyerCities(cities);
-            setValue("buyer_city", "");
-          }
-        } else {
-          console.error("Invalid response structure:", response);
-          toast.error("Invalid response from server");
-        }
-      } catch (error) {
-        console.error("Error fetching buyer cities:", error);
-        console.error("Error details:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-          url: error.config?.url
-        });
-        
-        const errorMessage = error.response?.data?.detail || 
-                           error.response?.data?.message || 
-                           error.message || 
-                           "Failed to load cities";
-        toast.error(errorMessage);
-        setBuyerCities([]);
-      } finally {
-        setLoadingBuyerCities(false);
-      }
-    };
-    fetchBuyerCities();
-  }, [selectedBuyerStateId, setValue]);
-
-  // Fetch seller states when country changes
-  useEffect(() => {
-    if (!selectedSellerCountryId) {
-      setSellerStates([]);
-      setSellerCities([]);
-      setValue("seller_state", "");
-      setValue("seller_city", "");
-      return;
-    }
-
-    const fetchSellerStates = async () => {
-      setLoadingSellerStates(true);
-      try {
-        const response = await geographicAPI.getStatesByCountry(selectedSellerCountryId);
-        if (response && response.data && response.data.status === "success" && response.data.data) {
-          setSellerStates(response.data.data);
-          // Reset state and city when country changes
-          setValue("seller_state", "");
-          setValue("seller_city", "");
-          setSellerCities([]);
-        } else if (response && response.data && response.data.status === "error") {
-          toast.error(response.data.message || "Failed to load states");
-        }
-      } catch (error) {
-        console.error("Error fetching seller states:", error);
-        toast.error("Failed to load states");
-=======
 
     fetchStates();
   }, [selectedBuyerCountryId]);
@@ -405,77 +231,10 @@ const CreateCampaignForm = ({ fillMode }) => {
       } catch (error) {
         console.error('Error fetching seller states:', error);
         toast.error('Failed to load states');
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
       } finally {
         setLoadingSellerStates(false);
       }
     };
-<<<<<<< HEAD
-    fetchSellerStates();
-  }, [selectedSellerCountryId, setValue]);
-
-  // Fetch seller cities when state changes
-  useEffect(() => {
-    if (!selectedSellerStateId) {
-      setSellerCities([]);
-      setValue("seller_city", "");
-      return;
-    }
-
-    const fetchSellerCities = async () => {
-      setLoadingSellerCities(true);
-      try {
-        const response = await geographicAPI.getCitiesByState(selectedSellerStateId);
-        console.log("Seller cities response:", response);
-        
-        if (response && response.data) {
-          if (response.data.status === "success") {
-            // Handle both array and paginated response
-            const cities = response.data.data || [];
-            setSellerCities(cities);
-            // Reset city when state changes
-            setValue("seller_city", "");
-            
-            if (cities.length === 0) {
-              console.warn("No cities found for state:", selectedSellerStateId);
-              // Don't show error for empty list, just log it
-            }
-          } else if (response.data.status === "error") {
-            console.error("Error response:", response.data);
-            toast.error(response.data.message || response.data.detail || "Failed to load cities");
-          } else {
-            // Handle case where status is not in response
-            console.warn("Unexpected response structure:", response.data);
-            const cities = response.data.data || response.data || [];
-            setSellerCities(cities);
-            setValue("seller_city", "");
-          }
-        } else {
-          console.error("Invalid response structure:", response);
-          toast.error("Invalid response from server");
-        }
-      } catch (error) {
-        console.error("Error fetching seller cities:", error);
-        console.error("Error details:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-          url: error.config?.url
-        });
-        
-        const errorMessage = error.response?.data?.detail || 
-                           error.response?.data?.message || 
-                           error.message || 
-                           "Failed to load cities";
-        toast.error(errorMessage);
-        setSellerCities([]);
-      } finally {
-        setLoadingSellerCities(false);
-      }
-    };
-    fetchSellerCities();
-  }, [selectedSellerStateId, setValue]);
-=======
 
     fetchStates();
   }, [selectedSellerCountryId]);
@@ -676,7 +435,6 @@ const CreateCampaignForm = ({ fillMode }) => {
       setIsGeneratingAI(false);
     }
   };
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -1150,25 +908,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-<<<<<<< HEAD
-                          {...register("buyer_country")}
-                          disabled={loadingCountries || countries.length === 0}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select Country</option>
-                          {countries.length > 0 ? (
-                            countries.map((country) => (
-                              <option key={country.id} value={country.id}>
-                                {country.emoji || '🌍'} {country.name}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled>No countries available</option>
-                          )}
-                        </select>
-                        {loadingCountries && (
-                          <p className="text-sm text-gray-500 mt-2">⏳ Loading countries...</p>
-=======
                           value={selectedBuyerCountryId || ''}
                           onChange={(e) => {
                             const countryId = e.target.value ? parseInt(e.target.value) : null;
@@ -1190,7 +929,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </select>
                         {loadingCountries && (
                           <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                         )}
                       </div>
 
@@ -1201,27 +939,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                           State
                         </label>
                         <select
-<<<<<<< HEAD
-                          {...register("buyer_state")}
-                          disabled={!selectedBuyerCountryId || loadingBuyerStates || buyerStates.length === 0}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select State</option>
-                          {buyerStates.length > 0 ? (
-                            buyerStates.map((state) => (
-                              <option key={state.id} value={state.id}>
-                                {state.name}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled>
-                              {!selectedBuyerCountryId ? "Select a country first" : "No states available"}
-                            </option>
-                          )}
-                        </select>
-                        {loadingBuyerStates && (
-                          <p className="text-sm text-gray-500 mt-2">⏳ Loading states...</p>
-=======
                           value={selectedBuyerStateId || ''}
                           onChange={(e) => {
                             const stateId = e.target.value ? parseInt(e.target.value) : null;
@@ -1243,7 +960,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </select>
                         {loadingBuyerStates && (
                           <p className="text-sm text-gray-500 mt-2">Loading states...</p>
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                         )}
                       </div>
 
@@ -1266,27 +982,11 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <Building className="w-4 h-4 mr-2 text-blue-600" />
                           City
                         </label>
-                        <select
+                        <input
                           {...register("buyer_city")}
-                          disabled={!selectedBuyerStateId || loadingBuyerCities || buyerCities.length === 0}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select City</option>
-                          {buyerCities.length > 0 ? (
-                            buyerCities.map((city) => (
-                              <option key={city.id} value={city.id}>
-                                {city.name}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled>
-                              {!selectedBuyerStateId ? "Select a state first" : "No cities available"}
-                            </option>
-                          )}
-                        </select>
-                        {loadingBuyerCities && (
-                          <p className="text-sm text-gray-500 mt-2">⏳ Loading cities...</p>
-                        )}
+                          placeholder="e.g., Miami, Austin"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
+                        />
                       </div>
 
                       {/* Districts */}
@@ -1303,135 +1003,12 @@ const CreateCampaignForm = ({ fillMode }) => {
                       </div>
                     </div>
 
-<<<<<<< HEAD
-                    {/* Interactive Map */}
-                    <div className="mt-6">
-=======
                     {/* Map Location Picker for Buyer */}
                     <div className="mb-6">
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                       <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                         <MapPin className="w-4 h-4 mr-2 text-blue-600" />
                         Select Location on Map
                       </label>
-<<<<<<< HEAD
-                      <div className="bg-white/80 border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg">
-                        <LocationPicker
-                          initialPosition={buyerMapPosition}
-                          onLocationChange={async (location) => {
-                            setBuyerMapPosition(location);
-                            // Reverse geocode to get address
-                            const geocodeResult = await reverseGeocode(location.lat, location.lng);
-                            console.log("Reverse geocode result:", geocodeResult);
-                            
-                            if (geocodeResult.success && geocodeResult.components) {
-                              setBuyerAddress(geocodeResult.address);
-                              
-                              let matchedCountry = null;
-                              let statesToMatch = [];
-                              let matchedState = null;
-                              let citiesToMatch = [];
-                              
-                              // Step 1: Match country by name or country code
-                              if (geocodeResult.components.countryCode && countries.length > 0) {
-                                matchedCountry = countries.find(
-                                  c => c.iso2?.toUpperCase() === geocodeResult.components.countryCode ||
-                                       c.name?.toLowerCase() === geocodeResult.components.country?.toLowerCase()
-                                );
-                                
-                                if (matchedCountry) {
-                                  console.log("Matched country:", matchedCountry);
-                                  setValue("buyer_country", matchedCountry.id);
-                                  
-                                  // Fetch states for matched country
-                                  if (matchedCountry.id !== selectedBuyerCountryId || buyerStates.length === 0) {
-                                    console.log("Fetching states for country:", matchedCountry.id);
-                                    const statesResponse = await geographicAPI.getStatesByCountry(matchedCountry.id);
-                                    if (statesResponse?.data?.status === "success" && statesResponse.data.data) {
-                                      statesToMatch = statesResponse.data.data;
-                                      setBuyerStates(statesToMatch);
-                                      console.log("Fetched states:", statesToMatch.length);
-                                    }
-                                  } else {
-                                    statesToMatch = buyerStates;
-                                  }
-                                }
-                              }
-                              
-                              // Step 2: Match state by name (use freshly fetched states)
-                              if (geocodeResult.components.state && statesToMatch.length > 0) {
-                                matchedState = statesToMatch.find(
-                                  s => s.name?.toLowerCase().includes(geocodeResult.components.state.toLowerCase()) ||
-                                       geocodeResult.components.state.toLowerCase().includes(s.name?.toLowerCase())
-                                );
-                                
-                                if (matchedState) {
-                                  console.log("Matched state:", matchedState);
-                                  setValue("buyer_state", matchedState.id);
-                                  
-                                  // Fetch cities for matched state
-                                  if (matchedState.id !== selectedBuyerStateId || buyerCities.length === 0) {
-                                    console.log("Fetching cities for state:", matchedState.id);
-                                    const citiesResponse = await geographicAPI.getCitiesByState(matchedState.id);
-                                    if (citiesResponse?.data?.status === "success" && citiesResponse.data.data) {
-                                      citiesToMatch = citiesResponse.data.data;
-                                      setBuyerCities(citiesToMatch);
-                                      console.log("Fetched cities:", citiesToMatch.length);
-                                    }
-                                  } else {
-                                    citiesToMatch = buyerCities;
-                                  }
-                                  
-                                  // Step 3: Match city by name (use improved matching)
-                                  if (citiesToMatch.length > 0) {
-                                    // Extract all city name variations from geocoding
-                                    const cityVariations = extractCityVariations(geocodeResult.components);
-                                    console.log("City variations from geocoding:", cityVariations);
-                                    
-                                    // Try to find matching city using improved matcher
-                                    let matchedCity = findBestMatchingCity(cityVariations, citiesToMatch);
-                                    
-                                    // If no match found by name, try to find by coordinates
-                                    if (!matchedCity && geocodeResult.coordinates) {
-                                      console.log("No name match found, trying coordinate-based matching...");
-                                      matchedCity = findCityByCoordinates(
-                                        geocodeResult.coordinates.latitude,
-                                        geocodeResult.coordinates.longitude,
-                                        citiesToMatch,
-                                        50 // Max 50km distance
-                                      );
-                                    }
-                                    
-                                    if (matchedCity) {
-                                      console.log("Matched city:", matchedCity);
-                                      setValue("buyer_city", matchedCity.id);
-                                    } else {
-                                      console.log("City not found. Geocoded variations:", cityVariations);
-                                      console.log("Available cities sample:", citiesToMatch.slice(0, 10).map(c => c.name));
-                                    }
-                                  } else {
-                                    console.log("No cities loaded. Cities count:", citiesToMatch.length);
-                                  }
-                                } else {
-                                  console.log("State not found. Geocoded state:", geocodeResult.components.state, "Available states:", statesToMatch.map(s => s.name));
-                                }
-                              } else {
-                                console.log("No state component or states not loaded. State:", geocodeResult.components.state, "States count:", statesToMatch.length);
-                              }
-                            } else {
-                              console.error("Reverse geocoding failed:", geocodeResult);
-                            }
-                          }}
-                          height="400px"
-                          markerColor="#3b82f6"
-                        />
-                      </div>
-                      {buyerAddress && (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <p className="text-sm text-blue-800">
-                            <strong>📍 Selected Address:</strong> {buyerAddress}
-                          </p>
-=======
                       <p className="text-xs text-gray-500 mb-3">
                         Click on the map to automatically fill location fields above
                       </p>
@@ -1445,7 +1022,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                         <div className="text-sm text-blue-600 mt-2 flex items-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                           <span>Getting location details...</span>
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                         </div>
                       )}
                     </div>
@@ -1562,25 +1138,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-<<<<<<< HEAD
-                          {...register("seller_country")}
-                          disabled={loadingCountries || countries.length === 0}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select Country</option>
-                          {countries.length > 0 ? (
-                            countries.map((country) => (
-                              <option key={country.id} value={country.id}>
-                                {country.emoji || '🌍'} {country.name}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled>No countries available</option>
-                          )}
-                        </select>
-                        {loadingCountries && (
-                          <p className="text-sm text-gray-500 mt-2">⏳ Loading countries...</p>
-=======
                           value={selectedSellerCountryId || ''}
                           onChange={(e) => {
                             const countryId = e.target.value ? parseInt(e.target.value) : null;
@@ -1602,7 +1159,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </select>
                         {loadingCountries && (
                           <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                         )}
                       </div>
 
@@ -1613,27 +1169,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                           State
                         </label>
                         <select
-<<<<<<< HEAD
-                          {...register("seller_state")}
-                          disabled={!selectedSellerCountryId || loadingSellerStates || sellerStates.length === 0}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select State</option>
-                          {sellerStates.length > 0 ? (
-                            sellerStates.map((state) => (
-                              <option key={state.id} value={state.id}>
-                                {state.name}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled>
-                              {!selectedSellerCountryId ? "Select a country first" : "No states available"}
-                            </option>
-                          )}
-                        </select>
-                        {loadingSellerStates && (
-                          <p className="text-sm text-gray-500 mt-2">⏳ Loading states...</p>
-=======
                           value={selectedSellerStateId || ''}
                           onChange={(e) => {
                             const stateId = e.target.value ? parseInt(e.target.value) : null;
@@ -1655,7 +1190,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </select>
                         {loadingSellerStates && (
                           <p className="text-sm text-gray-500 mt-2">Loading states...</p>
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                         )}
                       </div>
 
@@ -1678,27 +1212,11 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <Building className="w-4 h-4 mr-2 text-emerald-600" />
                           City
                         </label>
-                        <select
+                        <input
                           {...register("seller_city")}
-                          disabled={!selectedSellerStateId || loadingSellerCities || sellerCities.length === 0}
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select City</option>
-                          {sellerCities.length > 0 ? (
-                            sellerCities.map((city) => (
-                              <option key={city.id} value={city.id}>
-                                {city.name}
-                              </option>
-                            ))
-                          ) : (
-                            <option value="" disabled>
-                              {!selectedSellerStateId ? "Select a state first" : "No cities available"}
-                            </option>
-                          )}
-                        </select>
-                        {loadingSellerCities && (
-                          <p className="text-sm text-gray-500 mt-2">⏳ Loading cities...</p>
-                        )}
+                          placeholder="e.g., Miami, Austin"
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
+                        />
                       </div>
 
                       {/* Districts */}
@@ -1728,134 +1246,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                       </div>
                     </div>
 
-<<<<<<< HEAD
-                    {/* Interactive Map */}
-                    <div className="mt-6">
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
-                        Select Location on Map
-                      </label>
-                      <div className="bg-white/80 border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg">
-                        <LocationPicker
-                          initialPosition={sellerMapPosition}
-                          onLocationChange={async (location) => {
-                            setSellerMapPosition(location);
-                            // Reverse geocode to get address
-                            const geocodeResult = await reverseGeocode(location.lat, location.lng);
-                            console.log("Reverse geocode result (seller):", geocodeResult);
-                            
-                            if (geocodeResult.success && geocodeResult.components) {
-                              setSellerAddress(geocodeResult.address);
-                              
-                              let matchedCountry = null;
-                              let statesToMatch = [];
-                              let matchedState = null;
-                              let citiesToMatch = [];
-                              
-                              // Step 1: Match country by name or country code
-                              if (geocodeResult.components.countryCode && countries.length > 0) {
-                                matchedCountry = countries.find(
-                                  c => c.iso2?.toUpperCase() === geocodeResult.components.countryCode ||
-                                       c.name?.toLowerCase() === geocodeResult.components.country?.toLowerCase()
-                                );
-                                
-                                if (matchedCountry) {
-                                  console.log("Matched country (seller):", matchedCountry);
-                                  setValue("seller_country", matchedCountry.id);
-                                  
-                                  // Fetch states for matched country
-                                  if (matchedCountry.id !== selectedSellerCountryId || sellerStates.length === 0) {
-                                    console.log("Fetching states for country (seller):", matchedCountry.id);
-                                    const statesResponse = await geographicAPI.getStatesByCountry(matchedCountry.id);
-                                    if (statesResponse?.data?.status === "success" && statesResponse.data.data) {
-                                      statesToMatch = statesResponse.data.data;
-                                      setSellerStates(statesToMatch);
-                                      console.log("Fetched states (seller):", statesToMatch.length);
-                                    }
-                                  } else {
-                                    statesToMatch = sellerStates;
-                                  }
-                                }
-                              }
-                              
-                              // Step 2: Match state by name (use freshly fetched states)
-                              if (geocodeResult.components.state && statesToMatch.length > 0) {
-                                matchedState = statesToMatch.find(
-                                  s => s.name?.toLowerCase().includes(geocodeResult.components.state.toLowerCase()) ||
-                                       geocodeResult.components.state.toLowerCase().includes(s.name?.toLowerCase())
-                                );
-                                
-                                if (matchedState) {
-                                  console.log("Matched state (seller):", matchedState);
-                                  setValue("seller_state", matchedState.id);
-                                  
-                                  // Fetch cities for matched state
-                                  if (matchedState.id !== selectedSellerStateId || sellerCities.length === 0) {
-                                    console.log("Fetching cities for state (seller):", matchedState.id);
-                                    const citiesResponse = await geographicAPI.getCitiesByState(matchedState.id);
-                                    if (citiesResponse?.data?.status === "success" && citiesResponse.data.data) {
-                                      citiesToMatch = citiesResponse.data.data;
-                                      setSellerCities(citiesToMatch);
-                                      console.log("Fetched cities (seller):", citiesToMatch.length);
-                                    }
-                                  } else {
-                                    citiesToMatch = sellerCities;
-                                  }
-                                  
-                                  // Step 3: Match city by name (use improved matching)
-                                  if (citiesToMatch.length > 0) {
-                                    // Extract all city name variations from geocoding
-                                    const cityVariations = extractCityVariations(geocodeResult.components);
-                                    console.log("City variations from geocoding (seller):", cityVariations);
-                                    
-                                    // Try to find matching city using improved matcher
-                                    let matchedCity = findBestMatchingCity(cityVariations, citiesToMatch);
-                                    
-                                    // If no match found by name, try to find by coordinates
-                                    if (!matchedCity && geocodeResult.coordinates) {
-                                      console.log("No name match found (seller), trying coordinate-based matching...");
-                                      matchedCity = findCityByCoordinates(
-                                        geocodeResult.coordinates.latitude,
-                                        geocodeResult.coordinates.longitude,
-                                        citiesToMatch,
-                                        50 // Max 50km distance
-                                      );
-                                    }
-                                    
-                                    if (matchedCity) {
-                                      console.log("Matched city (seller):", matchedCity);
-                                      setValue("seller_city", matchedCity.id);
-                                    } else {
-                                      console.log("City not found (seller). Geocoded variations:", cityVariations);
-                                      console.log("Available cities sample (seller):", citiesToMatch.slice(0, 10).map(c => c.name));
-                                    }
-                                  } else {
-                                    console.log("No cities loaded (seller). Cities count:", citiesToMatch.length);
-                                  }
-                                } else {
-                                  console.log("State not found (seller). Geocoded state:", geocodeResult.components.state, "Available states:", statesToMatch.map(s => s.name));
-                                }
-                              } else {
-                                console.log("No state component or states not loaded (seller). State:", geocodeResult.components.state, "States count:", statesToMatch.length);
-                              }
-                            } else {
-                              console.error("Reverse geocoding failed (seller):", geocodeResult);
-                            }
-                          }}
-                          height="400px"
-                          markerColor="#10b981"
-                        />
-                      </div>
-                      {sellerAddress && (
-                        <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                          <p className="text-sm text-emerald-800">
-                            <strong>📍 Selected Address:</strong> {sellerAddress}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-=======
->>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
                   </div>
                 </div>
               )}
