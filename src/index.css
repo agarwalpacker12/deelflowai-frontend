@@ -119,3 +119,31 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+
+/* Leaflet Map Styles */
+.location-picker {
+  position: relative;
+}
+
+.location-picker .leaflet-container {
+  font-family: inherit;
+}
+
+.location-picker .custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.location-picker .leaflet-marker-icon {
+  cursor: move;
+}
+
+.location-picker .leaflet-marker-icon:hover {
+  filter: brightness(1.2);
+  transition: filter 0.2s;
+}
+
+/* Hide Leaflet attribution */
+.location-picker .leaflet-control-attribution {
+  display: none !important;
+}
