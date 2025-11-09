@@ -7,6 +7,7 @@ import {
   OrganizationAPI,
 } from "../../services/api";
 import LoadingSpinner from "../../components/UI/LoadingSpinner";
+import { useFilteredNavigation } from "../../../navigationConfig";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,7 +19,62 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/app");
+      // Get user from localStorage
+      const userDetails = JSON.parse(localStorage.getItem("user") || "{}");
+      const userPermissions = userDetails.permissions || [];
+
+      // Get filtered navigation based on permissions
+      const {
+        topLevelNavLinks,
+        propertyNavLinks,
+        marketplaceNavLinks,
+        marketingHubNavLinks,
+        aiFeatureNavLinks,
+        analyticsReportsNavLinks,
+        systemSettingsNavLinks,
+        aiManagementNavLinks,
+        integrationNavLinks,
+        baseSettingsNavLinks,
+        super_adminSettingsNavLinks,
+        saasManagementNavLinks,
+        whiteLabelNavLinks,
+        landingPageBuilderNavLinks,
+      } = useFilteredNavigation(userPermissions);
+
+      // Find the first available route based on priority order
+      let firstRoute = "/app/properties"; // Default fallback
+
+      if (topLevelNavLinks.length > 0) {
+        firstRoute = topLevelNavLinks[0].to;
+      } else if (saasManagementNavLinks.length > 0) {
+        firstRoute = saasManagementNavLinks[0].to;
+      } else if (propertyNavLinks.length > 0) {
+        firstRoute = propertyNavLinks[0].to;
+      } else if (aiFeatureNavLinks.length > 0) {
+        firstRoute = aiFeatureNavLinks[0].to;
+      } else if (marketingHubNavLinks.length > 0) {
+        firstRoute = marketingHubNavLinks[0].to;
+      } else if (marketplaceNavLinks.length > 0) {
+        firstRoute = marketplaceNavLinks[0].to;
+      } else if (analyticsReportsNavLinks.length > 0) {
+        firstRoute = analyticsReportsNavLinks[0].to;
+      } else if (aiManagementNavLinks.length > 0) {
+        firstRoute = aiManagementNavLinks[0].to;
+      } else if (systemSettingsNavLinks.length > 0) {
+        firstRoute = systemSettingsNavLinks[0].to;
+      } else if (integrationNavLinks.length > 0) {
+        firstRoute = integrationNavLinks[0].to;
+      } else if (whiteLabelNavLinks.length > 0) {
+        firstRoute = whiteLabelNavLinks[0].to;
+      } else if (landingPageBuilderNavLinks.length > 0) {
+        firstRoute = landingPageBuilderNavLinks[0].to;
+      } else if (baseSettingsNavLinks.length > 0) {
+        firstRoute = baseSettingsNavLinks[0].to;
+      } else if (super_adminSettingsNavLinks.length > 0) {
+        firstRoute = super_adminSettingsNavLinks[0].to;
+      }
+
+      navigate(firstRoute);
     }
     return () => {
       dispatch(clearError());
@@ -60,30 +116,30 @@ const LoginPage = () => {
       // await getCsrfToken();
       const resultAction = await dispatch(login(formData));
 
-      if (login.fulfilled.match(resultAction)) {
-        setOrgLoading(true);
+      // if (login.fulfilled.match(resultAction)) {
+      //   setOrgLoading(true);
 
-        try {
-          const orgResponse = await OrganizationAPI.getOrganizationStatus();
-          const status = orgResponse?.data?.data?.status;
+      //   try {
+      //     const orgResponse = await OrganizationAPI.getOrganizationStatus();
+      //     const status = orgResponse?.data?.data?.status;
 
-          switch (status) {
-            case "new":
-              navigate("/app/payment");
-              break;
-            case "active":
-              navigate("/app/dashboard");
-              break;
-            default:
-              navigate("/app/dashboard");
-          }
-        } catch (orgError) {
-          console.error("Organization status check failed:", orgError);
-          navigate("/app/dashboard");
-        } finally {
-          setOrgLoading(false);
-        }
-      }
+      //     switch (status) {
+      //       case "new":
+      //         navigate("/app/payment");
+      //         break;
+      //       case "active":
+      //         navigate("/app/dashboard");
+      //         break;
+      //       default:
+      //         navigate("/app/dashboard");
+      //     }
+      //   } catch (orgError) {
+      //     console.error("Organization status check failed:", orgError);
+      //     navigate("/app/dashboard");
+      //   } finally {
+      //     setOrgLoading(false);
+      //   }
+      // }
     } catch (error) {
       console.error("Login failed:", error);
       setOrgLoading(false);

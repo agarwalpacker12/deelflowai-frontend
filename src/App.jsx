@@ -237,7 +237,7 @@ function App() {
                             element={<AiSettingsPage />}
                           />
                           <Route
-                            path="settings"
+                            path="org-settings"
                             element={<OrganizationSettingsPage />}
                           />
                           <Route

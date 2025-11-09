@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Mail, X, Check, Crown, Zap, Star, Shield } from "lucide-react";
 import SavedPropertiesPage from "../PropertiesSave/Table";
 import DealsPage from "../Deals/DealsPage";
@@ -14,11 +15,14 @@ const mockUser = {
 };
 
 const ProfilePage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(true);
+  const [paymentMessage, setPaymentMessage] = useState(null);
 
   // Get user details from localStorage
   let userDetails = null;
@@ -42,6 +46,75 @@ const ProfilePage = () => {
         currentPlan: currentPlan?.name || userDetails.plan || "free",
       }
     : mockUser;
+
+  // Check for payment success/error query parameters
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    const plan = searchParams.get("plan");
+    const sessionId = searchParams.get("session_id");
+    const errorMessage = searchParams.get("message");
+
+    if (payment === "success") {
+      setPaymentMessage({
+        type: "success",
+        message: `Payment successful! Your ${plan || "subscription"} plan has been activated.`,
+      });
+      // Refresh plan data after successful payment
+      const fetchCurrentPlan = async () => {
+        try {
+          setLoadingPlan(true);
+          const response = await PaymentAPI.getPacks();
+          if (response.data && response.data.status === "success") {
+            const plans = response.data.data.plans;
+            if (Array.isArray(plans) && plans.length > 0) {
+              const activePlan = plans.find(plan => plan.is_active === true);
+              if (activePlan) {
+                setCurrentPlan(activePlan);
+              } else {
+                const currentPlanFromResponse = response.data.data.current_plan;
+                if (currentPlanFromResponse) {
+                  setCurrentPlan(currentPlanFromResponse);
+                } else {
+                  const markedCurrentPlan = plans.find(plan => plan.is_current === true);
+                  setCurrentPlan(markedCurrentPlan || null);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error refreshing plan after payment:", error);
+        } finally {
+          setLoadingPlan(false);
+        }
+      };
+      fetchCurrentPlan();
+      // Clean up URL parameters after showing message
+      setTimeout(() => {
+        setSearchParams({});
+        setPaymentMessage(null);
+      }, 5000);
+    } else if (payment === "cancelled") {
+      setPaymentMessage({
+        type: "info",
+        message: "Payment was cancelled. You can try again anytime.",
+      });
+      // Clean up URL parameters after showing message
+      setTimeout(() => {
+        setSearchParams({});
+        setPaymentMessage(null);
+      }, 5000);
+    } else if (payment === "error") {
+      setPaymentMessage({
+        type: "error",
+        message: errorMessage || "Payment verification failed. Please contact support.",
+      });
+      // Clean up URL parameters after showing message
+      setTimeout(() => {
+        setSearchParams({});
+        setPaymentMessage(null);
+      }, 5000);
+    }
+  }, [searchParams, setSearchParams]);
 
   // Fetch current plan
   useEffect(() => {
@@ -74,7 +147,12 @@ const ProfilePage = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching current plan:", error);
+        // Only log error if it's not a connection error (backend might not be running)
+        if (error.code !== 'ERR_CONNECTION_REFUSED' && error.message !== 'Network Error') {
+          console.error("Error fetching current plan:", error);
+        }
+        // Set current plan to null if fetch fails
+        setCurrentPlan(null);
       } finally {
         setLoadingPlan(false);
       }
@@ -116,6 +194,40 @@ const ProfilePage = () => {
           <X className="w-5 h-5 text-white" />
         </button>
       </div>
+
+      {/* Payment Success/Error/Cancel Message */}
+      {paymentMessage && (
+        <div
+          className={`mb-6 p-4 rounded-lg backdrop-blur-sm border-2 ${
+            paymentMessage.type === "success"
+              ? "bg-green-500/20 border-green-400 text-green-100"
+              : paymentMessage.type === "error"
+              ? "bg-red-500/20 border-red-400 text-red-100"
+              : "bg-blue-500/20 border-blue-400 text-blue-100"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            {paymentMessage.type === "success" ? (
+              <Check className="w-5 h-5 text-green-400" />
+            ) : paymentMessage.type === "error" ? (
+              <X className="w-5 h-5 text-red-400" />
+            ) : (
+              <X className="w-5 h-5 text-blue-400" />
+            )}
+            <p className="font-medium">{paymentMessage.message}</p>
+            <button
+              onClick={() => {
+                setPaymentMessage(null);
+                setSearchParams({});
+              }}
+              className="ml-auto p-1 rounded-full hover:bg-white/10 transition-all"
+              aria-label="Close message"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-white/20 mb-8">

@@ -1,5 +1,6 @@
 import axios from "axios";
 
+<<<<<<< HEAD
 // Base URLs - Use environment variables with fallbacks
 // Priority: VITE_API_URL > VITE_API_HOST + VITE_API_PORT > default
 const getBaseURL = () => {
@@ -26,6 +27,15 @@ const getBaseURL = () => {
 };
 
 const BASE_URL = getBaseURL();
+=======
+// Base URLs - matching your Django server
+// Use environment variable if available, otherwise default to localhost
+const API_HOST = import.meta.env.VITE_API_HOST || "localhost";
+const API_PORT = import.meta.env.VITE_API_PORT || "8140";
+// const BASE_URL =
+//   import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
+const BASE_URL = "http://dev.deelflowai.com:8140";
+>>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
 const API_BASE_URL = `${BASE_URL}/api`;
 
 // Debug logging (only in development)
@@ -152,6 +162,7 @@ export const authAPI = {
   acceptInvitation: (id, data) => api.post(`/invitations/${id}/accept`, data),
 
   getCurrentUser: () => api.get("/subscription/payment/success"),
+  getAllUsersForSuperAdmin: () => api.get(`/users/`),
 };
 
 export const leadsAPI = {
@@ -207,6 +218,13 @@ export const campaignsAPI = {
     AllGETHeader.get("/campaign_performance_overview/"),
   getChannelResponseRates: () => AllGETHeader.get("/channel_response_rates/"),
   getLeadConversionFunnel: () => AllGETHeader.get("/lead_conversion_funnel/"),
+  generateAIEmail: (campaignData, recipientInfo = null, generateSubject = true, generateContent = true) =>
+    AllPOSTHeader.post("/campaigns/generate-ai-email/", {
+      campaign_data: campaignData,
+      recipient_info: recipientInfo,
+      generate_subject: generateSubject,
+      generate_content: generateContent,
+    }),
 };
 
 export const propertySaveAPI = {
@@ -226,6 +244,8 @@ export const TenantAPI = {
     api.post(`/admin/tenants/${data.tenant_id}/suspend/`),
   activateTenant: (data) =>
     api.post(`/admin/tenants/${data.tenant_id}/activate/`),
+
+  AssignUserTenant: (data) => api.post(`/admin/tenants/assign-user`, data),
 };
 
 export const OrganizationAPI = {
@@ -296,6 +316,7 @@ export const DashboardAPI = {
   getMarketAlerts: () => api.get(`/market-alerts/recent/`),
 };
 
+<<<<<<< HEAD
 export const geographicAPI = {
   getCountries: (search) => {
     const params = search ? { search } : {};
@@ -315,6 +336,31 @@ export const geographicAPI = {
     if (search) params.search = search;
     return AllGETHeader.get(`/api/states/${numericStateId}/cities/`, { params });
   },
+=======
+// Geographic Data API
+export const geographicAPI = {
+  // Get all countries
+  getCountries: async (search = null) => {
+    const params = search ? { search } : {};
+    const response = await AllGETHeader.get('/api/countries/', { params });
+    return response.data;
+  },
+
+  // Get states by country ID
+  getStatesByCountry: async (countryId, search = null) => {
+    const params = search ? { search } : {};
+    const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
+    return response.data;
+  },
+
+  // Get cities by state ID (optional, for future use)
+  getCitiesByState: async (stateId, search = null, page = 1, perPage = 50) => {
+    const params = { page, per_page: perPage };
+    if (search) params.search = search;
+    const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
+    return response.data;
+  }
+>>>>>>> 894cadd8c62c18b01177ddc7dde3530c8004a131
 };
 
 export default api;
