@@ -1,46 +1,13 @@
 import axios from "axios";
 
-// Base URLs - Use environment variables with fallbacks
-// Priority: VITE_API_URL > VITE_API_HOST + VITE_API_PORT > default
-const getBaseURL = () => {
-  // If VITE_API_URL is set and valid, use it
-  if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'undefined/api') {
-    const url = import.meta.env.VITE_API_URL;
-    // Remove trailing /api if present (we add it later)
-    return url.replace(/\/api\/?$/, '');
-  }
-  
-  // Otherwise, construct from host and port
-  const host = import.meta.env.VITE_API_HOST || 'localhost';
-  const port = import.meta.env.VITE_API_PORT || '8140';
-  
-  // Determine protocol based on environment
-  const protocol = import.meta.env.MODE === 'production' ? 'http' : 'http';
-  
-  // For production/dev server, use dev.deelflowai.com
-  if (import.meta.env.MODE === 'production' && host === 'localhost') {
-    return `http://dev.deelflowai.com:${port}`;
-  }
-  
-  return `${protocol}://${host}:${port}`;
-};
-
-const BASE_URL = getBaseURL();
-// Fallback to dev server if environment variable is not set
-const FALLBACK_BASE_URL = "http://dev.deelflowai.com:8140";
-const FINAL_BASE_URL = BASE_URL && BASE_URL !== "undefined" && BASE_URL !== "undefined/api" ? BASE_URL : FALLBACK_BASE_URL;
-const API_BASE_URL = `${FINAL_BASE_URL}/api`;
-
-// Debug logging (only in development)
-if (import.meta.env.DEV) {
-  console.log('=== API Configuration ===');
-  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-  console.log('VITE_API_HOST:', import.meta.env.VITE_API_HOST);
-  console.log('VITE_API_PORT:', import.meta.env.VITE_API_PORT);
-  console.log('BASE_URL:', BASE_URL);
-  console.log('API_BASE_URL:', API_BASE_URL);
-  console.log('MODE:', import.meta.env.MODE);
-}
+// Base URLs - matching your Django server
+// Use environment variable if available, otherwise default to localhost
+const API_HOST = import.meta.env.VITE_API_HOST || "localhost";
+const API_PORT = import.meta.env.VITE_API_PORT || "8140";
+// const BASE_URL =
+//   import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
+const BASE_URL = "http://dev.deelflowai.com:8140";
+const API_BASE_URL = `${BASE_URL}/api`;
 
 // Create a single API instance for all requests
 const api = axios.create({
@@ -55,7 +22,7 @@ const api = axios.create({
 });
 
 const AllGETHeader = axios.create({
-  baseURL: FINAL_BASE_URL, // Use base URL without /api prefix
+  baseURL: BASE_URL, // Use base URL without /api prefix
   // withCredentials: true,
   // credentials: "include", // 👈 REQUIRED for session cookies
   method: "GET",
@@ -65,39 +32,6 @@ const AllGETHeader = axios.create({
     "X-Requested-With": "XMLHttpRequest",
   },
 });
-
-// Add request interceptor for debugging
-AllGETHeader.interceptors.request.use(
-  (config) => {
-    console.log('🌐 API Request:', config.method?.toUpperCase(), config.url);
-    console.log('📍 Base URL:', config.baseURL);
-    console.log('🔗 Full URL:', `${config.baseURL}${config.url}`);
-    return config;
-  },
-  (error) => {
-    console.error('❌ Request error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for debugging
-AllGETHeader.interceptors.response.use(
-  (response) => {
-    console.log('✅ API Response:', response.status, response.config.url);
-    console.log('📦 Response data:', response.data);
-    return response;
-  },
-  (error) => {
-    console.error('❌ API Error:', error.config?.url);
-    console.error('Error details:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      url: error.config?.url
-    });
-    return Promise.reject(error);
-  }
-);
 
 // const AllPOSTHeader = axios.create({
 //   baseURL: BASE_URL, // Use base URL without /api prefix
@@ -112,7 +46,7 @@ AllGETHeader.interceptors.response.use(
 // });
 
 const AllPOSTHeader = axios.create({
-  baseURL: FINAL_BASE_URL, // Use base URL without /api prefix
+  baseURL: BASE_URL, // Use base URL without /api prefix
   withCredentials: true,
   credentials: "include", // 👈 REQUIRED for session cookies
   method: "POST",
@@ -342,25 +276,29 @@ export const DashboardAPI = {
   getMarketAlerts: () => api.get(`/market-alerts/recent/`),
 };
 
+// Geographic Data API
 export const geographicAPI = {
-  getCountries: (search) => {
+  // Get all countries
+  getCountries: async (search = null) => {
     const params = search ? { search } : {};
-    return AllGETHeader.get("/api/countries/", { params });
+    const response = await AllGETHeader.get('/api/countries/', { params });
+    return response.data;
   },
-  getStatesByCountry: (countryId, search) => {
+
+  // Get states by country ID
+  getStatesByCountry: async (countryId, search = null) => {
     const params = search ? { search } : {};
-    return AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
+    const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
+    return response.data;
   },
-  getCitiesByState: (stateId, search, page = 1, perPage = 50) => {
-    // Ensure stateId is a number
-    const numericStateId = parseInt(stateId, 10);
-    if (isNaN(numericStateId)) {
-      return Promise.reject(new Error(`Invalid state ID: ${stateId}`));
-    }
+
+  // Get cities by state ID (optional, for future use)
+  getCitiesByState: async (stateId, search = null, page = 1, perPage = 50) => {
     const params = { page, per_page: perPage };
     if (search) params.search = search;
-    return AllGETHeader.get(`/api/states/${numericStateId}/cities/`, { params });
-  },
+    const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
+    return response.data;
+  }
 };
 
 export default api;
