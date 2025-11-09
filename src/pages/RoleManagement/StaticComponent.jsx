@@ -31,8 +31,8 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
     const tenantId = userDetails.tenant_id;
     try {
       setLoading(true);
-      // const response = await RbacAPI.getRoles();
-      const response = await RbacAPI.getTenantRoles(tenantId);
+      const response = await RbacAPI.getRoles();
+      // const response = await RbacAPI.getTenantRoles(tenantId);
       if (response.data.status === "success") {
         setAllRoles(response.data.data.roles);
       }
@@ -130,12 +130,10 @@ function StaticComponent({ setSelectedPermissions, setSelectedRoleId }) {
         ))}
       </div>
 
-      {/* System Roles Overview */}
+      {/* System Packages */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">
-            System Roles Overview
-          </h2>
+          <h2 className="text-2xl font-bold text-white">System Packages</h2>
         </div>
 
         {loading ? ( // ✅ Show skeleton while loading

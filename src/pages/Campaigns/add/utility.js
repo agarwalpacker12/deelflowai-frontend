@@ -35,7 +35,7 @@ export const DefaultValues = {
   name: "",
   campaign_type: "buyer_finder",
   channel: [],
-  budget: 1000.0,
+  budget: 0,
   scheduled_at: "",
   subject_line: "",
   email_content: "",
@@ -115,7 +115,7 @@ export const campaignSchema = yup.object().shape({
 
   budget: yup
     .number()
-    .required("Budget is required")
+    // .required("Budget is required")
     .min(0.01, "Budget must be greater than $0.01")
     .max(1000000, "Budget cannot exceed $1,000,000"),
 

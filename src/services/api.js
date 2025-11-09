@@ -1,23 +1,46 @@
 import axios from "axios";
 
-// Base URLs - matching your Django server
-// Use environment variable if available, otherwise default to dev server
-const API_HOST = import.meta.env.VITE_API_HOST || "dev.deelflowai.com";
-const API_PORT = import.meta.env.VITE_API_PORT || "8140";
-const BASE_URL = import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
+// Base URLs - Use environment variables with fallbacks
+// Priority: VITE_API_URL > VITE_API_HOST + VITE_API_PORT > default
+const getBaseURL = () => {
+  // If VITE_API_URL is set and valid, use it
+  if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'undefined/api') {
+    const url = import.meta.env.VITE_API_URL;
+    // Remove trailing /api if present (we add it later)
+    return url.replace(/\/api\/?$/, '');
+  }
+  
+  // Otherwise, construct from host and port
+  const host = import.meta.env.VITE_API_HOST || 'localhost';
+  const port = import.meta.env.VITE_API_PORT || '8140';
+  
+  // Determine protocol based on environment
+  const protocol = import.meta.env.MODE === 'production' ? 'http' : 'http';
+  
+  // For production/dev server, use dev.deelflowai.com
+  if (import.meta.env.MODE === 'production' && host === 'localhost') {
+    return `http://dev.deelflowai.com:${port}`;
+  }
+  
+  return `${protocol}://${host}:${port}`;
+};
+
+const BASE_URL = getBaseURL();
 // Fallback to dev server if environment variable is not set
 const FALLBACK_BASE_URL = "http://dev.deelflowai.com:8140";
 const FINAL_BASE_URL = BASE_URL && BASE_URL !== "undefined" && BASE_URL !== "undefined/api" ? BASE_URL : FALLBACK_BASE_URL;
 const API_BASE_URL = `${FINAL_BASE_URL}/api`;
 
-// Debug: Log API configuration
-console.log('🔧 API Configuration:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  VITE_API_HOST: import.meta.env.VITE_API_HOST,
-  VITE_API_PORT: import.meta.env.VITE_API_PORT,
-  BASE_URL: FINAL_BASE_URL,
-  API_BASE_URL: API_BASE_URL
-});
+// Debug logging (only in development)
+if (import.meta.env.DEV) {
+  console.log('=== API Configuration ===');
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('VITE_API_HOST:', import.meta.env.VITE_API_HOST);
+  console.log('VITE_API_PORT:', import.meta.env.VITE_API_PORT);
+  console.log('BASE_URL:', BASE_URL);
+  console.log('API_BASE_URL:', API_BASE_URL);
+  console.log('MODE:', import.meta.env.MODE);
+}
 
 // Create a single API instance for all requests
 const api = axios.create({
@@ -165,6 +188,7 @@ export const authAPI = {
   acceptInvitation: (id, data) => api.post(`/invitations/${id}/accept`, data),
 
   getCurrentUser: () => api.get("/subscription/payment/success"),
+  getAllUsersForSuperAdmin: () => api.get(`/users/`),
 };
 
 export const leadsAPI = {
@@ -246,6 +270,8 @@ export const TenantAPI = {
     api.post(`/admin/tenants/${data.tenant_id}/suspend/`),
   activateTenant: (data) =>
     api.post(`/admin/tenants/${data.tenant_id}/activate/`),
+
+  AssignUserTenant: (data) => api.post(`/admin/tenants/assign-user`, data),
 };
 
 export const OrganizationAPI = {
@@ -316,74 +342,25 @@ export const DashboardAPI = {
   getMarketAlerts: () => api.get(`/market-alerts/recent/`),
 };
 
-// Geographic Data API
 export const geographicAPI = {
-  // Get all countries
-  getCountries: async (search = null) => {
-    try {
-      const params = search ? { search } : {};
-      const response = await AllGETHeader.get('/api/countries/', { params });
-      // Handle both direct response.data and nested response.data.data
-      if (response.data && response.data.status === 'success') {
-        return response.data;
-      }
-      // If response is already the data object
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching countries:', error);
-      // Return error response in expected format
-      return {
-        status: 'error',
-        message: error.response?.data?.detail || error.message || 'Failed to load countries',
-        data: []
-      };
-    }
+  getCountries: (search) => {
+    const params = search ? { search } : {};
+    return AllGETHeader.get("/api/countries/", { params });
   },
-
-  // Get states by country ID
-  getStatesByCountry: async (countryId, search = null) => {
-    try {
-      const params = search ? { search } : {};
-      const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
-      // Handle both direct response.data and nested response.data.data
-      if (response.data && response.data.status === 'success') {
-        return response.data;
-      }
-      // If response is already the data object
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching states:', error);
-      // Return error response in expected format
-      return {
-        status: 'error',
-        message: error.response?.data?.detail || error.message || 'Failed to load states',
-        data: []
-      };
-    }
+  getStatesByCountry: (countryId, search) => {
+    const params = search ? { search } : {};
+    return AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
   },
-
-  // Get cities by state ID (optional, for future use)
-  getCitiesByState: async (stateId, search = null, page = 1, perPage = 50) => {
-    try {
-      const params = { page, per_page: perPage };
-      if (search) params.search = search;
-      const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
-      // Handle both direct response.data and nested response.data.data
-      if (response.data && response.data.status === 'success') {
-        return response.data;
-      }
-      // If response is already the data object
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching cities:', error);
-      // Return error response in expected format
-      return {
-        status: 'error',
-        message: error.response?.data?.detail || error.message || 'Failed to load cities',
-        data: []
-      };
+  getCitiesByState: (stateId, search, page = 1, perPage = 50) => {
+    // Ensure stateId is a number
+    const numericStateId = parseInt(stateId, 10);
+    if (isNaN(numericStateId)) {
+      return Promise.reject(new Error(`Invalid state ID: ${stateId}`));
     }
-  }
+    const params = { page, per_page: perPage };
+    if (search) params.search = search;
+    return AllGETHeader.get(`/api/states/${numericStateId}/cities/`, { params });
+  },
 };
 
 export default api;
