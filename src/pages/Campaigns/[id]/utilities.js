@@ -15,8 +15,7 @@ export const campaignTypes = [
 export const channels = [
   { value: "email", label: "Email" },
   { value: "sms", label: "SMS" },
-  { value: "direct_mail", label: "Direct Mail" },
-  { value: "phone", label: "Phone" },
+  { value: "ai_voice_call", label: "AI Voice Call" },
   { value: "social_media", label: "Social Media" },
 ];
 
@@ -35,8 +34,11 @@ export const DefaultValues = {
   name: "",
   campaign_type: "buyer_finder",
   channel: [],
-  budget: 1000.0,
-  scheduled_at: "",
+  budget: 1,
+  scheduled_start_date: "",
+  scheduled_end_date: "",
+  scheduled_start_time: "",
+  scheduled_end_time: "",
   subject_line: "",
   email_content: "",
   use_ai_personalization: true,
@@ -115,19 +117,49 @@ export const campaignSchema = yup.object().shape({
 
   budget: yup
     .number()
-    .required("Budget is required")
+    .nullable()
     .min(0.01, "Budget must be greater than $0.01")
     .max(1000000, "Budget cannot exceed $1,000,000"),
 
-  scheduled_at: yup
+  scheduled_start_date: yup
     .string()
-    .required("Scheduled date and time is required")
+    .required("Start date is required")
+    .test("future-date", "Start date must be in the future", function (value) {
+      if (!value) return false;
+      const startDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return startDate >= today;
+    }),
+
+  scheduled_end_date: yup
+    .string()
+    .required("End date is required")
     .test(
-      "future-date",
-      "Scheduled date must be in the future",
+      "after-start-date",
+      "End date must be after or equal to start date",
       function (value) {
         if (!value) return false;
-        return new Date(value) > new Date();
+        const startDate = this.parent.scheduled_start_date;
+        if (!startDate) return true; // Let start_date validation handle it
+        return new Date(value) >= new Date(startDate);
+      }
+    ),
+
+  scheduled_start_time: yup.string().required("Start time is required"),
+
+  scheduled_end_time: yup
+    .string()
+    .required("End time is required")
+    .test(
+      "after-start-time",
+      "End time must be after start time",
+      function (value) {
+        if (!value) return false;
+        const startTime = this.parent.scheduled_start_time;
+        if (!startTime) return true; // Let start_time validation handle it
+        // Compare time strings (HH:MM format)
+        return value > startTime;
       }
     ),
 

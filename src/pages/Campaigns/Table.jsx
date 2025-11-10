@@ -173,7 +173,7 @@ const CampaignsTable = () => {
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
             <input
               type="text"
               placeholder="Search campaigns..."
@@ -185,7 +185,7 @@ const CampaignsTable = () => {
 
           {/* Campaign Type Filter */}
           <div className="relative">
-            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
@@ -200,7 +200,7 @@ const CampaignsTable = () => {
 
           {/* Status Filter */}
           <div className="relative">
-            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -216,7 +216,7 @@ const CampaignsTable = () => {
 
           {/* Channel Filter */}
           <div className="relative">
-            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
             <select
               value={channelFilter}
               onChange={(e) => setChannelFilter(e.target.value)}
@@ -269,11 +269,11 @@ const CampaignsTable = () => {
       {/* Table */}
       <div className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">
+          <div className="p-8 text-center text-gray-200">
             Loading campaigns...
           </div>
         ) : campaigns.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">
+          <div className="p-8 text-center text-gray-200">
             No campaigns found
           </div>
         ) : (
@@ -317,10 +317,10 @@ const CampaignsTable = () => {
                           <div className="text-white font-medium">
                             {campaign.name}
                           </div>
-                          <div className="text-gray-400 text-sm">
+                          <div className="text-gray-200 text-sm">
                             {campaign.location}
                           </div>
-                          <div className="text-xs text-gray-500 capitalize">
+                          <div className="text-xs text-gray-200 capitalize">
                             {campaign.campaign_type?.replace("_", " ")}
                           </div>
                         </div>
@@ -333,15 +333,15 @@ const CampaignsTable = () => {
                             <Mail className="h-3 w-3" />
                             {campaign.channel?.replace("_", " ")}
                           </div> */}
-                          <div className="text-gray-400 text-sm capitalize">
+                          <div className="text-gray-200 text-sm capitalize">
                             {campaign.property_type?.replace("_", " ")}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-200">
                             Min Equity:{" "}
                             {formatCurrency(campaign.minimum_equity || 0)}
                           </div>
                           {campaign.min_price && campaign.max_price && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-gray-200">
                               Price: {formatCurrency(campaign.min_price)} -{" "}
                               {formatCurrency(campaign.max_price)}
                             </div>
@@ -353,7 +353,7 @@ const CampaignsTable = () => {
                       <td className="p-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <Users className="h-3 w-3 text-gray-400" />
+                            <Users className="h-3 w-3 text-gray-200" />
                             <span className="text-sm text-white">
                               {campaign.sent_count || 0}/
                               {campaign.total_recipients || "N/A"}
@@ -369,14 +369,14 @@ const CampaignsTable = () => {
                               % open
                             </span>
                           </div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-gray-200">
                             {calculateClickRate(
                               campaign.click_count || 0,
                               campaign.sent_count || 0
                             )}
                             % click
                           </div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-gray-200">
                             {calculateConversionRate(
                               campaign.conversion_count || 0,
                               campaign.sent_count || 0
@@ -393,10 +393,10 @@ const CampaignsTable = () => {
                             <DollarSign className="h-3 w-3" />
                             {formatCurrency(campaign.budget)}
                           </div>
-                          <div className="text-gray-400 text-sm">
+                          <div className="text-gray-200 text-sm">
                             Spent: {formatCurrency(campaign.spent || 0)}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-200">
                             {campaign.spent
                               ? (
                                   (campaign.spent / campaign.budget) *
@@ -444,11 +444,11 @@ const CampaignsTable = () => {
                       {/* Schedule */}
                       <td className="p-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-gray-400 text-xs">
+                          <div className="flex items-center gap-2 text-gray-200 text-xs">
                             <Calendar className="h-3 w-3" />
                             {formatDate(campaign.scheduled_at)}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-200">
                             Created: {formatDate(campaign.created_at)}
                           </div>
                         </div>
@@ -485,7 +485,7 @@ const CampaignsTable = () => {
       {totalPages > 1 && (
         <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-200">
               Showing {(currentPage - 1) * perPage + 1} to{" "}
               {Math.min(currentPage * perPage, total)} of {total} campaigns
             </div>
@@ -493,7 +493,7 @@ const CampaignsTable = () => {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-gray-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -517,7 +517,7 @@ const CampaignsTable = () => {
                       className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                         currentPage === pageNum
                           ? "bg-blue-500 text-white"
-                          : "text-gray-400 hover:text-white hover:bg-white/10"
+                          : "text-gray-200 hover:text-white hover:bg-white/10"
                       }`}
                     >
                       {pageNum}
@@ -530,7 +530,7 @@ const CampaignsTable = () => {
                   setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-gray-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

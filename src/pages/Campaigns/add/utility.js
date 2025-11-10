@@ -34,7 +34,7 @@ export const DefaultValues = {
   name: "",
   campaign_type: "buyer_finder",
   channel: [],
-  budget: 0,
+  budget: 1,
   scheduled_start_date: "",
   scheduled_end_date: "",
   scheduled_start_time: "",
@@ -124,17 +124,13 @@ export const campaignSchema = yup.object().shape({
   scheduled_start_date: yup
     .string()
     .required("Start date is required")
-    .test(
-      "future-date",
-      "Start date must be in the future",
-      function (value) {
-        if (!value) return false;
-        const startDate = new Date(value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return startDate >= today;
-      }
-    ),
+    .test("future-date", "Start date must be in the future", function (value) {
+      if (!value) return false;
+      const startDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return startDate >= today;
+    }),
 
   scheduled_end_date: yup
     .string()
@@ -150,9 +146,7 @@ export const campaignSchema = yup.object().shape({
       }
     ),
 
-  scheduled_start_time: yup
-    .string()
-    .required("Start time is required"),
+  scheduled_start_time: yup.string().required("Start time is required"),
 
   scheduled_end_time: yup
     .string()
