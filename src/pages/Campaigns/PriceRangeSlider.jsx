@@ -181,7 +181,7 @@ const PriceRangeSlider = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .range-slider-min::-webkit-slider-thumb {
           appearance: none;
           height: 20px;

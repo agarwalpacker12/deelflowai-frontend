@@ -1,13 +1,61 @@
 import axios from "axios";
 
-// Base URLs - matching your Django server
-// Use environment variable if available, otherwise default to localhost
-const API_HOST = import.meta.env.VITE_API_HOST || "localhost";
-const API_PORT = import.meta.env.VITE_API_PORT || "8140";
-// const BASE_URL =
-//   import.meta.env.VITE_API_URL || `http://${API_HOST}:${API_PORT}`;
-const BASE_URL = "http://dev.deelflowai.com:8140";
+// Base URLs - Use environment variables with fallbacks
+// Priority: VITE_API_URL > VITE_API_HOST + VITE_API_PORT > default
+const getBaseURL = () => {
+  // For development mode, prefer localhost unless explicitly set to dev server
+  const isDevelopment = import.meta.env.MODE === 'development';
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  // If VITE_API_URL is set and valid, check if we should override it for local dev
+  if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'undefined/api') {
+    const url = import.meta.env.VITE_API_URL;
+    
+    // If running locally in development and URL points to dev server, use localhost instead
+    if (isDevelopment && isLocalhost && url.includes('dev.deelflowai.com')) {
+      const port = import.meta.env.VITE_API_PORT || '8140';
+      console.log('🔄 Overriding dev server URL for local development. Using localhost instead.');
+      return `http://localhost:${port}`;
+    }
+    
+    // Remove trailing /api if present (we add it later)
+    return url.replace(/\/api\/?$/, '');
+  }
+  
+  // Otherwise, construct from host and port
+  const host = import.meta.env.VITE_API_HOST || 'localhost';
+  const port = import.meta.env.VITE_API_PORT || '8140';
+  
+  // Determine protocol based on environment
+  const protocol = 'http';
+  
+  // For development mode, default to localhost
+  // For production mode, use dev.deelflowai.com if host is still localhost
+  if (import.meta.env.MODE === 'production' && host === 'localhost') {
+    return `http://dev.deelflowai.com:${port}`;
+  }
+  
+  // For development, use localhost
+  if (import.meta.env.MODE === 'development' && host === 'localhost') {
+    return `http://localhost:${port}`;
+  }
+  
+  return `${protocol}://${host}:${port}`;
+};
+
+const BASE_URL = getBaseURL();
 const API_BASE_URL = `${BASE_URL}/api`;
+
+// Debug logging (only in development)
+if (import.meta.env.DEV) {
+  console.log('=== API Configuration ===');
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('VITE_API_HOST:', import.meta.env.VITE_API_HOST);
+  console.log('VITE_API_PORT:', import.meta.env.VITE_API_PORT);
+  console.log('BASE_URL:', BASE_URL);
+  console.log('API_BASE_URL:', API_BASE_URL);
+  console.log('MODE:', import.meta.env.MODE);
+}
 
 // Create a single API instance for all requests
 const api = axios.create({
@@ -292,11 +340,217 @@ export const geographicAPI = {
     return response.data;
   },
 
-  // Get cities by state ID (optional, for future use)
-  getCitiesByState: async (stateId, search = null, page = 1, perPage = 50) => {
-    const params = { page, per_page: perPage };
-    if (search) params.search = search;
-    const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
+  // Get cities by state ID (fetches all cities with pagination if needed)
+  getCitiesByState: async (stateId, search = null) => {
+    let allCities = [];
+    let page = 1;
+    let hasMore = true;
+    const perPage = 500; // Maximum allowed by backend
+    
+    while (hasMore) {
+      const params = { page, per_page: perPage };
+      if (search) params.search = search;
+      
+      try {
+        const response = await AllGETHeader.get(`/api/states/${stateId}/cities/`, { params });
+        const data = response.data;
+        
+        if (data?.status === 'success' && data?.data) {
+          allCities = [...allCities, ...data.data];
+          
+          // Check if there are more pages
+          if (data.total_pages && page < data.total_pages) {
+            page++;
+          } else {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+        throw error;
+      }
+    }
+    
+    // Return in the same format as other endpoints
+    return {
+      status: 'success',
+      data: allCities,
+      total: allCities.length
+    };
+  }
+};
+
+// Content Management API
+export const contentAPI = {
+  // Get all content with filtering, search, and pagination
+  getContentList: async (filters = {}) => {
+    const params = {
+      page: filters.page || 1,
+      per_page: filters.per_page || 50,
+    };
+    if (filters.search) params.search = filters.search;
+    if (filters.content_type) params.content_type = filters.content_type;
+    if (filters.status) params.status = filters.status;
+    
+    const response = await api.get('/content/', { params });
+    return response.data;
+  },
+
+  // Get single content by ID
+  getContent: async (contentId) => {
+    const response = await api.get(`/content/${contentId}/`);
+    return response.data;
+  },
+
+  // Create new content
+  createContent: async (contentData) => {
+    const response = await api.post('/content/', contentData);
+    return response.data;
+  },
+
+  // Update content
+  updateContent: async (contentId, contentData) => {
+    const response = await api.put(`/content/${contentId}/`, contentData);
+    return response.data;
+  },
+
+  // Delete content
+  deleteContent: async (contentId) => {
+    const response = await api.delete(`/content/${contentId}/`);
+    return response.data;
+  },
+
+  // Publish content
+  publishContent: async (contentId) => {
+    const response = await api.post(`/content/${contentId}/publish/`);
+    return response.data;
+  },
+
+  // Duplicate content
+  duplicateContent: async (contentId) => {
+    const response = await api.post(`/content/${contentId}/duplicate/`);
+    return response.data;
+  },
+
+  // Template Management
+  // Get all templates
+  getTemplates: async (filters = {}) => {
+    const params = {
+      page: filters.page || 1,
+      per_page: filters.per_page || 50,
+    };
+    if (filters.search) params.search = filters.search;
+    if (filters.template_type) params.template_type = filters.template_type;
+    if (filters.is_predefined !== undefined) params.is_predefined = filters.is_predefined;
+    
+    const response = await api.get('/content/templates/', { params });
+    return response.data;
+  },
+
+  // Get single template by ID
+  getTemplate: async (templateId) => {
+    const response = await api.get(`/content/templates/${templateId}/`);
+    return response.data;
+  },
+
+  // Create template
+  createTemplate: async (templateData) => {
+    const response = await api.post('/content/templates/', templateData);
+    return response.data;
+  },
+
+  // Update template
+  updateTemplate: async (templateId, templateData) => {
+    const response = await api.put(`/content/templates/${templateId}/`, templateData);
+    return response.data;
+  },
+
+  // Delete template
+  deleteTemplate: async (templateId) => {
+    const response = await api.delete(`/content/templates/${templateId}/`);
+    return response.data;
+  },
+
+  // Use template to create content
+  useTemplate: async (templateId, templateVariables, contentData = null) => {
+    const requestBody = {
+      template_variables: templateVariables,
+      content_data: contentData
+    };
+    const response = await api.post(`/content/templates/${templateId}/use/`, requestBody);
+    return response.data;
+  },
+
+  // AI Content Generation
+  generateAIContent: async (generateData) => {
+    const response = await api.post('/content/generate/', generateData);
+    return response.data;
+  },
+
+  // Calendar Management
+  // Get content calendar
+  getCalendar: async (filters = {}) => {
+    const params = {};
+    if (filters.start_date) params.start_date = filters.start_date;
+    if (filters.end_date) params.end_date = filters.end_date;
+    if (filters.status) params.status = filters.status;
+    
+    const response = await api.get('/content/calendar/', { params });
+    return response.data;
+  },
+
+  // Schedule content
+  scheduleContent: async (scheduleData) => {
+    const response = await api.post('/content/calendar/', scheduleData);
+    return response.data;
+  },
+
+  // Update schedule
+  updateSchedule: async (calendarId, scheduleData) => {
+    const response = await api.put(`/content/calendar/${calendarId}/`, scheduleData);
+    return response.data;
+  },
+
+  // Cancel schedule
+  cancelSchedule: async (calendarId) => {
+    const response = await api.delete(`/content/calendar/${calendarId}/`);
+    return response.data;
+  },
+
+  // Analytics
+  // Get analytics overview
+  getAnalyticsOverview: async (filters = {}) => {
+    const params = {};
+    if (filters.start_date) params.start_date = filters.start_date;
+    if (filters.end_date) params.end_date = filters.end_date;
+    
+    const response = await api.get('/content/analytics/overview/', { params });
+    return response.data;
+  },
+
+  // Get performance metrics
+  getPerformanceMetrics: async (filters = {}) => {
+    const params = {
+      page: filters.page || 1,
+      per_page: filters.per_page || 50,
+    };
+    if (filters.start_date) params.start_date = filters.start_date;
+    if (filters.end_date) params.end_date = filters.end_date;
+    if (filters.content_type) params.content_type = filters.content_type;
+    
+    const response = await api.get('/content/analytics/performance/', { params });
+    return response.data;
+  },
+
+  // Get content-specific analytics
+  getContentAnalytics: async (contentId, filters = {}) => {
+    const params = {};
+    if (filters.start_date) params.start_date = filters.start_date;
+    if (filters.end_date) params.end_date = filters.end_date;
+    
+    const response = await api.get(`/content/${contentId}/analytics/`, { params });
     return response.data;
   }
 };
