@@ -50,17 +50,17 @@ const CampaignsTable = () => {
           params.search = searchTerm;
         }
 
-        if (typeFilter) {
-          params.campaign_type = typeFilter;
-        }
+        // if (typeFilter) {
+        //   params.campaign_type = typeFilter;
+        // }
 
         if (statusFilter) {
           params.status = statusFilter;
         }
 
-        if (channelFilter) {
-          params.channel = channelFilter;
-        }
+        // if (channelFilter) {
+        //   params.channel = channelFilter;
+        // }
 
         const response = await campaignsAPI.getCampaigns(params);
 
@@ -170,7 +170,7 @@ const CampaignsTable = () => {
     <div className="space-y-6">
       {/* Filters */}
       <div className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
@@ -183,21 +183,6 @@ const CampaignsTable = () => {
             />
           </div>
 
-          {/* Campaign Type Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
-            >
-              <option value="">All Types</option>
-              <option value="email">Email</option>
-              <option value="marketing">Marketing</option>
-              <option value="promotion">Promotion</option>
-            </select>
-          </div>
-
           {/* Status Filter */}
           <div className="relative">
             <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
@@ -208,23 +193,8 @@ const CampaignsTable = () => {
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
-              <option value="paused">Paused</option>
-              <option value="completed">Completed</option>
+              <option value="inactive">Inactive</option>
               <option value="draft">Draft</option>
-            </select>
-          </div>
-
-          {/* Channel Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-3 h-4 w-4 text-gray-200" />
-            <select
-              value={channelFilter}
-              onChange={(e) => setChannelFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:text-black [&>option]:bg-white"
-            >
-              <option value="">All Channels</option>
-              <option value="email">Email</option>
-              <option value="sms">SMS</option>
             </select>
           </div>
 
