@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Mail, X, Check, Crown, Zap, Star, Shield } from "lucide-react";
+import { Mail, X, Check, Crown, Zap, Star, Shield, User, Building2, Phone, Lock, Eye, EyeOff, Save } from "lucide-react";
 import SavedPropertiesPage from "../PropertiesSave/Table";
 import DealsPage from "../Deals/DealsPage";
 import PricingTable from "../pricing/page";
-import { authAPI, PaymentAPI } from "../../services/api";
-
-const mockUser = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  role: "Investor",
-  phone: "+1 234 567 890",
-  currentPlan: "free",
-};
+import { authAPI, PaymentAPI, OrganizationAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 const ProfilePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,29 +16,81 @@ const ProfilePage = () => {
   const [currentPlan, setCurrentPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(true);
   const [paymentMessage, setPaymentMessage] = useState(null);
+  const [organizationName, setOrganizationName] = useState("");
+  const [loadingOrg, setLoadingOrg] = useState(false);
+  
+  // Profile form state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+  });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordFormData, setPasswordFormData] = useState({
+    old_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    old: false,
+    new: false,
+    confirm: false,
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // Get user details from localStorage
-  let userDetails = null;
-  try {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      userDetails = JSON.parse(userStr);
-    }
-  } catch (e) {
-    userDetails = null;
-  }
-
-  const user = userDetails
-    ? {
-        name: `${userDetails.first_name || ""} ${
-          userDetails.last_name || ""
-        }`.trim(),
-        email: userDetails.email || "",
-        role: userDetails.role || "",
-        phone: userDetails.phone || "",
-        currentPlan: currentPlan?.name || userDetails.plan || "free",
+  // Get user details from localStorage - use useState to prevent infinite loops
+  const [userDetails, setUserDetails] = useState(() => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        return JSON.parse(userStr);
       }
-    : mockUser;
+    } catch (e) {
+      // Ignore parse errors
+    }
+    return null;
+  });
+
+  // Get user ID for stable dependency
+  const userId = userDetails?.id || userDetails?.email || null;
+
+  // Initialize profile form data
+  useEffect(() => {
+    if (userDetails) {
+      setProfileFormData({
+        first_name: userDetails.first_name || "",
+        last_name: userDetails.last_name || "",
+        phone: userDetails.phone || "",
+        email: userDetails.email || "",
+      });
+    }
+  }, [userId]); // Use userId instead of userDetails object
+
+  // Fetch organization name
+  useEffect(() => {
+    const fetchOrganization = async () => {
+      try {
+        setLoadingOrg(true);
+        const response = await OrganizationAPI.getCurrentOrganization();
+        if (response.data && response.data.status === "success" && response.data.data) {
+          setOrganizationName(response.data.data.name || "");
+        }
+      } catch (error) {
+        console.error("Error fetching organization:", error);
+      } finally {
+        setLoadingOrg(false);
+      }
+    };
+    
+    if (userId) {
+      fetchOrganization();
+    }
+  }, [userId]); // Use userId instead of userDetails object
 
   // Check for payment success/error query parameters
   useEffect(() => {
@@ -98,7 +143,6 @@ const ProfilePage = () => {
         type: "info",
         message: "Payment was cancelled. You can try again anytime.",
       });
-      // Clean up URL parameters after showing message
       setTimeout(() => {
         setSearchParams({});
         setPaymentMessage(null);
@@ -108,7 +152,6 @@ const ProfilePage = () => {
         type: "error",
         message: errorMessage || "Payment verification failed. Please contact support.",
       });
-      // Clean up URL parameters after showing message
       setTimeout(() => {
         setSearchParams({});
         setPaymentMessage(null);
@@ -122,20 +165,13 @@ const ProfilePage = () => {
       try {
         setLoadingPlan(true);
         const response = await PaymentAPI.getPacks();
-        console.log("Current plan response:", response);
-
-        // Handle the response format
         if (response.data && response.data.status === "success") {
           const plans = response.data.data.plans;
-
-          // Find the plan where is_active is true
           if (Array.isArray(plans) && plans.length > 0) {
             const activePlan = plans.find(plan => plan.is_active === true);
-
             if (activePlan) {
               setCurrentPlan(activePlan);
             } else {
-              // If no active plan, check for is_current or use current_plan from response
               const currentPlanFromResponse = response.data.data.current_plan;
               if (currentPlanFromResponse) {
                 setCurrentPlan(currentPlanFromResponse);
@@ -147,11 +183,9 @@ const ProfilePage = () => {
           }
         }
       } catch (error) {
-        // Only log error if it's not a connection error (backend might not be running)
         if (error.code !== 'ERR_CONNECTION_REFUSED' && error.message !== 'Network Error') {
           console.error("Error fetching current plan:", error);
         }
-        // Set current plan to null if fetch fails
         setCurrentPlan(null);
       } finally {
         setLoadingPlan(false);
@@ -165,19 +199,85 @@ const ProfilePage = () => {
     window.history.back();
   };
 
-  const handleUpgrade = (plan) => {
-    setSelectedPlan(plan);
-    setShowUpgradeModal(true);
+  const handleSaveProfile = async () => {
+    if (!profileFormData.first_name || !profileFormData.last_name) {
+      toast.error("First name and last name are required");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const response = await authAPI.updateProfile({
+        first_name: profileFormData.first_name,
+        last_name: profileFormData.last_name,
+        phone: profileFormData.phone || null,
+      });
+
+      if (response.data && response.data.status === "success") {
+        toast.success("Profile updated successfully!");
+        setIsEditingProfile(false);
+        
+        // Update localStorage and state
+        if (userDetails) {
+          const updatedUser = {
+            ...userDetails,
+            first_name: response.data.data.first_name,
+            last_name: response.data.data.last_name,
+            phone: response.data.data.phone,
+          };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          setUserDetails(updatedUser);
+        }
+      } else {
+        toast.error(response.data?.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error.response?.data?.detail || "Failed to update profile. Please try again.");
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
-  const confirmUpgrade = () => {
-    // Handle upgrade logic here
-    console.log("Upgrading to:", selectedPlan);
-    setShowUpgradeModal(false);
-    // Update user plan in localStorage
-    if (userDetails) {
-      userDetails.plan = selectedPlan.id;
-      localStorage.setItem("user", JSON.stringify(userDetails));
+  const handleChangePassword = async () => {
+    if (!passwordFormData.old_password || !passwordFormData.new_password || !passwordFormData.confirm_password) {
+      toast.error("All password fields are required");
+      return;
+    }
+
+    if (passwordFormData.new_password.length < 8) {
+      toast.error("New password must be at least 8 characters long");
+      return;
+    }
+
+    if (passwordFormData.new_password !== passwordFormData.confirm_password) {
+      toast.error("New password and confirm password do not match");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const response = await authAPI.changePassword({
+        old_password: passwordFormData.old_password,
+        new_password: passwordFormData.new_password,
+      });
+
+      if (response.data && response.data.status === "success") {
+        toast.success("Password changed successfully!");
+        setShowPasswordChange(false);
+        setPasswordFormData({
+          old_password: "",
+          new_password: "",
+          confirm_password: "",
+        });
+      } else {
+        toast.error(response.data?.detail || "Failed to change password");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error(error.response?.data?.detail || "Failed to change password. Please try again.");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -287,102 +387,258 @@ const ProfilePage = () => {
       {activeTab === "profile" && (
         <div className="flex justify-center">
           <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-2xl border border-white/10">
-            <div className="flex flex-col items-center gap-6">
-              {/* Avatar */}
-              <div className="relative">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 p-1">
-                  <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
-                    <span className="text-5xl font-bold text-white">
-                      {user.name.charAt(0)}
-                    </span>
-                  </div>
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-2">
-                  <Star className="w-5 h-5 text-white" />
-                </div>
-              </div>
-
-              {/* User Info */}
-              <div className="text-center space-y-2">
-                <h2 className="text-3xl font-bold text-white">{user.name}</h2>
-                {user.role && (
-                  <span className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold px-4 py-1 rounded-full">
-                    {user.role}
-                  </span>
-                )}
-              </div>
-
-              {/* Current Plan Badge */}
-              <div className="w-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-2xl p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full p-2">
-                      <Crown className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Current Plan</p>
-                      {loadingPlan ? (
-                        <p className="text-white font-semibold text-lg">
-                          Loading...
-                        </p>
-                      ) : (
-                        <p className="text-white font-semibold text-lg capitalize">
-                          {user.currentPlan}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab("subscription")}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all transform hover:scale-105"
-                  >
-                    Upgrade
-                  </button>
-                </div>
-              </div>
-
-              {/* Contact Info */}
-              <div className="w-full space-y-4">
-                <div className="flex items-center gap-3 bg-white/5 rounded-xl p-4">
-                  <Mail className="w-5 h-5 text-purple-400" />
-                  <div>
-                    <p className="text-gray-400 text-xs">Email</p>
-                    <p className="text-white">{user.email}</p>
-                  </div>
-                </div>
-                {user.phone && (
-                  <div className="flex items-center gap-3 bg-white/5 rounded-xl p-4">
-                    <svg
-                      className="w-5 h-5 text-purple-400"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
+            <div className="space-y-6">
+              {/* Profile Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-white">Profile Information</h2>
+                  {!isEditingProfile ? (
+                    <button
+                      onClick={() => setIsEditingProfile(true)}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      ></path>
-                    </svg>
+                      Edit Profile
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setIsEditingProfile(false);
+                          // Reset form data
+                          if (userDetails) {
+                            setProfileFormData({
+                              first_name: userDetails.first_name || "",
+                              last_name: userDetails.last_name || "",
+                              phone: userDetails.phone || "",
+                              email: userDetails.email || "",
+                            });
+                          }
+                        }}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveProfile}
+                        disabled={isSavingProfile}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isSavingProfile ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Save
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* First Name */}
+                <div className="bg-white/5 rounded-xl p-4">
+                  <label className="text-gray-400 text-sm mb-2 block">First Name</label>
+                  {isEditingProfile ? (
+                    <input
+                      type="text"
+                      value={profileFormData.first_name}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, first_name: e.target.value })}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Enter first name"
+                    />
+                  ) : (
+                    <p className="text-white text-lg">{profileFormData.first_name || "Not set"}</p>
+                  )}
+                </div>
+
+                {/* Last Name */}
+                <div className="bg-white/5 rounded-xl p-4">
+                  <label className="text-gray-400 text-sm mb-2 block">Last Name</label>
+                  {isEditingProfile ? (
+                    <input
+                      type="text"
+                      value={profileFormData.last_name}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, last_name: e.target.value })}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Enter last name"
+                    />
+                  ) : (
+                    <p className="text-white text-lg">{profileFormData.last_name || "Not set"}</p>
+                  )}
+                </div>
+
+                {/* Organization Name */}
+                <div className="bg-white/5 rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Building2 className="w-5 h-5 text-purple-400" />
+                    <label className="text-gray-400 text-sm">Organization Name</label>
+                  </div>
+                  {loadingOrg ? (
+                    <p className="text-gray-400">Loading...</p>
+                  ) : (
+                    <p className="text-white text-lg">{organizationName || "Not assigned"}</p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div className="bg-white/5 rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Phone className="w-5 h-5 text-purple-400" />
+                    <label className="text-gray-400 text-sm">Phone</label>
+                  </div>
+                  {isEditingProfile ? (
+                    <input
+                      type="tel"
+                      value={profileFormData.phone}
+                      onChange={(e) => setProfileFormData({ ...profileFormData, phone: e.target.value })}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Enter phone number"
+                    />
+                  ) : (
+                    <p className="text-white text-lg">{profileFormData.phone || "Not set"}</p>
+                  )}
+                </div>
+
+                {/* Email */}
+                <div className="bg-white/5 rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Mail className="w-5 h-5 text-purple-400" />
+                    <label className="text-gray-400 text-sm">Email</label>
+                  </div>
+                  <p className="text-white text-lg">{profileFormData.email || "Not set"}</p>
+                </div>
+              </div>
+
+              {/* Change Password Section */}
+              <div className="border-t border-white/10 pt-6 mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Lock className="w-5 h-5 text-purple-400" />
+                    <h2 className="text-2xl font-bold text-white">Change Password</h2>
+                  </div>
+                  {!showPasswordChange && (
+                    <button
+                      onClick={() => setShowPasswordChange(true)}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all"
+                    >
+                      Change Password
+                    </button>
+                  )}
+                </div>
+
+                {showPasswordChange && (
+                  <div className="space-y-4 bg-white/5 rounded-xl p-4">
+                    {/* Old Password */}
                     <div>
-                      <p className="text-gray-400 text-xs">Phone</p>
-                      <p className="text-white">{user.phone}</p>
+                      <label className="text-gray-400 text-sm mb-2 block">Enter Old Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.old ? "text" : "password"}
+                          value={passwordFormData.old_password}
+                          onChange={(e) => setPasswordFormData({ ...passwordFormData, old_password: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Enter old password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({ ...showPasswords, old: !showPasswords.old })}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        >
+                          {showPasswords.old ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* New Password */}
+                    <div>
+                      <label className="text-gray-400 text-sm mb-2 block">Enter New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.new ? "text" : "password"}
+                          value={passwordFormData.new_password}
+                          onChange={(e) => setPasswordFormData({ ...passwordFormData, new_password: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Enter new password (min 8 characters)"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        >
+                          {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm New Password */}
+                    <div>
+                      <label className="text-gray-400 text-sm mb-2 block">Confirm New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.confirm ? "text" : "password"}
+                          value={passwordFormData.confirm_password}
+                          onChange={(e) => setPasswordFormData({ ...passwordFormData, confirm_password: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Confirm new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        >
+                          {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Password Change Actions */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => {
+                          setShowPasswordChange(false);
+                          setPasswordFormData({
+                            old_password: "",
+                            new_password: "",
+                            confirm_password: "",
+                          });
+                        }}
+                        className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleChangePassword}
+                        disabled={isChangingPassword}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isChangingPassword ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Changing...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Change Password
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="w-full space-y-3 mt-4">
-                <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg transition-all transform hover:scale-105">
-                  Edit Profile
-                </button>
+              {/* Logout Button */}
+              <div className="border-t border-white/10 pt-6 mt-6">
                 <button
                   className="w-full px-6 py-3 rounded-xl bg-red-600/80 hover:bg-red-700 text-white font-semibold transition-all"
                   onClick={async () => {
                     try {
-                      // await authAPI.logout();
+                      await authAPI.logout();
                     } catch (e) {}
                     localStorage.removeItem("token");
                     localStorage.removeItem("user");
@@ -397,7 +653,45 @@ const ProfilePage = () => {
         </div>
       )}
 
-      {activeTab === "subscription" && <PricingTable />}
+      {activeTab === "subscription" && (
+        <div className="space-y-6">
+          {/* Current Plan Section - Moved from Profile */}
+          {currentPlan && (
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full p-3">
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Current Plan</p>
+                    {loadingPlan ? (
+                      <p className="text-white font-semibold text-xl">Loading...</p>
+                    ) : (
+                      <p className="text-white font-semibold text-xl capitalize">
+                        {currentPlan.name || "Free"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {currentPlan.amount && (
+                  <div className="text-right">
+                    <p className="text-gray-400 text-sm">Price</p>
+                    <p className="text-white font-semibold text-xl">
+                      {currentPlan.currency === "usd" ? "$" : "₹"}
+                      {currentPlan.amount.toLocaleString()}
+                      {currentPlan.interval && ` / ${currentPlan.interval}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Pricing Table */}
+          <PricingTable />
+        </div>
+      )}
 
       {activeTab === "property" && <SavedPropertiesPage />}
 
@@ -452,7 +746,10 @@ const ProfilePage = () => {
                 Cancel
               </button>
               <button
-                onClick={confirmUpgrade}
+                onClick={() => {
+                  setShowUpgradeModal(false);
+                  // Handle upgrade logic
+                }}
                 className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold transition-all transform hover:scale-105"
               >
                 Confirm
