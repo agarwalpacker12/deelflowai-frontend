@@ -44,7 +44,7 @@ function EditCampaign() {
       setLoading(true);
       try {
         const response = await campaignsAPI.getCampaign(id);
-        console.log("edit", response.data.data);
+        console.log("edit", JSON.stringify(response.data.data));
 
         setCampaign(response.data.data); // Adjust if your API response is nested differently
       } catch (err) {

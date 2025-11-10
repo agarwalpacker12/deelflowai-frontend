@@ -329,7 +329,7 @@ const CampaignsTable = () => {
                               {campaign.total_recipients || "N/A"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          {/* <div className="flex items-center gap-2">
                             <TrendingUp className="h-3 w-3 text-green-400" />
                             <span className="text-sm text-green-400">
                               {calculateOpenRate(
@@ -338,7 +338,7 @@ const CampaignsTable = () => {
                               )}
                               % open
                             </span>
-                          </div>
+                          </div> */}
                           <div className="text-xs text-gray-200">
                             {calculateClickRate(
                               campaign.click_count || 0,

@@ -194,11 +194,11 @@ export const campaignSchema = yup.object().shape({
   // }),
 
   // Property filters (conditional for non-buyer campaigns)
-  location: yup.string().when("campaign_type", {
-    is: (val) => val && val !== "buyer_finder",
-    then: (schema) => schema.required("Location is required"),
-    otherwise: (schema) => schema.nullable(),
-  }),
+  // location: yup.string().when("campaign_type", {
+  //   is: (val) => val && val !== "buyer_finder",
+  //   then: (schema) => schema.required("Location is required"),
+  //   otherwise: (schema) => schema.nullable(),
+  // }),
 
   property_type: yup.string().when("campaign_type", {
     is: (val) => val && val !== "buyer_finder",

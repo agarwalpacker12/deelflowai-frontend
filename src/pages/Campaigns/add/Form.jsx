@@ -177,12 +177,12 @@ const CreateCampaignForm = ({ fillMode }) => {
       setLoadingCountries(true);
       try {
         const response = await geographicAPI.getCountries();
-        if (response.status === 'success') {
+        if (response.status === "success") {
           setCountries(response.data);
         }
       } catch (error) {
-        console.error('Error fetching countries:', error);
-        toast.error('Failed to load countries');
+        console.error("Error fetching countries:", error);
+        toast.error("Failed to load countries");
       } finally {
         setLoadingCountries(false);
       }
@@ -203,13 +203,15 @@ const CreateCampaignForm = ({ fillMode }) => {
     const fetchStates = async () => {
       setLoadingBuyerStates(true);
       try {
-        const response = await geographicAPI.getStatesByCountry(selectedBuyerCountryId);
-        if (response.status === 'success') {
+        const response = await geographicAPI.getStatesByCountry(
+          selectedBuyerCountryId
+        );
+        if (response.status === "success") {
           setBuyerStates(response.data);
         }
       } catch (error) {
-        console.error('Error fetching buyer states:', error);
-        toast.error('Failed to load states');
+        console.error("Error fetching buyer states:", error);
+        toast.error("Failed to load states");
       } finally {
         setLoadingBuyerStates(false);
       }
@@ -230,13 +232,15 @@ const CreateCampaignForm = ({ fillMode }) => {
     const fetchStates = async () => {
       setLoadingSellerStates(true);
       try {
-        const response = await geographicAPI.getStatesByCountry(selectedSellerCountryId);
-        if (response.status === 'success') {
+        const response = await geographicAPI.getStatesByCountry(
+          selectedSellerCountryId
+        );
+        if (response.status === "success") {
           setSellerStates(response.data);
         }
       } catch (error) {
-        console.error('Error fetching seller states:', error);
-        toast.error('Failed to load states');
+        console.error("Error fetching seller states:", error);
+        toast.error("Failed to load states");
       } finally {
         setLoadingSellerStates(false);
       }
@@ -249,24 +253,28 @@ const CreateCampaignForm = ({ fillMode }) => {
   useEffect(() => {
     if (!selectedBuyerStateId) {
       setBuyerCities([]);
-      setValue('buyer_city', '');
+      setValue("buyer_city", "");
       return;
     }
 
     const fetchCities = async () => {
       setLoadingBuyerCities(true);
       try {
-        const response = await geographicAPI.getCitiesByState(selectedBuyerStateId);
-        if (response?.status === 'success' && response.data) {
+        const response = await geographicAPI.getCitiesByState(
+          selectedBuyerStateId
+        );
+        if (response?.status === "success" && response.data) {
           // Sort cities alphabetically by name
-          const sortedCities = [...response.data].sort((a, b) => 
-            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+          const sortedCities = [...response.data].sort((a, b) =>
+            (a.name || "").localeCompare(b.name || "", undefined, {
+              sensitivity: "base",
+            })
           );
           setBuyerCities(sortedCities);
         }
       } catch (error) {
-        console.error('Error fetching buyer cities:', error);
-        toast.error('Failed to load cities');
+        console.error("Error fetching buyer cities:", error);
+        toast.error("Failed to load cities");
       } finally {
         setLoadingBuyerCities(false);
       }
@@ -279,24 +287,28 @@ const CreateCampaignForm = ({ fillMode }) => {
   useEffect(() => {
     if (!selectedSellerStateId) {
       setSellerCities([]);
-      setValue('seller_city', '');
+      setValue("seller_city", "");
       return;
     }
 
     const fetchCities = async () => {
       setLoadingSellerCities(true);
       try {
-        const response = await geographicAPI.getCitiesByState(selectedSellerStateId);
-        if (response?.status === 'success' && response.data) {
+        const response = await geographicAPI.getCitiesByState(
+          selectedSellerStateId
+        );
+        if (response?.status === "success" && response.data) {
           // Sort cities alphabetically by name
-          const sortedCities = [...response.data].sort((a, b) => 
-            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+          const sortedCities = [...response.data].sort((a, b) =>
+            (a.name || "").localeCompare(b.name || "", undefined, {
+              sensitivity: "base",
+            })
           );
           setSellerCities(sortedCities);
         }
       } catch (error) {
-        console.error('Error fetching seller cities:', error);
-        toast.error('Failed to load cities');
+        console.error("Error fetching seller cities:", error);
+        toast.error("Failed to load cities");
       } finally {
         setLoadingSellerCities(false);
       }
@@ -309,92 +321,115 @@ const CreateCampaignForm = ({ fillMode }) => {
   const handleBuyerLocationSelect = async ({ lat, lng }) => {
     setIsGeocodingBuyer(true);
     setBuyerMapPosition([lat, lng]);
-    
+
     try {
       // Reverse geocode to get location details
       const locationData = await reverseGeocode(lat, lng);
-      
+
       // Find matching country in our database
       const matchedCountry = countries.find(
-        c => c.name.toLowerCase() === locationData.country.toLowerCase() ||
-        c.iso2?.toLowerCase() === locationData.country.toLowerCase()
+        (c) =>
+          c.name.toLowerCase() === locationData.country.toLowerCase() ||
+          c.iso2?.toLowerCase() === locationData.country.toLowerCase()
       );
-      
+
       if (matchedCountry) {
         setSelectedBuyerCountryId(matchedCountry.id);
-        setValue('buyer_country', matchedCountry.name);
-        
+        setValue("buyer_country", matchedCountry.name);
+
         // Fetch states for the matched country
-        const statesResponse = await geographicAPI.getStatesByCountry(matchedCountry.id);
-        if (statesResponse.status === 'success') {
+        const statesResponse = await geographicAPI.getStatesByCountry(
+          matchedCountry.id
+        );
+        if (statesResponse.status === "success") {
           setBuyerStates(statesResponse.data);
-          
+
           // Try to match state
           const matchedState = statesResponse.data.find(
-            s => s.name.toLowerCase() === locationData.state.toLowerCase() ||
-            s.state_code?.toLowerCase() === locationData.state.toLowerCase()
+            (s) =>
+              s.name.toLowerCase() === locationData.state.toLowerCase() ||
+              s.state_code?.toLowerCase() === locationData.state.toLowerCase()
           );
-          
+
           if (matchedState) {
             setSelectedBuyerStateId(matchedState.id);
-            setValue('buyer_state', matchedState.name);
-            
+            setValue("buyer_state", matchedState.name);
+
             // Fetch cities for the matched state and then match the city
-            const citiesResponse = await geographicAPI.getCitiesByState(matchedState.id);
-            if (citiesResponse?.status === 'success' && citiesResponse.data) {
+            const citiesResponse = await geographicAPI.getCitiesByState(
+              matchedState.id
+            );
+            if (citiesResponse?.status === "success" && citiesResponse.data) {
               // Sort cities alphabetically
-              const sortedCities = [...citiesResponse.data].sort((a, b) => 
-                (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+              const sortedCities = [...citiesResponse.data].sort((a, b) =>
+                (a.name || "").localeCompare(b.name || "", undefined, {
+                  sensitivity: "base",
+                })
               );
               setBuyerCities(sortedCities);
-              
+
               // Try to match the geocoded city with cities in the database
-              const geocodedCityName = locationData.city || locationData.components?.city || '';
+              const geocodedCityName =
+                locationData.city || locationData.components?.city || "";
               if (geocodedCityName) {
                 // Try exact match first
-                let matchedCity = sortedCities.find(c => 
-                  c.name.toLowerCase() === geocodedCityName.toLowerCase()
+                let matchedCity = sortedCities.find(
+                  (c) => c.name.toLowerCase() === geocodedCityName.toLowerCase()
                 );
-                
+
                 // Try partial match if exact match fails
                 if (!matchedCity) {
-                  matchedCity = sortedCities.find(c => 
-                    c.name.toLowerCase().includes(geocodedCityName.toLowerCase()) ||
-                    geocodedCityName.toLowerCase().includes(c.name.toLowerCase())
+                  matchedCity = sortedCities.find(
+                    (c) =>
+                      c.name
+                        .toLowerCase()
+                        .includes(geocodedCityName.toLowerCase()) ||
+                      geocodedCityName
+                        .toLowerCase()
+                        .includes(c.name.toLowerCase())
                   );
                 }
-                
+
                 if (matchedCity) {
-                  setValue('buyer_city', matchedCity.name);
+                  setValue("buyer_city", matchedCity.name);
                 } else {
                   // If no match found, use the geocoded value
-                  setValue('buyer_city', geocodedCityName);
+                  setValue("buyer_city", geocodedCityName);
                 }
               }
             } else {
               // If cities fetch failed, use geocoded value
-              setValue('buyer_city', locationData.city || locationData.components?.city || '');
+              setValue(
+                "buyer_city",
+                locationData.city || locationData.components?.city || ""
+              );
             }
           } else {
             // If state not found in DB, use the geocoded value
-            setValue('buyer_state', locationData.state);
-            setValue('buyer_city', locationData.city || locationData.components?.city || '');
+            setValue("buyer_state", locationData.state);
+            setValue(
+              "buyer_city",
+              locationData.city || locationData.components?.city || ""
+            );
           }
         }
       } else {
         // If country not found, use geocoded value
-        setValue('buyer_country', locationData.country);
-        setValue('buyer_city', locationData.city || locationData.components?.city || '');
+        setValue("buyer_country", locationData.country);
+        setValue(
+          "buyer_city",
+          locationData.city || locationData.components?.city || ""
+        );
       }
-      
+
       // Fill other fields
-      setValue('buyer_districts', locationData.district);
-      setValue('buyer_counties', locationData.district || locationData.city);
-      
-      toast.success('Location details filled from map');
+      setValue("buyer_districts", locationData.district);
+      setValue("buyer_counties", locationData.district || locationData.city);
+
+      toast.success("Location details filled from map");
     } catch (error) {
-      console.error('Error reverse geocoding:', error);
-      toast.error('Failed to get location details. Please fill manually.');
+      console.error("Error reverse geocoding:", error);
+      toast.error("Failed to get location details. Please fill manually.");
     } finally {
       setIsGeocodingBuyer(false);
     }
@@ -404,92 +439,115 @@ const CreateCampaignForm = ({ fillMode }) => {
   const handleSellerLocationSelect = async ({ lat, lng }) => {
     setIsGeocodingSeller(true);
     setSellerMapPosition([lat, lng]);
-    
+
     try {
       // Reverse geocode to get location details
       const locationData = await reverseGeocode(lat, lng);
-      
+
       // Find matching country in our database
       const matchedCountry = countries.find(
-        c => c.name.toLowerCase() === locationData.country.toLowerCase() ||
-        c.iso2?.toLowerCase() === locationData.country.toLowerCase()
+        (c) =>
+          c.name.toLowerCase() === locationData.country.toLowerCase() ||
+          c.iso2?.toLowerCase() === locationData.country.toLowerCase()
       );
-      
+
       if (matchedCountry) {
         setSelectedSellerCountryId(matchedCountry.id);
-        setValue('seller_country', matchedCountry.name);
-        
+        setValue("seller_country", matchedCountry.name);
+
         // Fetch states for the matched country
-        const statesResponse = await geographicAPI.getStatesByCountry(matchedCountry.id);
-        if (statesResponse.status === 'success') {
+        const statesResponse = await geographicAPI.getStatesByCountry(
+          matchedCountry.id
+        );
+        if (statesResponse.status === "success") {
           setSellerStates(statesResponse.data);
-          
+
           // Try to match state
           const matchedState = statesResponse.data.find(
-            s => s.name.toLowerCase() === locationData.state.toLowerCase() ||
-            s.state_code?.toLowerCase() === locationData.state.toLowerCase()
+            (s) =>
+              s.name.toLowerCase() === locationData.state.toLowerCase() ||
+              s.state_code?.toLowerCase() === locationData.state.toLowerCase()
           );
-          
+
           if (matchedState) {
             setSelectedSellerStateId(matchedState.id);
-            setValue('seller_state', matchedState.name);
-            
+            setValue("seller_state", matchedState.name);
+
             // Fetch cities for the matched state and then match the city
-            const citiesResponse = await geographicAPI.getCitiesByState(matchedState.id);
-            if (citiesResponse?.status === 'success' && citiesResponse.data) {
+            const citiesResponse = await geographicAPI.getCitiesByState(
+              matchedState.id
+            );
+            if (citiesResponse?.status === "success" && citiesResponse.data) {
               // Sort cities alphabetically
-              const sortedCities = [...citiesResponse.data].sort((a, b) => 
-                (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+              const sortedCities = [...citiesResponse.data].sort((a, b) =>
+                (a.name || "").localeCompare(b.name || "", undefined, {
+                  sensitivity: "base",
+                })
               );
               setSellerCities(sortedCities);
-              
+
               // Try to match the geocoded city with cities in the database
-              const geocodedCityName = locationData.city || locationData.components?.city || '';
+              const geocodedCityName =
+                locationData.city || locationData.components?.city || "";
               if (geocodedCityName) {
                 // Try exact match first
-                let matchedCity = sortedCities.find(c => 
-                  c.name.toLowerCase() === geocodedCityName.toLowerCase()
+                let matchedCity = sortedCities.find(
+                  (c) => c.name.toLowerCase() === geocodedCityName.toLowerCase()
                 );
-                
+
                 // Try partial match if exact match fails
                 if (!matchedCity) {
-                  matchedCity = sortedCities.find(c => 
-                    c.name.toLowerCase().includes(geocodedCityName.toLowerCase()) ||
-                    geocodedCityName.toLowerCase().includes(c.name.toLowerCase())
+                  matchedCity = sortedCities.find(
+                    (c) =>
+                      c.name
+                        .toLowerCase()
+                        .includes(geocodedCityName.toLowerCase()) ||
+                      geocodedCityName
+                        .toLowerCase()
+                        .includes(c.name.toLowerCase())
                   );
                 }
-                
+
                 if (matchedCity) {
-                  setValue('seller_city', matchedCity.name);
+                  setValue("seller_city", matchedCity.name);
                 } else {
                   // If no match found, use the geocoded value
-                  setValue('seller_city', geocodedCityName);
+                  setValue("seller_city", geocodedCityName);
                 }
               }
             } else {
               // If cities fetch failed, use geocoded value
-              setValue('seller_city', locationData.city || locationData.components?.city || '');
+              setValue(
+                "seller_city",
+                locationData.city || locationData.components?.city || ""
+              );
             }
           } else {
             // If state not found in DB, use the geocoded value
-            setValue('seller_state', locationData.state);
-            setValue('seller_city', locationData.city || locationData.components?.city || '');
+            setValue("seller_state", locationData.state);
+            setValue(
+              "seller_city",
+              locationData.city || locationData.components?.city || ""
+            );
           }
         }
       } else {
         // If country not found, use geocoded value
-        setValue('seller_country', locationData.country);
-        setValue('seller_city', locationData.city || locationData.components?.city || '');
+        setValue("seller_country", locationData.country);
+        setValue(
+          "seller_city",
+          locationData.city || locationData.components?.city || ""
+        );
       }
-      
+
       // Fill other fields
-      setValue('seller_districts', locationData.district);
-      setValue('seller_counties', locationData.district || locationData.city);
-      
-      toast.success('Location details filled from map');
+      setValue("seller_districts", locationData.district);
+      setValue("seller_counties", locationData.district || locationData.city);
+
+      toast.success("Location details filled from map");
     } catch (error) {
-      console.error('Error reverse geocoding:', error);
-      toast.error('Failed to get location details. Please fill manually.');
+      console.error("Error reverse geocoding:", error);
+      toast.error("Failed to get location details. Please fill manually.");
     } finally {
       setIsGeocodingSeller(false);
     }
@@ -499,11 +557,11 @@ const CreateCampaignForm = ({ fillMode }) => {
   const handleGenerateAIEmail = async () => {
     setIsGeneratingAI(true);
     setAiGeneratedContent(null);
-    
+
     try {
       // Get all form values
       const formData = watch();
-      
+
       // Prepare campaign data for AI generation
       const campaignData = {
         name: formData.name || "Campaign",
@@ -541,27 +599,27 @@ const CreateCampaignForm = ({ fillMode }) => {
         subject_line: formData.subject_line || "",
         email_content: formData.email_content || "",
       };
-      
+
       // Call AI generation API
       const response = await campaignsAPI.generateAIEmail(
         campaignData,
         null, // recipient_info (can be added later for personalization)
         true, // generate_subject
-        true  // generate_content
+        true // generate_content
       );
-      
+
       if (response.data.status === "success") {
         const generated = response.data.data;
-        
+
         // Update form fields with AI-generated content
         setValue("subject_line", generated.subject_line || "");
         setValue("email_content", generated.email_content || "");
-        
+
         setAiGeneratedContent({
           subject_line: generated.subject_line,
           email_content: generated.email_content,
         });
-        
+
         toast.success("AI-generated email content created successfully!");
       } else {
         throw new Error(response.data.message || "Failed to generate AI email");
@@ -569,9 +627,9 @@ const CreateCampaignForm = ({ fillMode }) => {
     } catch (error) {
       console.error("Error generating AI email:", error);
       toast.error(
-        error.response?.data?.detail || 
-        error.message || 
-        "Failed to generate AI email. Please try again."
+        error.response?.data?.detail ||
+          error.message ||
+          "Failed to generate AI email. Please try again."
       );
     } finally {
       setIsGeneratingAI(false);
@@ -794,7 +852,8 @@ const CreateCampaignForm = ({ fillMode }) => {
                         {/* Start Time */}
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-2">
-                            Start Time (Daily) <Text className="text-red-500">*</Text>
+                            Start Time (Daily){" "}
+                            <Text className="text-red-500">*</Text>
                           </label>
                           <input
                             {...register("scheduled_start_time")}
@@ -812,7 +871,8 @@ const CreateCampaignForm = ({ fillMode }) => {
                         {/* End Time */}
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-2">
-                            End Time (Daily) <Text className="text-red-500">*</Text>
+                            End Time (Daily){" "}
+                            <Text className="text-red-500">*</Text>
                           </label>
                           <input
                             {...register("scheduled_end_time")}
@@ -828,7 +888,8 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        The time range (e.g., 9:00 AM to 9:00 PM) will apply to all days in the selected date range.
+                        The time range (e.g., 9:00 AM to 9:00 PM) will apply to
+                        all days in the selected date range.
                       </p>
                     </div>
 
@@ -1115,16 +1176,20 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-                          value={selectedBuyerCountryId || ''}
+                          value={selectedBuyerCountryId || ""}
                           onChange={(e) => {
-                            const countryId = e.target.value ? parseInt(e.target.value) : null;
+                            const countryId = e.target.value
+                              ? parseInt(e.target.value)
+                              : null;
                             setSelectedBuyerCountryId(countryId);
                             setSelectedBuyerStateId(null);
                             setBuyerCities([]); // Clear cities when country changes
-                            const countryName = countryId ? countries.find(c => c.id === countryId)?.name : '';
-                            setValue('buyer_country', countryName);
-                            setValue('buyer_state', '');
-                            setValue('buyer_city', ''); // Clear city when country changes
+                            const countryName = countryId
+                              ? countries.find((c) => c.id === countryId)?.name
+                              : "";
+                            setValue("buyer_country", countryName);
+                            setValue("buyer_state", "");
+                            setValue("buyer_city", ""); // Clear city when country changes
                           }}
                           disabled={loadingCountries}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1137,7 +1202,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                           ))}
                         </select>
                         {loadingCountries && (
-                          <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Loading countries...
+                          </p>
                         )}
                       </div>
 
@@ -1148,29 +1215,42 @@ const CreateCampaignForm = ({ fillMode }) => {
                           State
                         </label>
                         <select
-                          value={selectedBuyerStateId || ''}
+                          value={selectedBuyerStateId || ""}
                           onChange={(e) => {
-                            const stateId = e.target.value ? parseInt(e.target.value) : null;
+                            const stateId = e.target.value
+                              ? parseInt(e.target.value)
+                              : null;
                             setSelectedBuyerStateId(stateId);
                             setBuyerCities([]); // Clear cities when state changes
-                            const stateName = stateId ? buyerStates.find(s => s.id === stateId)?.name : '';
-                            setValue('buyer_state', stateName);
-                            setValue('buyer_city', ''); // Clear city when state changes
+                            const stateName = stateId
+                              ? buyerStates.find((s) => s.id === stateId)?.name
+                              : "";
+                            setValue("buyer_state", stateName);
+                            setValue("buyer_city", ""); // Clear city when state changes
                           }}
-                          disabled={!selectedBuyerCountryId || loadingBuyerStates}
+                          disabled={
+                            !selectedBuyerCountryId || loadingBuyerStates
+                          }
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
-                            {!selectedBuyerCountryId ? 'Select a country first' : loadingBuyerStates ? 'Loading states...' : 'Select State'}
+                            {!selectedBuyerCountryId
+                              ? "Select a country first"
+                              : loadingBuyerStates
+                              ? "Loading states..."
+                              : "Select State"}
                           </option>
                           {buyerStates.map((state) => (
                             <option key={state.id} value={state.id}>
-                              {state.name} {state.state_code ? `(${state.state_code})` : ''}
+                              {state.name}{" "}
+                              {state.state_code ? `(${state.state_code})` : ""}
                             </option>
                           ))}
                         </select>
                         {loadingBuyerStates && (
-                          <p className="text-sm text-gray-500 mt-2">Loading states...</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Loading states...
+                          </p>
                         )}
                       </div>
 
@@ -1194,17 +1274,26 @@ const CreateCampaignForm = ({ fillMode }) => {
                           City
                         </label>
                         <select
-                          value={selectedBuyerStateId && buyerCities.some(c => c.name === watch("buyer_city")) 
-                            ? watch("buyer_city") || '' 
-                            : ''}
+                          value={
+                            selectedBuyerStateId &&
+                            buyerCities.some(
+                              (c) => c.name === watch("buyer_city")
+                            )
+                              ? watch("buyer_city") || ""
+                              : ""
+                          }
                           onChange={(e) => {
-                            setValue('buyer_city', e.target.value);
+                            setValue("buyer_city", e.target.value);
                           }}
                           disabled={!selectedBuyerStateId || loadingBuyerCities}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
-                            {!selectedBuyerStateId ? 'Select a state first' : loadingBuyerCities ? 'Loading cities...' : 'Select City'}
+                            {!selectedBuyerStateId
+                              ? "Select a state first"
+                              : loadingBuyerCities
+                              ? "Loading cities..."
+                              : "Select City"}
                           </option>
                           {buyerCities.map((city) => (
                             <option key={city.id} value={city.name}>
@@ -1213,7 +1302,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                           ))}
                         </select>
                         {loadingBuyerCities && (
-                          <p className="text-sm text-gray-500 mt-2">Loading cities...</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Loading cities...
+                          </p>
                         )}
                         {errors.buyer_city && (
                           <p className="text-sm text-red-500 mt-2 flex items-center">
@@ -1244,7 +1335,8 @@ const CreateCampaignForm = ({ fillMode }) => {
                         Select Location on Map
                       </label>
                       <p className="text-xs text-gray-500 mb-3">
-                        Click on the map to automatically fill location fields above
+                        Click on the map to automatically fill location fields
+                        above
                       </p>
                       <LocationPicker
                         onLocationSelect={handleBuyerLocationSelect}
@@ -1372,16 +1464,20 @@ const CreateCampaignForm = ({ fillMode }) => {
                           Country
                         </label>
                         <select
-                          value={selectedSellerCountryId || ''}
+                          value={selectedSellerCountryId || ""}
                           onChange={(e) => {
-                            const countryId = e.target.value ? parseInt(e.target.value) : null;
+                            const countryId = e.target.value
+                              ? parseInt(e.target.value)
+                              : null;
                             setSelectedSellerCountryId(countryId);
                             setSelectedSellerStateId(null);
                             setSellerCities([]); // Clear cities when country changes
-                            const countryName = countryId ? countries.find(c => c.id === countryId)?.name : '';
-                            setValue('seller_country', countryName);
-                            setValue('seller_state', '');
-                            setValue('seller_city', ''); // Clear city when country changes
+                            const countryName = countryId
+                              ? countries.find((c) => c.id === countryId)?.name
+                              : "";
+                            setValue("seller_country", countryName);
+                            setValue("seller_state", "");
+                            setValue("seller_city", ""); // Clear city when country changes
                           }}
                           disabled={loadingCountries}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1394,7 +1490,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                           ))}
                         </select>
                         {loadingCountries && (
-                          <p className="text-sm text-gray-500 mt-2">Loading countries...</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Loading countries...
+                          </p>
                         )}
                       </div>
 
@@ -1405,29 +1503,42 @@ const CreateCampaignForm = ({ fillMode }) => {
                           State
                         </label>
                         <select
-                          value={selectedSellerStateId || ''}
+                          value={selectedSellerStateId || ""}
                           onChange={(e) => {
-                            const stateId = e.target.value ? parseInt(e.target.value) : null;
+                            const stateId = e.target.value
+                              ? parseInt(e.target.value)
+                              : null;
                             setSelectedSellerStateId(stateId);
                             setSellerCities([]); // Clear cities when state changes
-                            const stateName = stateId ? sellerStates.find(s => s.id === stateId)?.name : '';
-                            setValue('seller_state', stateName);
-                            setValue('seller_city', ''); // Clear city when state changes
+                            const stateName = stateId
+                              ? sellerStates.find((s) => s.id === stateId)?.name
+                              : "";
+                            setValue("seller_state", stateName);
+                            setValue("seller_city", ""); // Clear city when state changes
                           }}
-                          disabled={!selectedSellerCountryId || loadingSellerStates}
+                          disabled={
+                            !selectedSellerCountryId || loadingSellerStates
+                          }
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
-                            {!selectedSellerCountryId ? 'Select a country first' : loadingSellerStates ? 'Loading states...' : 'Select State'}
+                            {!selectedSellerCountryId
+                              ? "Select a country first"
+                              : loadingSellerStates
+                              ? "Loading states..."
+                              : "Select State"}
                           </option>
                           {sellerStates.map((state) => (
                             <option key={state.id} value={state.id}>
-                              {state.name} {state.state_code ? `(${state.state_code})` : ''}
+                              {state.name}{" "}
+                              {state.state_code ? `(${state.state_code})` : ""}
                             </option>
                           ))}
                         </select>
                         {loadingSellerStates && (
-                          <p className="text-sm text-gray-500 mt-2">Loading states...</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Loading states...
+                          </p>
                         )}
                       </div>
 
@@ -1451,17 +1562,28 @@ const CreateCampaignForm = ({ fillMode }) => {
                           City
                         </label>
                         <select
-                          value={selectedSellerStateId && sellerCities.some(c => c.name === watch("seller_city")) 
-                            ? watch("seller_city") || '' 
-                            : ''}
+                          value={
+                            selectedSellerStateId &&
+                            sellerCities.some(
+                              (c) => c.name === watch("seller_city")
+                            )
+                              ? watch("seller_city") || ""
+                              : ""
+                          }
                           onChange={(e) => {
-                            setValue('seller_city', e.target.value);
+                            setValue("seller_city", e.target.value);
                           }}
-                          disabled={!selectedSellerStateId || loadingSellerCities}
+                          disabled={
+                            !selectedSellerStateId || loadingSellerCities
+                          }
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
-                            {!selectedSellerStateId ? 'Select a state first' : loadingSellerCities ? 'Loading cities...' : 'Select City'}
+                            {!selectedSellerStateId
+                              ? "Select a state first"
+                              : loadingSellerCities
+                              ? "Loading cities..."
+                              : "Select City"}
                           </option>
                           {sellerCities.map((city) => (
                             <option key={city.id} value={city.name}>
@@ -1470,7 +1592,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                           ))}
                         </select>
                         {loadingSellerCities && (
-                          <p className="text-sm text-gray-500 mt-2">Loading cities...</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Loading cities...
+                          </p>
                         )}
                         {errors.seller_city && (
                           <p className="text-sm text-red-500 mt-2 flex items-center">
@@ -1514,11 +1638,14 @@ const CreateCampaignForm = ({ fillMode }) => {
                         Select Location on Map
                       </label>
                       <p className="text-xs text-gray-500 mb-3">
-                        Click on the map to automatically fill location fields above
+                        Click on the map to automatically fill location fields
+                        above
                       </p>
                       <LocationPicker
                         onLocationSelect={handleSellerLocationSelect}
-                        initialPosition={sellerMapPosition || [20.5937, 78.9629]}
+                        initialPosition={
+                          sellerMapPosition || [20.5937, 78.9629]
+                        }
                         zoom={sellerMapPosition ? 10 : 5}
                         height={400}
                       />
@@ -1615,7 +1742,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                      <div>
+                      {/* <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                           <MapPin className="w-4 h-4 mr-2 text-purple-600" />
                           Location <Text className="text-red-500 ml-1">*</Text>
@@ -1631,7 +1758,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                             {errors.location.message}
                           </p>
                         )}
-                      </div>
+                      </div> */}
 
                       <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
@@ -1797,15 +1924,20 @@ const CreateCampaignForm = ({ fillMode }) => {
                         <Mail className="w-4 h-4 mr-2 text-orange-600" />
                         Subject Line{" "}
                         <Text className="text-red-500 ml-1">*</Text>
-                        {aiGeneratedContent?.subject_line && fillMode === "ai" && (
-                          <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium">
-                            AI Generated
-                          </span>
-                        )}
+                        {aiGeneratedContent?.subject_line &&
+                          fillMode === "ai" && (
+                            <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium">
+                              AI Generated
+                            </span>
+                          )}
                       </label>
                       <input
                         {...register("subject_line")}
-                        placeholder={fillMode === "ai" ? "Enter your compelling subject line or click 'Generate with AI'" : "Enter your compelling subject line"}
+                        placeholder={
+                          fillMode === "ai"
+                            ? "Enter your compelling subject line or click 'Generate with AI'"
+                            : "Enter your compelling subject line"
+                        }
                         className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100"
                       />
                       {errors.subject_line && (
@@ -1821,16 +1953,21 @@ const CreateCampaignForm = ({ fillMode }) => {
                         <Mail className="w-4 h-4 mr-2 text-orange-600" />
                         Email Content{" "}
                         <Text className="text-red-500 ml-1">*</Text>
-                        {aiGeneratedContent?.email_content && fillMode === "ai" && (
-                          <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium">
-                            AI Generated
-                          </span>
-                        )}
+                        {aiGeneratedContent?.email_content &&
+                          fillMode === "ai" && (
+                            <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium">
+                              AI Generated
+                            </span>
+                          )}
                       </label>
                       <textarea
                         {...register("email_content")}
                         rows={12}
-                        placeholder={fillMode === "ai" ? "Write your engaging email content here or click 'Generate with AI' to create personalized content based on your campaign data..." : "Write your engaging email content here..."}
+                        placeholder={
+                          fillMode === "ai"
+                            ? "Write your engaging email content here or click 'Generate with AI' to create personalized content based on your campaign data..."
+                            : "Write your engaging email content here..."
+                        }
                         className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-orange-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-orange-100 resize-none"
                       />
                       {errors.email_content && (
@@ -1842,7 +1979,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                       {fillMode === "ai" && (
                         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                           <Sparkles className="w-3 h-3" />
-                          AI will use all your campaign data (location, property type, demographics, etc.) to create personalized content
+                          AI will use all your campaign data (location, property
+                          type, demographics, etc.) to create personalized
+                          content
                         </p>
                       )}
                     </div>
