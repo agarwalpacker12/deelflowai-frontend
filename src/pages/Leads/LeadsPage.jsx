@@ -161,7 +161,7 @@ const LeadsPage = () => {
 
       {/* Filters */}
       <div className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -191,7 +191,7 @@ const LeadsPage = () => {
           </div>
 
           {/* AI Score Filter */}
-          <div>
+          {/* <div>
             <input
               type="number"
               placeholder="Min AI Score"
@@ -199,7 +199,7 @@ const LeadsPage = () => {
               onChange={(e) => setMinAiScore(e.target.value)}
               className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </div> */}
 
           {/* Per Page */}
           <div>
