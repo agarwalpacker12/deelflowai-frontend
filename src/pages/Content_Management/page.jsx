@@ -30,6 +30,7 @@ import {
   X,
   Save,
   Send,
+  Trash2,
 } from "lucide-react";
 
 const ContentManagementPage = () => {
@@ -960,12 +961,23 @@ const ContentManagementPage = () => {
                     className="bg-gradient-to-br from-purple-800/80 to-indigo-900/80 backdrop-blur-sm rounded-xl shadow-lg border border-purple-600/30 overflow-hidden hover:shadow-xl transition-all"
                   >
                     <div className="relative">
-                      <img
-                        // src={item.thumbnail}
-                        src={`/images/${item.title}.jpg`}
-                        alt={item.title}
-                        className="w-full h-32 object-fill"
-                      />
+                      {item.thumbnail_url ? (
+                        <img
+                          src={item.thumbnail_url}
+                          alt={item.title}
+                          className="w-full h-32 object-cover"
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails to load
+                            e.target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-32 bg-gradient-to-br from-purple-700/50 to-indigo-800/50 flex items-center justify-center">
+                          <div className="text-purple-300 text-sm font-medium">
+                            {getTypeIcon(item.type)}
+                          </div>
+                        </div>
+                      )}
                       <div className="absolute top-3 left-3">
                         <div className="flex items-center gap-1 bg-purple-900/90 backdrop-blur-sm rounded-full px-2 py-1 border border-purple-600/50">
                           {getTypeIcon(item.type)}
@@ -1093,7 +1105,7 @@ const ContentManagementPage = () => {
                             className="p-1 text-purple-300 hover:text-red-400 transition-colors"
                             title="Delete"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -1343,7 +1355,7 @@ const ContentManagementPage = () => {
                               className="px-4 py-2 border border-purple-600/50 text-purple-200 rounded-lg hover:bg-purple-700/30 transition-all"
                               title="Delete Template"
                             >
-                              <Copy className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </div>
@@ -1510,7 +1522,7 @@ const ContentManagementPage = () => {
                             className="p-2 text-purple-300 hover:text-red-400 transition-colors"
                             title="Cancel Schedule"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -1834,16 +1846,22 @@ const ContentManagementPage = () => {
                             <select
                               value={selectedTemplateId || ""}
                               onChange={(e) => {
-                                const templateId = parseInt(e.target.value);
+                                const templateId = e.target.value ? parseInt(e.target.value) : null;
                                 setSelectedTemplateId(templateId);
-                                const selectedTemplate = filteredTemplates.find(t => t.id === templateId);
-                                if (selectedTemplate?.variables) {
-                                  // Initialize template variables
-                                  const vars = {};
-                                  Object.keys(selectedTemplate.variables).forEach(key => {
-                                    vars[key] = "";
-                                  });
-                                  setTemplateVariables(vars);
+                                if (templateId) {
+                                  const selectedTemplate = filteredTemplates.find(t => t.id === templateId);
+                                  if (selectedTemplate?.variables) {
+                                    // Initialize template variables
+                                    const vars = {};
+                                    Object.keys(selectedTemplate.variables).forEach(key => {
+                                      vars[key] = "";
+                                    });
+                                    setTemplateVariables(vars);
+                                  } else {
+                                    setTemplateVariables({});
+                                  }
+                                } else {
+                                  setTemplateVariables({});
                                 }
                               }}
                               className="w-full px-4 py-2 bg-purple-900/50 border border-purple-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -2024,7 +2042,7 @@ const ContentManagementPage = () => {
                           thumbnail_url: e.target.value,
                         }))
                       }
-                      placeholder="https://example.com/image.jpg"
+                      placeholder="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop"
                       className="w-full px-4 py-2 bg-purple-900/50 border border-purple-600/50 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
@@ -2441,7 +2459,7 @@ const ContentManagementPage = () => {
                       thumbnail_url: e.target.value,
                     }))
                   }
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop"
                   className="w-full px-4 py-2 bg-purple-900/50 border border-purple-600/50 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>

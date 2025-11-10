@@ -164,12 +164,12 @@ export const authAPI = {
   register: (userData) => AllPOSTHeader.post("/api/auth/register", userData), // Matches your URL pattern
   logout: () => api.post("/logout/"),
   getCurrentUser: () => api.get("/auth/me/"),
+  updateProfile: (profileData) => api.put("/auth/profile", profileData),
+  changePassword: (passwordData) => api.put("/auth/change-password", passwordData),
   getAllUsers: (tenantId) => api.get(`/tenants/${tenantId}/users/`),
   invite: (id, data) => api.post(`/tenants/${id}/invitations/`, data),
   getInvitation: (id) => api.get(`/tenants/${id}/invitations`),
   acceptInvitation: (id, data) => api.post(`/invitations/${id}/accept`, data),
-
-  getCurrentUser: () => api.get("/subscription/payment/success"),
   getAllUsersForSuperAdmin: () => api.get(`/users/`),
 };
 
@@ -259,6 +259,7 @@ export const TenantAPI = {
 export const OrganizationAPI = {
   getOrganizationStatus: () => api.get(`/organizations/status/`),
   getOrganization: () => api.get(`/organizations/`),
+  getCurrentOrganization: () => api.get(`/organization/`),
   UpdateOrganization: (id, data) => api.put(`/organizations/${id}/`, data),
 };
 
