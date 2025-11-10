@@ -56,6 +56,8 @@ const CreateCampaignForm = ({ fillMode }) => {
   const [countries, setCountries] = useState([]);
   const [buyerStates, setBuyerStates] = useState([]);
   const [sellerStates, setSellerStates] = useState([]);
+  const [buyerCities, setBuyerCities] = useState([]);
+  const [sellerCities, setSellerCities] = useState([]);
   const [selectedBuyerCountryId, setSelectedBuyerCountryId] = useState(null);
   const [selectedBuyerStateId, setSelectedBuyerStateId] = useState(null);
   const [selectedSellerCountryId, setSelectedSellerCountryId] = useState(null);
@@ -63,6 +65,8 @@ const CreateCampaignForm = ({ fillMode }) => {
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingBuyerStates, setLoadingBuyerStates] = useState(false);
   const [loadingSellerStates, setLoadingSellerStates] = useState(false);
+  const [loadingBuyerCities, setLoadingBuyerCities] = useState(false);
+  const [loadingSellerCities, setLoadingSellerCities] = useState(false);
   const [buyerMapPosition, setBuyerMapPosition] = useState(null);
   const [sellerMapPosition, setSellerMapPosition] = useState(null);
   const [isGeocodingBuyer, setIsGeocodingBuyer] = useState(false);
@@ -192,6 +196,7 @@ const CreateCampaignForm = ({ fillMode }) => {
     if (!selectedBuyerCountryId) {
       setBuyerStates([]);
       setSelectedBuyerStateId(null);
+      setBuyerCities([]);
       return;
     }
 
@@ -218,6 +223,7 @@ const CreateCampaignForm = ({ fillMode }) => {
     if (!selectedSellerCountryId) {
       setSellerStates([]);
       setSelectedSellerStateId(null);
+      setSellerCities([]);
       return;
     }
 
@@ -238,6 +244,66 @@ const CreateCampaignForm = ({ fillMode }) => {
 
     fetchStates();
   }, [selectedSellerCountryId]);
+
+  // Fetch buyer cities when buyer state changes
+  useEffect(() => {
+    if (!selectedBuyerStateId) {
+      setBuyerCities([]);
+      setValue('buyer_city', '');
+      return;
+    }
+
+    const fetchCities = async () => {
+      setLoadingBuyerCities(true);
+      try {
+        const response = await geographicAPI.getCitiesByState(selectedBuyerStateId);
+        if (response?.status === 'success' && response.data) {
+          // Sort cities alphabetically by name
+          const sortedCities = [...response.data].sort((a, b) => 
+            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+          );
+          setBuyerCities(sortedCities);
+        }
+      } catch (error) {
+        console.error('Error fetching buyer cities:', error);
+        toast.error('Failed to load cities');
+      } finally {
+        setLoadingBuyerCities(false);
+      }
+    };
+
+    fetchCities();
+  }, [selectedBuyerStateId, setValue]);
+
+  // Fetch seller cities when seller state changes
+  useEffect(() => {
+    if (!selectedSellerStateId) {
+      setSellerCities([]);
+      setValue('seller_city', '');
+      return;
+    }
+
+    const fetchCities = async () => {
+      setLoadingSellerCities(true);
+      try {
+        const response = await geographicAPI.getCitiesByState(selectedSellerStateId);
+        if (response?.status === 'success' && response.data) {
+          // Sort cities alphabetically by name
+          const sortedCities = [...response.data].sort((a, b) => 
+            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+          );
+          setSellerCities(sortedCities);
+        }
+      } catch (error) {
+        console.error('Error fetching seller cities:', error);
+        toast.error('Failed to load cities');
+      } finally {
+        setLoadingSellerCities(false);
+      }
+    };
+
+    fetchCities();
+  }, [selectedSellerStateId, setValue]);
 
   // Handle location selection from map for buyer
   const handleBuyerLocationSelect = async ({ lat, lng }) => {
@@ -272,18 +338,56 @@ const CreateCampaignForm = ({ fillMode }) => {
           if (matchedState) {
             setSelectedBuyerStateId(matchedState.id);
             setValue('buyer_state', matchedState.name);
+            
+            // Fetch cities for the matched state and then match the city
+            const citiesResponse = await geographicAPI.getCitiesByState(matchedState.id);
+            if (citiesResponse?.status === 'success' && citiesResponse.data) {
+              // Sort cities alphabetically
+              const sortedCities = [...citiesResponse.data].sort((a, b) => 
+                (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+              );
+              setBuyerCities(sortedCities);
+              
+              // Try to match the geocoded city with cities in the database
+              const geocodedCityName = locationData.city || locationData.components?.city || '';
+              if (geocodedCityName) {
+                // Try exact match first
+                let matchedCity = sortedCities.find(c => 
+                  c.name.toLowerCase() === geocodedCityName.toLowerCase()
+                );
+                
+                // Try partial match if exact match fails
+                if (!matchedCity) {
+                  matchedCity = sortedCities.find(c => 
+                    c.name.toLowerCase().includes(geocodedCityName.toLowerCase()) ||
+                    geocodedCityName.toLowerCase().includes(c.name.toLowerCase())
+                  );
+                }
+                
+                if (matchedCity) {
+                  setValue('buyer_city', matchedCity.name);
+                } else {
+                  // If no match found, use the geocoded value
+                  setValue('buyer_city', geocodedCityName);
+                }
+              }
+            } else {
+              // If cities fetch failed, use geocoded value
+              setValue('buyer_city', locationData.city || locationData.components?.city || '');
+            }
           } else {
             // If state not found in DB, use the geocoded value
             setValue('buyer_state', locationData.state);
+            setValue('buyer_city', locationData.city || locationData.components?.city || '');
           }
         }
       } else {
         // If country not found, use geocoded value
         setValue('buyer_country', locationData.country);
+        setValue('buyer_city', locationData.city || locationData.components?.city || '');
       }
       
       // Fill other fields
-      setValue('buyer_city', locationData.city);
       setValue('buyer_districts', locationData.district);
       setValue('buyer_counties', locationData.district || locationData.city);
       
@@ -329,18 +433,56 @@ const CreateCampaignForm = ({ fillMode }) => {
           if (matchedState) {
             setSelectedSellerStateId(matchedState.id);
             setValue('seller_state', matchedState.name);
+            
+            // Fetch cities for the matched state and then match the city
+            const citiesResponse = await geographicAPI.getCitiesByState(matchedState.id);
+            if (citiesResponse?.status === 'success' && citiesResponse.data) {
+              // Sort cities alphabetically
+              const sortedCities = [...citiesResponse.data].sort((a, b) => 
+                (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+              );
+              setSellerCities(sortedCities);
+              
+              // Try to match the geocoded city with cities in the database
+              const geocodedCityName = locationData.city || locationData.components?.city || '';
+              if (geocodedCityName) {
+                // Try exact match first
+                let matchedCity = sortedCities.find(c => 
+                  c.name.toLowerCase() === geocodedCityName.toLowerCase()
+                );
+                
+                // Try partial match if exact match fails
+                if (!matchedCity) {
+                  matchedCity = sortedCities.find(c => 
+                    c.name.toLowerCase().includes(geocodedCityName.toLowerCase()) ||
+                    geocodedCityName.toLowerCase().includes(c.name.toLowerCase())
+                  );
+                }
+                
+                if (matchedCity) {
+                  setValue('seller_city', matchedCity.name);
+                } else {
+                  // If no match found, use the geocoded value
+                  setValue('seller_city', geocodedCityName);
+                }
+              }
+            } else {
+              // If cities fetch failed, use geocoded value
+              setValue('seller_city', locationData.city || locationData.components?.city || '');
+            }
           } else {
             // If state not found in DB, use the geocoded value
             setValue('seller_state', locationData.state);
+            setValue('seller_city', locationData.city || locationData.components?.city || '');
           }
         }
       } else {
         // If country not found, use geocoded value
         setValue('seller_country', locationData.country);
+        setValue('seller_city', locationData.city || locationData.components?.city || '');
       }
       
       // Fill other fields
-      setValue('seller_city', locationData.city);
       setValue('seller_districts', locationData.district);
       setValue('seller_counties', locationData.district || locationData.city);
       
@@ -605,24 +747,89 @@ const CreateCampaignForm = ({ fillMode }) => {
                       )}
                     </div>
 
-                    {/* Scheduled Date */}
-                    <div>
+                    {/* Scheduled Date & Time Range */}
+                    <div className="lg:col-span-2">
                       <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                         <Calendar className="w-4 h-4 mr-2 text-purple-600" />
-                        Scheduled Date & Time{" "}
+                        Scheduled Date & Time Range{" "}
                         <Text className="text-red-500 ml-1">*</Text>
                       </label>
-                      <input
-                        {...register("scheduled_at")}
-                        type="datetime-local"
-                        className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
-                      />
-                      {errors.scheduled_at && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.scheduled_at.message}
-                        </p>
-                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Start Date */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-2">
+                            Start Date <Text className="text-red-500">*</Text>
+                          </label>
+                          <input
+                            {...register("scheduled_start_date")}
+                            type="date"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                          />
+                          {errors.scheduled_start_date && (
+                            <p className="text-sm text-red-500 mt-2 flex items-center">
+                              <X className="w-4 h-4 mr-1" />
+                              {errors.scheduled_start_date.message}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* End Date */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-2">
+                            End Date <Text className="text-red-500">*</Text>
+                          </label>
+                          <input
+                            {...register("scheduled_end_date")}
+                            type="date"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                          />
+                          {errors.scheduled_end_date && (
+                            <p className="text-sm text-red-500 mt-2 flex items-center">
+                              <X className="w-4 h-4 mr-1" />
+                              {errors.scheduled_end_date.message}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Start Time */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-2">
+                            Start Time (Daily) <Text className="text-red-500">*</Text>
+                          </label>
+                          <input
+                            {...register("scheduled_start_time")}
+                            type="time"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                          />
+                          {errors.scheduled_start_time && (
+                            <p className="text-sm text-red-500 mt-2 flex items-center">
+                              <X className="w-4 h-4 mr-1" />
+                              {errors.scheduled_start_time.message}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* End Time */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-2">
+                            End Time (Daily) <Text className="text-red-500">*</Text>
+                          </label>
+                          <input
+                            {...register("scheduled_end_time")}
+                            type="time"
+                            className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                          />
+                          {errors.scheduled_end_time && (
+                            <p className="text-sm text-red-500 mt-2 flex items-center">
+                              <X className="w-4 h-4 mr-1" />
+                              {errors.scheduled_end_time.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        The time range (e.g., 9:00 AM to 9:00 PM) will apply to all days in the selected date range.
+                      </p>
                     </div>
 
                     {/* Status */}
@@ -913,9 +1120,11 @@ const CreateCampaignForm = ({ fillMode }) => {
                             const countryId = e.target.value ? parseInt(e.target.value) : null;
                             setSelectedBuyerCountryId(countryId);
                             setSelectedBuyerStateId(null);
+                            setBuyerCities([]); // Clear cities when country changes
                             const countryName = countryId ? countries.find(c => c.id === countryId)?.name : '';
                             setValue('buyer_country', countryName);
                             setValue('buyer_state', '');
+                            setValue('buyer_city', ''); // Clear city when country changes
                           }}
                           disabled={loadingCountries}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -943,8 +1152,10 @@ const CreateCampaignForm = ({ fillMode }) => {
                           onChange={(e) => {
                             const stateId = e.target.value ? parseInt(e.target.value) : null;
                             setSelectedBuyerStateId(stateId);
+                            setBuyerCities([]); // Clear cities when state changes
                             const stateName = stateId ? buyerStates.find(s => s.id === stateId)?.name : '';
                             setValue('buyer_state', stateName);
+                            setValue('buyer_city', ''); // Clear city when state changes
                           }}
                           disabled={!selectedBuyerCountryId || loadingBuyerStates}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -982,11 +1193,34 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <Building className="w-4 h-4 mr-2 text-blue-600" />
                           City
                         </label>
-                        <input
-                          {...register("buyer_city")}
-                          placeholder="e.g., Miami, Austin"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
-                        />
+                        <select
+                          value={selectedBuyerStateId && buyerCities.some(c => c.name === watch("buyer_city")) 
+                            ? watch("buyer_city") || '' 
+                            : ''}
+                          onChange={(e) => {
+                            setValue('buyer_city', e.target.value);
+                          }}
+                          disabled={!selectedBuyerStateId || loadingBuyerCities}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedBuyerStateId ? 'Select a state first' : loadingBuyerCities ? 'Loading cities...' : 'Select City'}
+                          </option>
+                          {buyerCities.map((city) => (
+                            <option key={city.id} value={city.name}>
+                              {city.name}
+                            </option>
+                          ))}
+                        </select>
+                        {loadingBuyerCities && (
+                          <p className="text-sm text-gray-500 mt-2">Loading cities...</p>
+                        )}
+                        {errors.buyer_city && (
+                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.buyer_city.message}
+                          </p>
+                        )}
                       </div>
 
                       {/* Districts */}
@@ -1143,9 +1377,11 @@ const CreateCampaignForm = ({ fillMode }) => {
                             const countryId = e.target.value ? parseInt(e.target.value) : null;
                             setSelectedSellerCountryId(countryId);
                             setSelectedSellerStateId(null);
+                            setSellerCities([]); // Clear cities when country changes
                             const countryName = countryId ? countries.find(c => c.id === countryId)?.name : '';
                             setValue('seller_country', countryName);
                             setValue('seller_state', '');
+                            setValue('seller_city', ''); // Clear city when country changes
                           }}
                           disabled={loadingCountries}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1173,8 +1409,10 @@ const CreateCampaignForm = ({ fillMode }) => {
                           onChange={(e) => {
                             const stateId = e.target.value ? parseInt(e.target.value) : null;
                             setSelectedSellerStateId(stateId);
+                            setSellerCities([]); // Clear cities when state changes
                             const stateName = stateId ? sellerStates.find(s => s.id === stateId)?.name : '';
                             setValue('seller_state', stateName);
+                            setValue('seller_city', ''); // Clear city when state changes
                           }}
                           disabled={!selectedSellerCountryId || loadingSellerStates}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1212,11 +1450,34 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <Building className="w-4 h-4 mr-2 text-emerald-600" />
                           City
                         </label>
-                        <input
-                          {...register("seller_city")}
-                          placeholder="e.g., Miami, Austin"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
-                        />
+                        <select
+                          value={selectedSellerStateId && sellerCities.some(c => c.name === watch("seller_city")) 
+                            ? watch("seller_city") || '' 
+                            : ''}
+                          onChange={(e) => {
+                            setValue('seller_city', e.target.value);
+                          }}
+                          disabled={!selectedSellerStateId || loadingSellerCities}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedSellerStateId ? 'Select a state first' : loadingSellerCities ? 'Loading cities...' : 'Select City'}
+                          </option>
+                          {sellerCities.map((city) => (
+                            <option key={city.id} value={city.name}>
+                              {city.name}
+                            </option>
+                          ))}
+                        </select>
+                        {loadingSellerCities && (
+                          <p className="text-sm text-gray-500 mt-2">Loading cities...</p>
+                        )}
+                        {errors.seller_city && (
+                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.seller_city.message}
+                          </p>
+                        )}
                       </div>
 
                       {/* Districts */}
@@ -1246,6 +1507,28 @@ const CreateCampaignForm = ({ fillMode }) => {
                       </div>
                     </div>
 
+                    {/* Map Location Picker for Seller */}
+                    <div className="mb-6">
+                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                        <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
+                        Select Location on Map
+                      </label>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Click on the map to automatically fill location fields above
+                      </p>
+                      <LocationPicker
+                        onLocationSelect={handleSellerLocationSelect}
+                        initialPosition={sellerMapPosition || [20.5937, 78.9629]}
+                        zoom={sellerMapPosition ? 10 : 5}
+                        height={400}
+                      />
+                      {isGeocodingSeller && (
+                        <div className="text-sm text-emerald-600 mt-2 flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                          <span>Getting location details...</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
