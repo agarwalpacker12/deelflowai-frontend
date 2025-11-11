@@ -206,15 +206,15 @@ export const campaignSchema = yup.object().shape({
     otherwise: (schema) => schema.nullable(),
   }),
 
-  minimum_equity: yup.number().when("campaign_type", {
-    is: (val) => val && val !== "buyer_finder",
-    then: (schema) =>
-      schema
-        .required("Minimum equity is required")
-        .min(0, "Minimum equity must be non-negative")
-        .max(10000000, "Minimum equity cannot exceed $10,000,000"),
-    otherwise: (schema) => schema.nullable(),
-  }),
+  // minimum_equity: yup.number().when("campaign_type", {
+  //   is: (val) => val && val !== "buyer_finder",
+  //   then: (schema) =>
+  //     schema
+  //       .required("Minimum equity is required")
+  //       .min(0, "Minimum equity must be non-negative")
+  //       .max(10000000, "Minimum equity cannot exceed $10,000,000"),
+  //   otherwise: (schema) => schema.nullable(),
+  // }),
 
   // Price range validation (conditional)
   min_price: yup.number().when("campaign_type", {

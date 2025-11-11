@@ -194,7 +194,7 @@ const EditCampaignForm = ({ fillMode, campaign }) => {
       );
       setValue("geographic_scope_type", campaign.geographic_scope_type || "");
       setValue("property_type", campaign.property_type || "");
-      setValue("minimum_equity", campaign.minimum_equity || "");
+      setValue("minimum_equity", campaign.minimum_equity || 0);
       setValue("distress_indicators", campaign.distress_indicators || []);
 
       // Set price range
@@ -679,7 +679,7 @@ const EditCampaignForm = ({ fillMode, campaign }) => {
         property_type: formData.property_type || "",
         min_price: formData.min_price || null,
         max_price: formData.max_price || null,
-        minimum_equity: formData.minimum_equity || null,
+        minimum_equity: formData.minimum_equity || 0,
         distress_indicators: formData.distress_indicators || [],
         // Buyer Finder fields
         buyer_country: formData.buyer_country || "",
@@ -2149,7 +2149,7 @@ const EditCampaignForm = ({ fillMode, campaign }) => {
                   {mutation.isPending ? (
                     <>
                       <ButtonLoader className="mr-3 text-white" />
-                      Creating Campaign...
+                      Updating Campaign...
                     </>
                   ) : (
                     <>
