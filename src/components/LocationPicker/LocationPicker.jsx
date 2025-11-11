@@ -1,21 +1,60 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
-// Fix for default marker icon in React-Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+// Lazy load react-leaflet components to avoid SSR and Context issues
+let MapContainer, TileLayer, Marker, useMapEvents, Popup, useMap, L;
+let leafletLoaded = false;
+
+// Try to import react-leaflet, but handle gracefully if it fails
+const loadLeaflet = async () => {
+  if (leafletLoaded) return true;
+  
+  try {
+    // Use dynamic import for better compatibility with Vite
+    const [leafletModule, leafletL] = await Promise.all([
+      import("react-leaflet"),
+      import("leaflet")
+    ]);
+    
+    // Import leaflet CSS
+    await import("leaflet/dist/leaflet.css");
+    
+    MapContainer = leafletModule.MapContainer;
+    TileLayer = leafletModule.TileLayer;
+    Marker = leafletModule.Marker;
+    useMapEvents = leafletModule.useMapEvents;
+    Popup = leafletModule.Popup;
+    useMap = leafletModule.useMap;
+    L = leafletL.default || leafletL;
+    
+    // Fix for default marker icon in React-Leaflet
+    if (L && L.Icon && L.Icon.Default) {
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+      });
+    }
+    
+    leafletLoaded = true;
+    return true;
+  } catch (error) {
+    console.warn("react-leaflet not available, LocationPicker will be disabled:", error);
+    return false;
+  }
+};
 
 /**
  * Map click handler component - must be inside MapContainer
  */
 function MapClickHandler({ onLocationSelect, position }) {
   const [mapPosition, setMapPosition] = useState(position);
+  
+  // Check if hooks are available
+  if (!useMap || !useMapEvents) {
+    return null;
+  }
+  
   const map = useMap();
   
   useMapEvents({
@@ -28,7 +67,7 @@ function MapClickHandler({ onLocationSelect, position }) {
 
   // Update position when prop changes
   useEffect(() => {
-    if (position) {
+    if (position && map) {
       setMapPosition(position);
       map.setView(position, map.getZoom());
     }
@@ -40,6 +79,10 @@ function MapClickHandler({ onLocationSelect, position }) {
     setMapPosition([lat, lng]);
     onLocationSelect({ lat, lng });
   };
+
+  if (!Marker || !Popup) {
+    return null;
+  }
 
   return mapPosition ? (
     <Marker 
@@ -81,6 +124,22 @@ const LocationPicker = ({
 }) => {
   const [position, setPosition] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [leafletAvailable, setLeafletAvailable] = useState(false);
+
+  // Only render on client side to avoid SSR issues and load leaflet
+  useEffect(() => {
+    setIsClient(true);
+    // Load leaflet after component mounts (client-side only)
+    if (typeof window !== 'undefined') {
+      loadLeaflet().then(loaded => {
+        setLeafletAvailable(loaded);
+      }).catch(err => {
+        console.error("Failed to load react-leaflet:", err);
+        setLeafletAvailable(false);
+      });
+    }
+  }, []);
 
   const handleLocationSelect = async ({ lat, lng }) => {
     setPosition([lat, lng]);
@@ -98,9 +157,32 @@ const LocationPicker = ({
     }
   };
 
+  // Check if react-leaflet is available
+  if (!isClient || !leafletAvailable || !MapContainer || !TileLayer) {
+    return (
+      <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
+        <div className="relative bg-gray-100 flex items-center justify-center" style={{ height: `${height}px` }}>
+          <div className="text-center p-8">
+            <p className="text-gray-600 mb-2">Map unavailable</p>
+            <p className="text-sm text-gray-500">
+              Please install react-leaflet: <code className="bg-gray-200 px-2 py-1 rounded">npm install react-leaflet leaflet</code>
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Or enter coordinates manually in the location fields above.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
       <style>{`
+        .leaflet-container {
+          height: 100%;
+          width: 100%;
+        }
         .leaflet-control-attribution {
           display: none !important;
         }
@@ -111,6 +193,7 @@ const LocationPicker = ({
           zoom={zoom}
           style={{ height: "100%", width: "100%", zIndex: 0 }}
           scrollWheelZoom={true}
+          key={`map-${isClient}`} // Force re-render on client
         >
           <TileLayer
             attribution=""

@@ -36,7 +36,7 @@ import { setCampaigns } from "../../../store/slices/campaignsSlice";
 import { useCallback, useState, useEffect } from "react";
 import PriceRangeSlider from "../PriceRangeSlider";
 import { geographicAPI } from "../../../services/api";
-import LocationPicker from "../../../components/LocationPicker/LocationPicker";
+import LocationPicker from "../../../components/LocationPicker/LocationPickerWrapper";
 import { reverseGeocode } from "../../../services/geocoding";
 
 const EditCampaignForm = ({ fillMode, campaign }) => {
