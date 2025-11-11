@@ -570,7 +570,7 @@ const CreateCampaignForm = ({ fillMode }) => {
         property_type: formData.property_type || "",
         min_price: formData.min_price || null,
         max_price: formData.max_price || null,
-        minimum_equity: formData.minimum_equity || null,
+        minimum_equity: formData.minimum_equity || 0,
         distress_indicators: formData.distress_indicators || [],
         // Buyer Finder fields
         buyer_country: formData.buyer_country || "",
