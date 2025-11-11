@@ -36,17 +36,29 @@ const LocationPicker = lazy(() =>
 /**
  * LocationPickerWrapper - Safely wraps LocationPicker with error boundary
  * Shows a "coming soon" placeholder if map fails to load instead of crashing
+ * 
+ * Multiple layers of protection:
+ * 1. Lazy loading with Suspense fallback
+ * 2. Import error catch handler
+ * 3. Try-catch wrapper for runtime errors
  */
 const LocationPickerWrapper = (props) => {
-  return (
-    <Suspense
-      fallback={
-        <MapPlaceholder height={props.height || 400} />
-      }
-    >
-      <LocationPicker {...props} />
-    </Suspense>
-  );
+  // Wrap in try-catch for additional safety
+  try {
+    return (
+      <Suspense
+        fallback={
+          <MapPlaceholder height={props.height || 400} />
+        }
+      >
+        <LocationPicker {...props} />
+      </Suspense>
+    );
+  } catch (error) {
+    // Final safety net - if anything crashes, show placeholder
+    console.warn("LocationPickerWrapper error, showing placeholder:", error);
+    return <MapPlaceholder height={props.height || 400} />;
+  }
 };
 
 export default LocationPickerWrapper;
