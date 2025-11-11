@@ -1,41 +1,47 @@
 import { lazy, Suspense } from "react";
 
-// Lazy load LocationPicker to avoid SSR and Context issues
-const LocationPicker = lazy(() => 
-  import("./LocationPicker").catch(() => ({
-    default: () => (
-      <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
-        <div className="relative bg-gray-100 flex items-center justify-center" style={{ height: "400px" }}>
-          <div className="text-center p-8">
-            <p className="text-gray-600 mb-2">Map unavailable</p>
-            <p className="text-sm text-gray-500">
-              Location picker is temporarily unavailable.
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Please enter location details manually in the form fields above.
-            </p>
-          </div>
+// Placeholder component for when map fails to load
+const MapPlaceholder = ({ height = 400 }) => (
+  <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
+    <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center" style={{ height: `${height}px` }}>
+      <div className="text-center p-8 max-w-md">
+        <div className="mb-4">
+          <svg className="w-16 h-16 mx-auto text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
         </div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">Interactive Map</h3>
+        <p className="text-gray-600 mb-4">
+          Live interactive map will be integrated soon.
+        </p>
+        <p className="text-sm text-gray-500">
+          Please use the location fields above to enter coordinates manually.
+        </p>
       </div>
-    )
-  }))
+    </div>
+  </div>
+);
+
+// Lazy load LocationPicker to avoid SSR and Context issues
+// Fallback to MapPlaceholder if LocationPicker fails to load
+const LocationPicker = lazy(() => 
+  import("./LocationPicker").catch((error) => {
+    console.warn("LocationPicker failed to load, showing placeholder:", error);
+    return {
+      default: (props) => <MapPlaceholder height={props.height || 400} />
+    };
+  })
 );
 
 /**
  * LocationPickerWrapper - Safely wraps LocationPicker with error boundary
+ * Shows a "coming soon" placeholder if map fails to load instead of crashing
  */
 const LocationPickerWrapper = (props) => {
   return (
     <Suspense
       fallback={
-        <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
-          <div className="relative bg-gray-100 flex items-center justify-center" style={{ height: props.height || 400 }}>
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600">Loading map...</p>
-            </div>
-          </div>
-        </div>
+        <MapPlaceholder height={props.height || 400} />
       }
     >
       <LocationPicker {...props} />

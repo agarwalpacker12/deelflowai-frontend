@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import SimpleLocationInput from "./SimpleLocationInput";
+
+// ENABLED: react-leaflet with React 18 compatibility fixes
+// Set to true to enable map, false to use SimpleLocationInput fallback
+const USE_LEAFLET = true; // Try enabling with React 18 fixes
 
 // Lazy load react-leaflet components to avoid SSR and Context issues
 let MapContainer, TileLayer, Marker, useMapEvents, Popup, useMap, L;
@@ -6,6 +11,11 @@ let leafletLoaded = false;
 
 // Try to import react-leaflet, but handle gracefully if it fails
 const loadLeaflet = async () => {
+  // If leaflet is disabled, don't try to load it
+  if (!USE_LEAFLET) {
+    return false;
+  }
+  
   if (leafletLoaded) return true;
   
   try {
@@ -18,13 +28,22 @@ const loadLeaflet = async () => {
     // Import leaflet CSS
     await import("leaflet/dist/leaflet.css");
     
-    MapContainer = leafletModule.MapContainer;
-    TileLayer = leafletModule.TileLayer;
-    Marker = leafletModule.Marker;
-    useMapEvents = leafletModule.useMapEvents;
-    Popup = leafletModule.Popup;
-    useMap = leafletModule.useMap;
+    // React 18 compatibility: Ensure we get the actual components, not wrapped versions
+    MapContainer = leafletModule.MapContainer || leafletModule.default?.MapContainer;
+    TileLayer = leafletModule.TileLayer || leafletModule.default?.TileLayer;
+    Marker = leafletModule.Marker || leafletModule.default?.Marker;
+    useMapEvents = leafletModule.useMapEvents || leafletModule.default?.useMapEvents;
+    Popup = leafletModule.Popup || leafletModule.default?.Popup;
+    useMap = leafletModule.useMap || leafletModule.default?.useMap;
     L = leafletL.default || leafletL;
+    
+    // Validate that we got actual functions, not undefined
+    if (!MapContainer || typeof MapContainer !== 'function') {
+      throw new Error("MapContainer is not a valid function");
+    }
+    if (!TileLayer || typeof TileLayer !== 'function') {
+      throw new Error("TileLayer is not a valid function");
+    }
     
     // Fix for default marker icon in React-Leaflet
     if (L && L.Icon && L.Icon.Default) {
@@ -50,20 +69,32 @@ const loadLeaflet = async () => {
 function MapClickHandler({ onLocationSelect, position }) {
   const [mapPosition, setMapPosition] = useState(position);
   
-  // Check if hooks are available
-  if (!useMap || !useMapEvents) {
+  // Check if hooks are available and are functions
+  if (!useMap || typeof useMap !== 'function' || !useMapEvents || typeof useMapEvents !== 'function') {
     return null;
   }
   
-  const map = useMap();
+  let map;
+  try {
+    map = useMap();
+  } catch (error) {
+    console.error("useMap hook error:", error);
+    return null;
+  }
   
-  useMapEvents({
-    click(e) {
-      const { lat, lng } = e.latlng;
-      setMapPosition([lat, lng]);
-      onLocationSelect({ lat, lng });
-    },
-  });
+  // Safely call useMapEvents
+  try {
+    useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng;
+        setMapPosition([lat, lng]);
+        onLocationSelect({ lat, lng });
+      },
+    });
+  } catch (error) {
+    console.error("useMapEvents error:", error);
+    return null;
+  }
 
   // Update position when prop changes
   useEffect(() => {
@@ -130,14 +161,17 @@ const LocationPicker = ({
   // Only render on client side to avoid SSR issues and load leaflet
   useEffect(() => {
     setIsClient(true);
-    // Load leaflet after component mounts (client-side only)
-    if (typeof window !== 'undefined') {
+    // Only try to load leaflet if it's enabled
+    if (USE_LEAFLET && typeof window !== 'undefined') {
       loadLeaflet().then(loaded => {
         setLeafletAvailable(loaded);
       }).catch(err => {
-        console.error("Failed to load react-leaflet:", err);
+        console.warn("Failed to load react-leaflet, showing placeholder:", err);
         setLeafletAvailable(false);
       });
+    } else {
+      // Leaflet is disabled, mark as unavailable
+      setLeafletAvailable(false);
     }
   }, []);
 
@@ -157,18 +191,50 @@ const LocationPicker = ({
     }
   };
 
-  // Check if react-leaflet is available
-  if (!isClient || !leafletAvailable || !MapContainer || !TileLayer) {
+  // Check if react-leaflet is available or if it's disabled
+  // If not available, show a "coming soon" placeholder instead of crashing
+  if (!USE_LEAFLET || !isClient || !leafletAvailable || !MapContainer || !TileLayer) {
+    // Show a nice placeholder message instead of crashing
     return (
       <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
-        <div className="relative bg-gray-100 flex items-center justify-center" style={{ height: `${height}px` }}>
-          <div className="text-center p-8">
-            <p className="text-gray-600 mb-2">Map unavailable</p>
-            <p className="text-sm text-gray-500">
-              Please install react-leaflet: <code className="bg-gray-200 px-2 py-1 rounded">npm install react-leaflet leaflet</code>
+        <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center" style={{ height: `${height}px` }}>
+          <div className="text-center p-8 max-w-md">
+            <div className="mb-4">
+              <svg className="w-16 h-16 mx-auto text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Interactive Map</h3>
+            <p className="text-gray-600 mb-4">
+              Live interactive map will be integrated soon.
             </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Or enter coordinates manually in the location fields above.
+            <p className="text-sm text-gray-500">
+              Please use the location fields above to enter coordinates manually.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Additional validation: Ensure MapContainer and TileLayer are functions
+  if (typeof MapContainer !== 'function' || typeof TileLayer !== 'function') {
+    console.error("MapContainer or TileLayer is not a function, showing placeholder");
+    return (
+      <div className="w-full rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
+        <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center" style={{ height: `${height}px` }}>
+          <div className="text-center p-8 max-w-md">
+            <div className="mb-4">
+              <svg className="w-16 h-16 mx-auto text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Interactive Map</h3>
+            <p className="text-gray-600 mb-4">
+              Live interactive map will be integrated soon.
+            </p>
+            <p className="text-sm text-gray-500">
+              Please use the location fields above to enter coordinates manually.
             </p>
           </div>
         </div>
