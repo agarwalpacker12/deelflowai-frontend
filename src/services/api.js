@@ -3,11 +3,12 @@ import axios from "axios";
 // Base URLs - Use environment variables with fallbacks
 // Priority: VITE_API_URL > VITE_API_HOST + VITE_API_PORT > default
 const getBaseURL = () => {
-  // For development mode, prefer localhost unless explicitly set to dev server
+  // Detect if page is served over HTTPS
+  const isHTTPS = typeof window !== 'undefined' && window.location.protocol === 'https:';
   const isDevelopment = import.meta.env.MODE === 'development';
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   
-  // If VITE_API_URL is set and valid, check if we should override it for local dev
+  // If VITE_API_URL is set and valid, use it
   if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'undefined/api') {
     const url = import.meta.env.VITE_API_URL;
     
@@ -22,23 +23,29 @@ const getBaseURL = () => {
     return url.replace(/\/api\/?$/, '');
   }
   
-  // Otherwise, construct from host and port
-  const host = import.meta.env.VITE_API_HOST || 'localhost';
-  const port = import.meta.env.VITE_API_PORT || '8140';
-  
-  // Determine protocol based on environment
-  const protocol = 'http';
-  
-  // For development mode, default to localhost
-  // For production mode, use dev.deelflowai.com if host is still localhost
-  if (import.meta.env.MODE === 'production' && host === 'localhost') {
+  // Determine API URL based on environment and current page protocol
+  if (import.meta.env.MODE === 'production') {
+    // Production: Use API URL based on page protocol
+    if (isHTTPS) {
+      // Frontend is HTTPS - use HTTPS API
+      // Check if custom port is specified, otherwise use standard HTTPS (port 443)
+      const customPort = import.meta.env.VITE_API_PORT;
+      if (customPort && customPort !== '443') {
+        // Use custom HTTPS port (e.g., 8140)
+        return `https://api.deelflowai.com:${customPort}`;
+      }
+      // Use standard HTTPS (port 443 - no port in URL)
+      return 'https://api.deelflowai.com';
+    }
+    // If page is HTTP (dev server), use dev API with HTTP
+    const port = import.meta.env.VITE_API_PORT || '8140';
     return `http://dev.deelflowai.com:${port}`;
   }
   
-  // For development, use localhost
-  if (import.meta.env.MODE === 'development' && host === 'localhost') {
-    return `http://localhost:${port}`;
-  }
+  // Development: Use localhost or configured host/port
+  const host = import.meta.env.VITE_API_HOST || 'localhost';
+  const port = import.meta.env.VITE_API_PORT || '8140';
+  const protocol = isHTTPS ? 'https' : 'http';
   
   return `${protocol}://${host}:${port}`;
 };
@@ -46,15 +53,19 @@ const getBaseURL = () => {
 const BASE_URL = getBaseURL();
 const API_BASE_URL = `${BASE_URL}/api`;
 
-// Debug logging (only in development)
-if (import.meta.env.DEV) {
-  console.log('=== API Configuration ===');
+// Debug logging (always show in production for troubleshooting)
+if (import.meta.env.DEV || import.meta.env.MODE === 'production') {
+  console.log('=== Environment Variables Test ===');
+  console.log('NODE_ENV:', import.meta.env.MODE);
   console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-  console.log('VITE_API_HOST:', import.meta.env.VITE_API_HOST);
   console.log('VITE_API_PORT:', import.meta.env.VITE_API_PORT);
+  console.log('All VITE_ variables:', import.meta.env);
+  console.log('=== API Configuration ===');
   console.log('BASE_URL:', BASE_URL);
   console.log('API_BASE_URL:', API_BASE_URL);
-  console.log('MODE:', import.meta.env.MODE);
+  console.log('Page Protocol:', typeof window !== 'undefined' ? window.location.protocol : 'N/A');
+  console.log('Page Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'N/A');
+  console.log('===============================');
 }
 
 // Create a single API instance for all requests
