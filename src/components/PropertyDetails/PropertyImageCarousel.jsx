@@ -1,5 +1,29 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Image as ImageIcon } from "lucide-react";
+
+// Component to handle image with placeholder icon fallback
+const ImageWithPlaceholder = ({ src, alt, className, onClick, placeholderClassName, iconSize = "w-16 h-16", showText = true }) => {
+  const [imageError, setImageError] = useState(false);
+
+  if (!src || imageError) {
+    return (
+      <div className={placeholderClassName || "w-full h-full flex flex-col items-center justify-center bg-gray-800/50"}>
+        <ImageIcon className={`${iconSize} text-gray-400 ${showText ? 'mb-2' : ''}`} />
+        {showText && <p className="text-gray-400 text-sm">Image not available</p>}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => setImageError(true)}
+    />
+  );
+};
 
 const PropertyImageCarousel = ({ images = [], propertyAddress = "" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,21 +86,15 @@ const PropertyImageCarousel = ({ images = [], propertyAddress = "" }) => {
       <div className="relative w-full">
         {/* Main Image */}
         <div className="relative w-full h-48 sm:h-64 md:h-80 lg:h-96 bg-gray-900 rounded-lg overflow-hidden group">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={`${propertyAddress} - Image ${currentIndex + 1}`}
-              className="w-full h-full object-cover cursor-pointer"
-              onClick={openFullscreen}
-              onError={(e) => {
-                e.target.src = "/images/house1.jpg";
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-800">
-              <p className="text-gray-400">Image not available</p>
-            </div>
-          )}
+          <ImageWithPlaceholder
+            src={imageUrl}
+            alt={`${propertyAddress} - Image ${currentIndex + 1}`}
+            className="w-full h-full object-cover cursor-pointer"
+            onClick={openFullscreen}
+            placeholderClassName="w-full h-full flex flex-col items-center justify-center bg-gray-800/50"
+            iconSize="w-16 h-16 sm:w-20 sm:h-20"
+            showText={true}
+          />
 
           {/* Navigation Arrows */}
           {images.length > 1 && (
@@ -147,20 +165,14 @@ const PropertyImageCarousel = ({ images = [], propertyAddress = "" }) => {
                       : "border-gray-700 hover:border-gray-600"
                   }`}
                 >
-                  {thumbUrl ? (
-                    <img
-                      src={thumbUrl}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "/images/house1.jpg";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                      <span className="text-xs text-gray-500">{index + 1}</span>
-                    </div>
-                  )}
+                  <ImageWithPlaceholder
+                    src={thumbUrl}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    placeholderClassName="w-full h-full bg-gray-800 flex items-center justify-center"
+                    iconSize="w-6 h-6"
+                    showText={false}
+                  />
                 </button>
               );
             })}
@@ -183,16 +195,14 @@ const PropertyImageCarousel = ({ images = [], propertyAddress = "" }) => {
           </button>
 
           <div className="relative max-w-7xl max-h-full" onClick={(e) => e.stopPropagation()}>
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt={`${propertyAddress} - Image ${currentIndex + 1}`}
-                className="max-w-full max-h-[90vh] object-contain"
-                onError={(e) => {
-                  e.target.src = "/images/house1.jpg";
-                }}
-              />
-            )}
+            <ImageWithPlaceholder
+              src={imageUrl}
+              alt={`${propertyAddress} - Image ${currentIndex + 1}`}
+              className="max-w-full max-h-[90vh] object-contain"
+              placeholderClassName="w-full h-full min-h-[50vh] flex flex-col items-center justify-center bg-gray-900"
+              iconSize="w-24 h-24"
+              showText={true}
+            />
 
             {images.length > 1 && (
               <>

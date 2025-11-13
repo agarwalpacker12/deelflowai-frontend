@@ -4,6 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { propertySaveAPI } from "../../services/api";
 import PropertyDetailsModal from "../../components/PropertyDetails/PropertyDetailsModal";
 
+// Component to handle image with placeholder icon fallback
+const ImageWithPlaceholder = ({ src, alt, className, placeholderClassName, iconSize = "h-6 w-6" }) => {
+  const [imageError, setImageError] = useState(false);
+
+  if (!src || imageError) {
+    return (
+      <div className={placeholderClassName}>
+        <Home className={`${iconSize} text-gray-400`} />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setImageError(true)}
+    />
+  );
+};
+
 const Table = ({
   properties = [],
   loading = false,
@@ -15,21 +37,6 @@ const Table = ({
   onDelete,
 }) => {
   console.log("101", properties);
-  const staticImages = [
-    "house1.jpg",
-    "house2.jpg",
-    "house3.jpg",
-    "house4.jpg",
-    "house5.jpg",
-    "house6.jpg",
-    "house7.jpg",
-    "house8.jpg",
-    "house9.jpg",
-    "house10.jpg",
-  ];
-
-  const randomStaticImage =
-    staticImages[Math.floor(Math.random() * staticImages.length)];
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
@@ -146,7 +153,7 @@ const Table = ({
               </thead>
               <tbody>
               {properties.map((property) => {
-                // Use first image from property.images array, fallback to static images
+                // Use first image from property.images array
                 let propertyImage = null;
                 if (property.images && property.images.length > 0) {
                   const firstImage = property.images[0];
@@ -162,18 +169,7 @@ const Table = ({
                       // Relative path - prepend /images/
                       propertyImage = `/images/${firstImage}`;
                     }
-                  } else {
-                    propertyImage = null;
                   }
-                }
-                
-                // Fallback to deterministic static image based on property ID if no image found
-                if (!propertyImage) {
-                  const propertyIdNum = typeof property.id === 'string' 
-                    ? (property.id.match(/\d+/) ? parseInt(property.id.match(/\d+/)[0], 10) : 0)
-                    : (property.id || 0);
-                  const imageIndex = propertyIdNum % staticImages.length;
-                  propertyImage = `/images/${staticImages[imageIndex]}`;
                 }
                 
                 return (
@@ -182,22 +178,13 @@ const Table = ({
                     className="border-b border-white/10 hover:bg-white/5"
                   >
                     <td className="p-3 xl:p-4">
-                      {propertyImage ? (
-                        <img
-                          src={propertyImage}
-                          alt="Property"
-                          className="w-16 h-12 xl:w-20 xl:h-16 object-cover rounded-lg border border-white/10"
-                          onError={(e) => {
-                            // Fallback to first static image if image fails to load
-                            const fallbackIndex = (property.id || 0) % staticImages.length;
-                            e.target.src = `/images/${staticImages[fallbackIndex]}`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-16 h-12 xl:w-20 xl:h-16 bg-gray-700 rounded-lg flex items-center justify-center">
-                          <Home className="h-6 w-6 xl:h-8 xl:w-8 text-gray-400" />
-                        </div>
-                      )}
+                      <ImageWithPlaceholder 
+                        src={propertyImage}
+                        alt="Property"
+                        className="w-16 h-12 xl:w-20 xl:h-16 object-cover rounded-lg border border-white/10"
+                        placeholderClassName="w-16 h-12 xl:w-20 xl:h-16 bg-gray-700/50 rounded-lg flex items-center justify-center border border-white/10"
+                        iconSize="h-6 w-6 xl:h-8 xl:w-8"
+                      />
                     </td>
                     <td className="p-3 xl:p-4">
                       <div className="text-white font-medium text-sm xl:text-base">
@@ -367,7 +354,7 @@ const Table = ({
           {/* Mobile Card View - Visible on mobile/tablet */}
           <div className="lg:hidden space-y-4 p-4">
             {properties.map((property) => {
-              // Use first image from property.images array, fallback to static images
+              // Use first image from property.images array
               let propertyImage = null;
               if (property.images && property.images.length > 0) {
                 const firstImage = property.images[0];
@@ -381,14 +368,6 @@ const Table = ({
                   }
                 }
               }
-              
-              if (!propertyImage) {
-                const propertyIdNum = typeof property.id === 'string' 
-                  ? (property.id.match(/\d+/) ? parseInt(property.id.match(/\d+/)[0], 10) : 0)
-                  : (property.id || 0);
-                const imageIndex = propertyIdNum % staticImages.length;
-                propertyImage = `/images/${staticImages[imageIndex]}`;
-              }
 
               return (
                 <div
@@ -398,21 +377,13 @@ const Table = ({
                   {/* Image and Address Row */}
                   <div className="flex gap-4">
                     <div className="flex-shrink-0">
-                      {propertyImage ? (
-                        <img
-                          src={propertyImage}
-                          alt="Property"
-                          className="w-24 h-20 object-cover rounded-lg border border-white/10"
-                          onError={(e) => {
-                            const fallbackIndex = (property.id || 0) % staticImages.length;
-                            e.target.src = `/images/${staticImages[fallbackIndex]}`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-24 h-20 bg-gray-700 rounded-lg flex items-center justify-center">
-                          <Home className="h-8 w-8 text-gray-400" />
-                        </div>
-                      )}
+                      <ImageWithPlaceholder 
+                        src={propertyImage}
+                        alt="Property"
+                        className="w-24 h-20 object-cover rounded-lg border border-white/10"
+                        placeholderClassName="w-24 h-20 bg-gray-700/50 rounded-lg flex items-center justify-center border border-white/10"
+                        iconSize="h-8 w-8"
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-white font-medium text-sm truncate">
