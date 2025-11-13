@@ -14,13 +14,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: "0.0.0.0", // Allow external connections (needed for Codespaces)
+    // Use 127.0.0.1 (IPv4) explicitly to avoid IPv6 binding issues on Windows
+    // When using "localhost", Node.js may try IPv6 (::1) first, causing permission errors
+    // Use 0.0.0.0 for production/deployment (Codespaces, Docker, etc.)
+    host: process.env.VITE_USE_EXTERNAL_HOST === 'true' ? "0.0.0.0" : "127.0.0.1",
     hmr: {
       port: 5175,
-      // Use localhost for HMR client connection (browser can't connect to 0.0.0.0)
-      // The server will still listen on 0.0.0.0, but the client connects to localhost
-      host: process.env.NODE_ENV === 'development' ? 'localhost' : "0.0.0.0",
-      clientPort: process.env.NODE_ENV === 'development' ? 5175 : undefined,
+      // Use 127.0.0.1 (IPv4) for HMR to avoid IPv6 binding issues
+      host: '127.0.0.1',
+      clientPort: 5175,
       // Protocol for HMR WebSocket
       protocol: process.env.NODE_ENV === 'development' ? 'ws' : 'wss',
     },
