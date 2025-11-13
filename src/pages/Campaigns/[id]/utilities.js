@@ -115,11 +115,11 @@ export const campaignSchema = yup.object().shape({
     .min(1, "Please select at least one channel")
     .required("Channel is required"),
 
-  budget: yup
-    .number()
-    .nullable()
-    .min(0.01, "Budget must be greater than $0.01")
-    .max(1000000, "Budget cannot exceed $1,000,000"),
+  // budget: yup
+  //   .number()
+  //   .nullable()
+  //   .min(0.01, "Budget must be greater than $0.01")
+  //   .max(1000000, "Budget cannot exceed $1,000,000"),
 
   scheduled_start_date: yup
     .string()
@@ -414,17 +414,17 @@ export const campaignSchema = yup.object().shape({
   //   }),
 
   // Seller Finder - Additional Fields (conditional)
-  property_year_built_min: yup.string().when("campaign_type", {
-    is: "seller_finder",
-    then: (schema) => schema.required("Property year built min is required"),
-    otherwise: (schema) => schema.nullable().optional(),
-  }),
+  // property_year_built_min: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) => schema.required("Property year built min is required"),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
 
-  property_year_built_max: yup.string().when("campaign_type", {
-    is: "seller_finder",
-    then: (schema) => schema.required("Property year built max is required"),
-    otherwise: (schema) => schema.nullable().optional(),
-  }),
+  // property_year_built_max: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) => schema.required("Property year built max is required"),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
 
   seller_keywords: yup.string().when("campaign_type", {
     is: "seller_finder",

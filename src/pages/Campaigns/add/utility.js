@@ -414,17 +414,17 @@ export const campaignSchema = yup.object().shape({
   //   }),
 
   // Seller Finder - Additional Fields (conditional)
-  property_year_built_min: yup.string().when("campaign_type", {
-    is: "seller_finder",
-    then: (schema) => schema.required("Property year built min is required"),
-    otherwise: (schema) => schema.nullable().optional(),
-  }),
+  // property_year_built_min: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) => schema.required("Property year built min is required"),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
 
-  property_year_built_max: yup.string().when("campaign_type", {
-    is: "seller_finder",
-    then: (schema) => schema.required("Property year built max is required"),
-    otherwise: (schema) => schema.nullable().optional(),
-  }),
+  // property_year_built_max: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) => schema.required("Property year built max is required"),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
 
   seller_keywords: yup.string().when("campaign_type", {
     is: "seller_finder",

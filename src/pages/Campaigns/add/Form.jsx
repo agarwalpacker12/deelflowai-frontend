@@ -52,9 +52,9 @@ const CreateCampaignForm = ({ fillMode }) => {
   const [sellerStates, setSellerStates] = useState([]);
   const [buyerCities, setBuyerCities] = useState([]);
   const [sellerCities, setSellerCities] = useState([]);
-  const [selectedBuyerCountryId, setSelectedBuyerCountryId] = useState(null);
+  const [selectedBuyerCountryId, setSelectedBuyerCountryId] = useState("233");
   const [selectedBuyerStateId, setSelectedBuyerStateId] = useState(null);
-  const [selectedSellerCountryId, setSelectedSellerCountryId] = useState(null);
+  const [selectedSellerCountryId, setSelectedSellerCountryId] = useState("233");
   const [selectedSellerStateId, setSelectedSellerStateId] = useState(null);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingBuyerStates, setLoadingBuyerStates] = useState(false);
@@ -629,6 +629,7 @@ const CreateCampaignForm = ({ fillMode }) => {
       setIsGeneratingAI(false);
     }
   };
+  console.log("selectedBuyerCountryId", selectedBuyerCountryId);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
