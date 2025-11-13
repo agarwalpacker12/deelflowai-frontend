@@ -47,8 +47,6 @@ const EditCampaignForm = ({ fillMode, campaign }) => {
     { id: 3, name: "Palm Beach" },
   ]);
 
-  console.log("campaigns11", campaigns);
-
   // Geographic data state
   const [countries, setCountries] = useState([]);
   const [buyerStates, setBuyerStates] = useState([]);
@@ -225,7 +223,6 @@ const EditCampaignForm = ({ fillMode, campaign }) => {
 
       // Set buyer finder fields
       if (campaign.campaign_type === "buyer_finder") {
-        // debugger;
         setValue("buyer_country", campaign.buyer_country || "");
         setValue("buyer_state", campaign.buyer_state || "");
         setValue("buyer_counties", campaign.buyer_counties || "");
@@ -296,6 +293,152 @@ const EditCampaignForm = ({ fillMode, campaign }) => {
 
     fetchCountries();
   }, []);
+
+  // Match buyer country and state names to IDs when countries are loaded and campaign data is available
+  useEffect(() => {
+    const matchBuyerGeographicData = async () => {
+      if (
+        !campaign ||
+        !countries.length ||
+        campaign.campaign_type !== "buyer_finder"
+      ) {
+        return;
+      }
+
+      // Match buyer country
+      if (campaign.buyer_country) {
+        const matchedCountry = countries.find(
+          (c) => c.name.toLowerCase() === campaign.buyer_country.toLowerCase()
+        );
+        if (matchedCountry) {
+          setSelectedBuyerCountryId(matchedCountry.id);
+
+          // If there's a buyer state, fetch states and match it
+          if (campaign.buyer_state) {
+            try {
+              const statesResponse = await geographicAPI.getStatesByCountry(
+                matchedCountry.id
+              );
+              if (statesResponse.status === "success") {
+                setBuyerStates(statesResponse.data);
+
+                const matchedState = statesResponse.data.find(
+                  (s) =>
+                    s.name.toLowerCase() === campaign.buyer_state.toLowerCase()
+                );
+                if (matchedState) {
+                  setSelectedBuyerStateId(matchedState.id);
+
+                  // If there's a buyer city, fetch cities
+                  if (campaign.buyer_city) {
+                    try {
+                      const citiesResponse =
+                        await geographicAPI.getCitiesByState(matchedState.id);
+                      if (
+                        citiesResponse?.status === "success" &&
+                        citiesResponse.data
+                      ) {
+                        const sortedCities = [...citiesResponse.data].sort(
+                          (a, b) =>
+                            (a.name || "").localeCompare(
+                              b.name || "",
+                              undefined,
+                              {
+                                sensitivity: "base",
+                              }
+                            )
+                        );
+                        setBuyerCities(sortedCities);
+                      }
+                    } catch (error) {
+                      console.error("Error fetching buyer cities:", error);
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching buyer states:", error);
+            }
+          }
+        }
+      }
+    };
+
+    matchBuyerGeographicData();
+  }, [campaign, countries]);
+
+  // Match seller country and state names to IDs when countries are loaded and campaign data is available
+  useEffect(() => {
+    const matchSellerGeographicData = async () => {
+      if (
+        !campaign ||
+        !countries.length ||
+        campaign.campaign_type !== "seller_finder"
+      ) {
+        return;
+      }
+
+      // Match seller country
+      if (campaign.seller_country) {
+        const matchedCountry = countries.find(
+          (c) => c.name.toLowerCase() === campaign.seller_country.toLowerCase()
+        );
+        if (matchedCountry) {
+          setSelectedSellerCountryId(matchedCountry.id);
+
+          // If there's a seller state, fetch states and match it
+          if (campaign.seller_state) {
+            try {
+              const statesResponse = await geographicAPI.getStatesByCountry(
+                matchedCountry.id
+              );
+              if (statesResponse.status === "success") {
+                setSellerStates(statesResponse.data);
+
+                const matchedState = statesResponse.data.find(
+                  (s) =>
+                    s.name.toLowerCase() === campaign.seller_state.toLowerCase()
+                );
+                if (matchedState) {
+                  setSelectedSellerStateId(matchedState.id);
+
+                  // If there's a seller city, fetch cities
+                  if (campaign.seller_city) {
+                    try {
+                      const citiesResponse =
+                        await geographicAPI.getCitiesByState(matchedState.id);
+                      if (
+                        citiesResponse?.status === "success" &&
+                        citiesResponse.data
+                      ) {
+                        const sortedCities = [...citiesResponse.data].sort(
+                          (a, b) =>
+                            (a.name || "").localeCompare(
+                              b.name || "",
+                              undefined,
+                              {
+                                sensitivity: "base",
+                              }
+                            )
+                        );
+                        setSellerCities(sortedCities);
+                      }
+                    } catch (error) {
+                      console.error("Error fetching seller cities:", error);
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching seller states:", error);
+            }
+          }
+        }
+      }
+    };
+
+    matchSellerGeographicData();
+  }, [campaign, countries]);
 
   // Fetch buyer states when buyer country changes
   useEffect(() => {
