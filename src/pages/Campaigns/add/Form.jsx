@@ -1,12 +1,6 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  campaignSchema,
-  campaignTypes,
-  channels,
-  DefaultValues,
-  propertyTypes,
-} from "./utility";
+import { campaignSchema, channels, DefaultValues } from "./utility";
 import { useMutation } from "@tanstack/react-query";
 import { campaignsAPI } from "../../../services/api";
 import toast from "react-hot-toast";
@@ -705,9 +699,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                                 <span className="font-medium text-gray-700 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors duration-200">
                                   {t.label}
                                 </span>
-                                {/* <div className="w-6 h-6 border-2 border-gray-300 rounded-full transition-all duration-200 peer-checked:border-blue-600 peer-checked:bg-blue-600 relative">
-                                  <div className="absolute inset-1 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity duration-200"></div>
-                                </div> */}
                               </div>
                             </label>
                           ))}
@@ -761,17 +752,26 @@ const CreateCampaignForm = ({ fillMode }) => {
                           ))}
                         </div>
                       ) : (
-                        <select
-                          {...register("channel")}
-                          multiple
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
-                        >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {channels.map((ch) => (
-                            <option key={ch.value} value={ch.value}>
-                              {ch.label}
-                            </option>
+                            <label
+                              key={ch.value}
+                              className="group cursor-pointer"
+                            >
+                              <div className="flex items-center p-5 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-200 hover:border-blue-400 hover:shadow-md hover:bg-white">
+                                <input
+                                  type="checkbox"
+                                  value={ch.value}
+                                  {...register("channel")}
+                                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">
+                                  {ch.label}
+                                </span>
+                              </div>
+                            </label>
                           ))}
-                        </select>
+                        </div>
                       )}
                       {errors.channel && (
                         <p className="text-sm text-red-500 mt-2 flex items-center">
@@ -782,29 +782,30 @@ const CreateCampaignForm = ({ fillMode }) => {
                     </div>
 
                     {/* Budget */}
-                    <div>
-                      <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                        <DollarSign className="w-4 h-4 mr-2 text-green-600" />
-                        Budget
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          {...register("budget")}
-                          type="number"
-                          step="0.01"
-                          className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
-                          placeholder="10000.00"
-                        />
+                    {campaignType === "buyer_finder" && (
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <DollarSign className="w-4 h-4 mr-2 text-green-600" />
+                          Budget
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          <input
+                            {...register("budget")}
+                            type="number"
+                            step="0.01"
+                            className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
+                            placeholder="10000.00"
+                          />
+                        </div>
+                        {errors.budget && (
+                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.budget.message}
+                          </p>
+                        )}
                       </div>
-                      {errors.budget && (
-                        <p className="text-sm text-red-500 mt-2 flex items-center">
-                          <X className="w-4 h-4 mr-1" />
-                          {errors.budget.message}
-                        </p>
-                      )}
-                    </div>
-
+                    )}
                     {/* Scheduled Date & Time Range */}
                     <div className="lg:col-span-2">
                       <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">

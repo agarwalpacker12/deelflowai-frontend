@@ -115,11 +115,11 @@ export const campaignSchema = yup.object().shape({
     .min(1, "Please select at least one channel")
     .required("Channel is required"),
 
-  budget: yup
-    .number()
-    .nullable()
-    .min(0.01, "Budget must be greater than $0.01")
-    .max(1000000, "Budget cannot exceed $1,000,000"),
+  // budget: yup
+  //   .number()
+  //   .nullable()
+  //   .min(0.01, "Budget must be greater than $0.01")
+  //   .max(1000000, "Budget cannot exceed $1,000,000"),
 
   scheduled_start_date: yup
     .string()
