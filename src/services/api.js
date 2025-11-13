@@ -197,6 +197,10 @@ export const leadsAPI = {
 export const propertiesAPI = {
   getProperties: (params) => api.get("/properties/", { params }),
   getProperty: (id) => api.get(`/properties/${id}/`),
+  getPropertyDetails: (propertyId, source = null) => {
+    const params = source ? { source } : {};
+    return api.get(`/properties/details/${propertyId}`, { params });
+  },
   createProperty: (data) => api.post("/properties/", data),
   updateProperty: (id, data) => api.put(`/properties/${id}/`, data),
   deleteProperty: (id) => api.delete(`/properties/${id}/`),
