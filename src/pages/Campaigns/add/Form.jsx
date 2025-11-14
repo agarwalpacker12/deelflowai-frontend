@@ -1,6 +1,11 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { campaignSchema, channels, DefaultValues } from "./utility";
+import {
+  campaignSchema,
+  channels,
+  DefaultValues,
+  propertyTypes,
+} from "./utility";
 import { useMutation } from "@tanstack/react-query";
 import { campaignsAPI } from "../../../services/api";
 import toast from "react-hot-toast";
@@ -1225,7 +1230,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <option value="">Select Country</option>
                           {countries.map((country) => (
                             <option key={country.id} value={country.id}>
-                              {country.emoji} {country.name}
+                              {country.name}
                             </option>
                           ))}
                         </select>
@@ -1769,46 +1774,12 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                      {/* <div>
-                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                          <MapPin className="w-4 h-4 mr-2 text-purple-600" />
-                          Location <Text className="text-red-500 ml-1">*</Text>
-                        </label>
-                        <input
-                          {...register("location")}
-                          placeholder="Miami"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
-                        />
-                        {errors.location && (
-                          <p className="text-sm text-red-500 mt-2 flex items-center">
-                            <X className="w-4 h-4 mr-1" />
-                            {errors.location.message}
-                          </p>
-                        )}
-                      </div> */}
 
-                      <div>
-                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                          <Settings className="w-4 h-4 mr-2 text-purple-600" />
-                          Property Type{" "}
-                          <Text className="text-red-500 ml-1">*</Text>
-                        </label>
-                        <input
-                          {...register("property_type")}
-                          placeholder="Residential"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
-                        />
-                        {errors.property_type && (
-                          <p className="text-sm text-red-500 mt-2 flex items-center">
-                            <X className="w-4 h-4 mr-1" />
-                            {errors.property_type.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                    <div className="space-y-8">
+                      {/* Minimum Equity - Centered with better spacing */}
+                      {/* <div className="flex justify-center"> */}
+                      <div className="w-full max-w-md">
+                        <label className="flex text-sm font-semibold text-gray-700 mb-4">
                           <DollarSign className="w-4 h-4 mr-2 text-green-600" />
                           Minimum Equity{" "}
                           <Text className="text-red-500 ml-1">*</Text>
@@ -1818,19 +1789,56 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <input
                             {...register("minimum_equity")}
                             type="number"
-                            placeholder="100000"
+                            placeholder="100,000"
                             className="w-full pl-12 pr-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-green-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-green-100"
                           />
                         </div>
                         {errors.minimum_equity && (
-                          <p className="text-sm text-red-500 mt-2 flex items-center">
+                          <p className="text-sm text-red-500 mt-3 flex items-center justify-center">
                             <X className="w-4 h-4 mr-1" />
                             {errors.minimum_equity.message}
                           </p>
                         )}
                       </div>
-                    </div>
+                      {/* </div> */}
 
+                      {/* Property Type - Full Width */}
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-4">
+                          <Settings className="w-4 h-4 mr-2 text-purple-600" />
+                          Property Type{" "}
+                          <Text className="text-red-500 ml-1">*</Text>
+                        </label>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                          {propertyTypes.map((type) => (
+                            <label
+                              key={type.value}
+                              className="relative cursor-pointer group"
+                            >
+                              <input
+                                {...register("property_type")}
+                                type="radio"
+                                value={type.value}
+                                className="sr-only peer"
+                              />
+                              <div className="flex items-center justify-center p-4 bg-white/80 border-2 border-gray-200 rounded-xl transition-all duration-300 hover:border-purple-400 hover:shadow-lg hover:bg-white peer-checked:border-purple-600 peer-checked:bg-gradient-to-r peer-checked:from-purple-50 peer-checked:to-pink-50 peer-checked:shadow-xl group-hover:scale-[1.02] min-h-[80px]">
+                                <span className="font-medium text-gray-700 group-hover:text-purple-600 peer-checked:text-purple-700 transition-colors duration-200 text-center text-sm leading-tight">
+                                  {type.label}
+                                </span>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+
+                        {errors.property_type && (
+                          <p className="text-sm text-red-500 mt-3 flex items-center">
+                            <X className="w-4 h-4 mr-1" />
+                            {errors.property_type.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                     {/* Price Range (only show for seller finder or general campaigns) */}
                     {campaignType !== "seller_finder" && (
                       <div className="mb-8">
@@ -1865,9 +1873,8 @@ const CreateCampaignForm = ({ fillMode }) => {
                         )}
                       </div>
                     )}
-
                     {/* Distress Indicators */}
-                    <div>
+                    <div className="mt-8">
                       <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
                         <Target className="w-5 h-5 mr-2 text-purple-600" />
                         Distress Indicators

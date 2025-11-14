@@ -19,13 +19,23 @@ export const channels = [
   { value: "social_media", label: "Social Media" },
 ];
 
-// Property types
+// Add this array of property types near the top of your component, after the statusOptions array
 export const propertyTypes = [
   { value: "residential", label: "Residential" },
+  { value: "single_family", label: "Single Family Home" },
+  { value: "multi_family", label: "Multi-Family" },
+  { value: "condo_townhouse", label: "Condo/Townhouse" },
   { value: "commercial", label: "Commercial" },
   { value: "industrial", label: "Industrial" },
-  { value: "land", label: "Land" },
-  { value: "multi_family", label: "Multi-Family" },
+  { value: "mixed_use", label: "Mixed Use" },
+  { value: "land_vacant", label: "Land/Vacant Lot" },
+  { value: "retail", label: "Retail" },
+  { value: "office", label: "Office Building" },
+  { value: "warehouse", label: "Warehouse" },
+  { value: "apartment_complex", label: "Apartment Complex" },
+  { value: "mobile_home", label: "Mobile Home" },
+  { value: "farm_ranch", label: "Farm/Ranch" },
+  { value: "other", label: "Other" },
 ];
 
 // Default form values
