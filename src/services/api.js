@@ -250,6 +250,26 @@ export const campaignsAPI = {
     }),
 };
 
+export const communicationsAPI = {
+  getLists: (params) => api.get('/communications/lists/', { params }),
+  createList: (data) => api.post('/communications/lists/', data),
+  getList: (id, params) => api.get(`/communications/lists/${id}/`, { params }),
+  updateList: (id, data) => api.put(`/communications/lists/${id}/`, data),
+  deleteList: (id) => api.delete(`/communications/lists/${id}/`),
+  uploadEntries: (listId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/communications/lists/${listId}/entries/upload/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  getEntries: (listId, params) => api.get(`/communications/lists/${listId}/entries/`, { params }),
+  updateEntry: (listId, entryId, data) => api.put(`/communications/lists/${listId}/entries/${entryId}/`, data),
+  deleteEntry: (listId, entryId) => api.delete(`/communications/lists/${listId}/entries/${entryId}/`),
+  bulkDeleteEntries: (listId, entryIds) => api.delete(`/communications/lists/${listId}/entries/bulk/`, { data: { entry_ids: entryIds } }),
+  getListsForCampaign: (params) => api.get('/communications/lists/for-campaign/', { params })
+};
+
 export const propertySaveAPI = {
   getPropertySave: (params) => api.get("/property-saves/", { params }),
   getSinglePropertySave: (id) => api.get(`/property-saves/${id}/`),
@@ -353,6 +373,13 @@ export const geographicAPI = {
   getStatesByCountry: async (countryId, search = null) => {
     const params = search ? { search } : {};
     const response = await AllGETHeader.get(`/api/countries/${countryId}/states/`, { params });
+    return response.data;
+  },
+
+  // Get counties by state ID
+  getCountiesByState: async (stateId, search = null) => {
+    const params = search ? { search } : {};
+    const response = await AllGETHeader.get(`/api/states/${stateId}/counties/`, { params });
     return response.data;
   },
 

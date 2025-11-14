@@ -20,6 +20,7 @@ import {
   Calendar,
   Settings,
   Mail,
+  Phone,
   Sparkles,
   Target,
   Filter,
@@ -35,7 +36,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCampaigns } from "../../../store/slices/campaignsSlice";
 import { useCallback, useState, useEffect } from "react";
 import PriceRangeSlider from "../PriceRangeSlider";
-import { geographicAPI } from "../../../services/api";
+import { geographicAPI, communicationsAPI } from "../../../services/api";
 import LocationPicker from "../../../components/LocationPicker/LocationPickerWrapper";
 import { reverseGeocode } from "../../../services/geocoding";
 
@@ -56,15 +57,21 @@ const CreateCampaignForm = ({ fillMode }) => {
   const [countries, setCountries] = useState([]);
   const [buyerStates, setBuyerStates] = useState([]);
   const [sellerStates, setSellerStates] = useState([]);
+  const [buyerCounties, setBuyerCounties] = useState([]);
+  const [sellerCounties, setSellerCounties] = useState([]);
   const [buyerCities, setBuyerCities] = useState([]);
   const [sellerCities, setSellerCities] = useState([]);
   const [selectedBuyerCountryId, setSelectedBuyerCountryId] = useState(null);
   const [selectedBuyerStateId, setSelectedBuyerStateId] = useState(null);
+  const [selectedBuyerCountyId, setSelectedBuyerCountyId] = useState(null);
   const [selectedSellerCountryId, setSelectedSellerCountryId] = useState(null);
   const [selectedSellerStateId, setSelectedSellerStateId] = useState(null);
+  const [selectedSellerCountyId, setSelectedSellerCountyId] = useState(null);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingBuyerStates, setLoadingBuyerStates] = useState(false);
   const [loadingSellerStates, setLoadingSellerStates] = useState(false);
+  const [loadingBuyerCounties, setLoadingBuyerCounties] = useState(false);
+  const [loadingSellerCounties, setLoadingSellerCounties] = useState(false);
   const [loadingBuyerCities, setLoadingBuyerCities] = useState(false);
   const [loadingSellerCities, setLoadingSellerCities] = useState(false);
   const [buyerMapPosition, setBuyerMapPosition] = useState(null);
@@ -88,6 +95,15 @@ const CreateCampaignForm = ({ fillMode }) => {
 
   // Watch campaign type to show/hide relevant sections
   const campaignType = watch("campaign_type");
+  const selectedChannels = watch("channel") || [];
+  
+  // Communication lists state
+  const [emailLists, setEmailLists] = useState([]);
+  const [phoneLists, setPhoneLists] = useState([]);
+  const [loadingEmailLists, setLoadingEmailLists] = useState(false);
+  const [loadingPhoneLists, setLoadingPhoneLists] = useState(false);
+  const [selectedEmailListIds, setSelectedEmailListIds] = useState([]);
+  const [selectedPhoneListIds, setSelectedPhoneListIds] = useState([]);
 
   // Add this state to your component
   const [priceRange, setPriceRange] = useState({
@@ -141,6 +157,8 @@ const CreateCampaignForm = ({ fillMode }) => {
         type: selectedScopeType,
         counties: selectedCounties.map((c) => c.name),
       },
+      email_list_ids: selectedEmailListIds,
+      phone_list_ids: selectedPhoneListIds,
     };
     // console.log("formData", JSON.stringify(formData));
 
@@ -190,6 +208,60 @@ const CreateCampaignForm = ({ fillMode }) => {
 
     fetchCountries();
   }, []);
+
+  // Fetch email lists when email channel is selected
+  useEffect(() => {
+    const hasEmailChannel = Array.isArray(selectedChannels) 
+      ? selectedChannels.includes("email")
+      : selectedChannels === "email" || (typeof selectedChannels === "string" && selectedChannels.includes("email"));
+    
+    if (hasEmailChannel) {
+      const fetchEmailLists = async () => {
+        setLoadingEmailLists(true);
+        try {
+          const response = await communicationsAPI.getListsForCampaign({ list_type: "email" });
+          if (response.data.status === "success") {
+            setEmailLists(response.data.data || []);
+          }
+        } catch (error) {
+          console.error("Error fetching email lists:", error);
+        } finally {
+          setLoadingEmailLists(false);
+        }
+      };
+      fetchEmailLists();
+    } else {
+      setEmailLists([]);
+      setSelectedEmailListIds([]);
+    }
+  }, [selectedChannels]);
+
+  // Fetch phone lists when sms channel is selected
+  useEffect(() => {
+    const hasSmsChannel = Array.isArray(selectedChannels)
+      ? selectedChannels.includes("sms")
+      : selectedChannels === "sms" || (typeof selectedChannels === "string" && selectedChannels.includes("sms"));
+    
+    if (hasSmsChannel) {
+      const fetchPhoneLists = async () => {
+        setLoadingPhoneLists(true);
+        try {
+          const response = await communicationsAPI.getListsForCampaign({ list_type: "phone" });
+          if (response.data.status === "success") {
+            setPhoneLists(response.data.data || []);
+          }
+        } catch (error) {
+          console.error("Error fetching phone lists:", error);
+        } finally {
+          setLoadingPhoneLists(false);
+        }
+      };
+      fetchPhoneLists();
+    } else {
+      setPhoneLists([]);
+      setSelectedPhoneListIds([]);
+    }
+  }, [selectedChannels]);
 
   // Fetch buyer states when buyer country changes
   useEffect(() => {
@@ -249,6 +321,41 @@ const CreateCampaignForm = ({ fillMode }) => {
     fetchStates();
   }, [selectedSellerCountryId]);
 
+  // Fetch buyer counties when buyer state changes
+  useEffect(() => {
+    if (!selectedBuyerStateId) {
+      setBuyerCounties([]);
+      setSelectedBuyerCountyId(null);
+      setValue("buyer_counties", "");
+      return;
+    }
+
+    const fetchCounties = async () => {
+      setLoadingBuyerCounties(true);
+      try {
+        const response = await geographicAPI.getCountiesByState(
+          selectedBuyerStateId
+        );
+        if (response?.status === "success" && response.data) {
+          // Sort counties alphabetically by name
+          const sortedCounties = [...response.data].sort((a, b) =>
+            (a.name || "").localeCompare(b.name || "", undefined, {
+              sensitivity: "base",
+            })
+          );
+          setBuyerCounties(sortedCounties);
+        }
+      } catch (error) {
+        console.error("Error fetching buyer counties:", error);
+        toast.error("Failed to load counties");
+      } finally {
+        setLoadingBuyerCounties(false);
+      }
+    };
+
+    fetchCounties();
+  }, [selectedBuyerStateId, setValue]);
+
   // Fetch buyer cities when buyer state changes
   useEffect(() => {
     if (!selectedBuyerStateId) {
@@ -282,6 +389,41 @@ const CreateCampaignForm = ({ fillMode }) => {
 
     fetchCities();
   }, [selectedBuyerStateId, setValue]);
+
+  // Fetch seller counties when seller state changes
+  useEffect(() => {
+    if (!selectedSellerStateId) {
+      setSellerCounties([]);
+      setSelectedSellerCountyId(null);
+      setValue("seller_counties", "");
+      return;
+    }
+
+    const fetchCounties = async () => {
+      setLoadingSellerCounties(true);
+      try {
+        const response = await geographicAPI.getCountiesByState(
+          selectedSellerStateId
+        );
+        if (response?.status === "success" && response.data) {
+          // Sort counties alphabetically by name
+          const sortedCounties = [...response.data].sort((a, b) =>
+            (a.name || "").localeCompare(b.name || "", undefined, {
+              sensitivity: "base",
+            })
+          );
+          setSellerCounties(sortedCounties);
+        }
+      } catch (error) {
+        console.error("Error fetching seller counties:", error);
+        toast.error("Failed to load counties");
+      } finally {
+        setLoadingSellerCounties(false);
+      }
+    };
+
+    fetchCounties();
+  }, [selectedSellerStateId, setValue]);
 
   // Fetch seller cities when seller state changes
   useEffect(() => {
@@ -355,6 +497,48 @@ const CreateCampaignForm = ({ fillMode }) => {
             setSelectedBuyerStateId(matchedState.id);
             setValue("buyer_state", matchedState.name);
 
+            // Fetch counties for the matched state
+            try {
+              const countiesResponse = await geographicAPI.getCountiesByState(
+                matchedState.id
+              );
+              if (countiesResponse?.status === "success" && countiesResponse.data) {
+                const sortedCounties = [...countiesResponse.data].sort((a, b) =>
+                  (a.name || "").localeCompare(b.name || "", undefined, {
+                    sensitivity: "base",
+                  })
+                );
+                setBuyerCounties(sortedCounties);
+
+                // Try to match the geocoded county
+                const geocodedCountyName = locationData.county || locationData.district || "";
+                if (geocodedCountyName) {
+                  let matchedCounty = sortedCounties.find(
+                    (c) => c.name.toLowerCase() === geocodedCountyName.toLowerCase()
+                  );
+
+                  if (!matchedCounty) {
+                    matchedCounty = sortedCounties.find(
+                      (c) =>
+                        c.name.toLowerCase().includes(geocodedCountyName.toLowerCase()) ||
+                        geocodedCountyName.toLowerCase().includes(c.name.toLowerCase())
+                    );
+                  }
+
+                  if (matchedCounty) {
+                    setSelectedBuyerCountyId(matchedCounty.id);
+                    setValue("buyer_counties", matchedCounty.name);
+                  } else {
+                    setValue("buyer_counties", geocodedCountyName);
+                  }
+                }
+              }
+            } catch (countyError) {
+              console.warn("Failed to fetch counties:", countyError);
+              // Use geocoded county value if available
+              setValue("buyer_counties", locationData.county || locationData.district || "");
+            }
+
             // Fetch cities for the matched state and then match the city
             const citiesResponse = await geographicAPI.getCitiesByState(
               matchedState.id
@@ -411,6 +595,7 @@ const CreateCampaignForm = ({ fillMode }) => {
               "buyer_city",
               locationData.city || locationData.components?.city || ""
             );
+            setValue("buyer_counties", locationData.county || locationData.district || "");
           }
         }
       } else {
@@ -420,11 +605,11 @@ const CreateCampaignForm = ({ fillMode }) => {
           "buyer_city",
           locationData.city || locationData.components?.city || ""
         );
+        setValue("buyer_counties", locationData.county || locationData.district || "");
       }
 
       // Fill other fields
-      setValue("buyer_districts", locationData.district);
-      setValue("buyer_counties", locationData.district || locationData.city);
+      setValue("buyer_districts", locationData.district || "");
 
       toast.success("Location details filled from map");
     } catch (error) {
@@ -472,6 +657,48 @@ const CreateCampaignForm = ({ fillMode }) => {
           if (matchedState) {
             setSelectedSellerStateId(matchedState.id);
             setValue("seller_state", matchedState.name);
+
+            // Fetch counties for the matched state
+            try {
+              const countiesResponse = await geographicAPI.getCountiesByState(
+                matchedState.id
+              );
+              if (countiesResponse?.status === "success" && countiesResponse.data) {
+                const sortedCounties = [...countiesResponse.data].sort((a, b) =>
+                  (a.name || "").localeCompare(b.name || "", undefined, {
+                    sensitivity: "base",
+                  })
+                );
+                setSellerCounties(sortedCounties);
+
+                // Try to match the geocoded county
+                const geocodedCountyName = locationData.county || locationData.district || "";
+                if (geocodedCountyName) {
+                  let matchedCounty = sortedCounties.find(
+                    (c) => c.name.toLowerCase() === geocodedCountyName.toLowerCase()
+                  );
+
+                  if (!matchedCounty) {
+                    matchedCounty = sortedCounties.find(
+                      (c) =>
+                        c.name.toLowerCase().includes(geocodedCountyName.toLowerCase()) ||
+                        geocodedCountyName.toLowerCase().includes(c.name.toLowerCase())
+                    );
+                  }
+
+                  if (matchedCounty) {
+                    setSelectedSellerCountyId(matchedCounty.id);
+                    setValue("seller_counties", matchedCounty.name);
+                  } else {
+                    setValue("seller_counties", geocodedCountyName);
+                  }
+                }
+              }
+            } catch (countyError) {
+              console.warn("Failed to fetch counties:", countyError);
+              // Use geocoded county value if available
+              setValue("seller_counties", locationData.county || locationData.district || "");
+            }
 
             // Fetch cities for the matched state and then match the city
             const citiesResponse = await geographicAPI.getCitiesByState(
@@ -529,6 +756,7 @@ const CreateCampaignForm = ({ fillMode }) => {
               "seller_city",
               locationData.city || locationData.components?.city || ""
             );
+            setValue("seller_counties", locationData.county || locationData.district || "");
           }
         }
       } else {
@@ -538,11 +766,11 @@ const CreateCampaignForm = ({ fillMode }) => {
           "seller_city",
           locationData.city || locationData.components?.city || ""
         );
+        setValue("seller_counties", locationData.county || locationData.district || "");
       }
 
       // Fill other fields
-      setValue("seller_districts", locationData.district);
-      setValue("seller_counties", locationData.district || locationData.city);
+      setValue("seller_districts", locationData.district || "");
 
       toast.success("Location details filled from map");
     } catch (error) {
@@ -780,6 +1008,84 @@ const CreateCampaignForm = ({ fillMode }) => {
                         </p>
                       )}
                     </div>
+
+                    {/* Email Lists Selection */}
+                    {(Array.isArray(selectedChannels) ? selectedChannels.includes("email") : selectedChannels === "email" || (typeof selectedChannels === "string" && selectedChannels.includes("email"))) && (
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                          Email Lists (Optional)
+                        </label>
+                        {loadingEmailLists ? (
+                          <div className="text-gray-500 text-sm">Loading email lists...</div>
+                        ) : emailLists.length === 0 ? (
+                          <div className="text-gray-500 text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            No email lists available. Create lists in Communications Management.
+                          </div>
+                        ) : (
+                          <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white/80">
+                            {emailLists.map((list) => (
+                              <label key={list.id} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedEmailListIds.includes(list.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedEmailListIds([...selectedEmailListIds, list.id]);
+                                    } else {
+                                      setSelectedEmailListIds(selectedEmailListIds.filter(id => id !== list.id));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-3 text-sm text-gray-700">
+                                  {list.name} ({list.entry_count} entries)
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Phone Lists Selection */}
+                    {(Array.isArray(selectedChannels) ? selectedChannels.includes("sms") : selectedChannels === "sms" || (typeof selectedChannels === "string" && selectedChannels.includes("sms"))) && (
+                      <div>
+                        <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
+                          <Phone className="w-4 h-4 mr-2 text-blue-600" />
+                          Phone Lists (Optional)
+                        </label>
+                        {loadingPhoneLists ? (
+                          <div className="text-gray-500 text-sm">Loading phone lists...</div>
+                        ) : phoneLists.length === 0 ? (
+                          <div className="text-gray-500 text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            No phone lists available. Create lists in Communications Management.
+                          </div>
+                        ) : (
+                          <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white/80">
+                            {phoneLists.map((list) => (
+                              <label key={list.id} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedPhoneListIds.includes(list.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedPhoneListIds([...selectedPhoneListIds, list.id]);
+                                    } else {
+                                      setSelectedPhoneListIds(selectedPhoneListIds.filter(id => id !== list.id));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-3 text-sm text-gray-700">
+                                  {list.name} ({list.entry_count} entries)
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Budget */}
                     <div>
@@ -1195,11 +1501,25 @@ const CreateCampaignForm = ({ fillMode }) => {
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">Select Country</option>
-                          {countries.map((country) => (
-                            <option key={country.id} value={country.id}>
-                              {country.emoji} {country.name}
-                            </option>
-                          ))}
+                          {(() => {
+                            // Pin USA at the top
+                            const usaCountry = countries.find(c => c.name === "United States" || c.name === "United States of America" || c.iso2 === "US");
+                            const otherCountries = countries.filter(c => c.id !== usaCountry?.id);
+                            return (
+                              <>
+                                {usaCountry && (
+                                  <option key={usaCountry.id} value={usaCountry.id}>
+                                    {usaCountry.emoji} {usaCountry.name}
+                                  </option>
+                                )}
+                                {otherCountries.map((country) => (
+                                  <option key={country.id} value={country.id}>
+                                    {country.emoji} {country.name}
+                                  </option>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </select>
                         {loadingCountries && (
                           <p className="text-sm text-gray-500 mt-2">
@@ -1226,6 +1546,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                               ? buyerStates.find((s) => s.id === stateId)?.name
                               : "";
                             setValue("buyer_state", stateName);
+                            setValue("buyer_counties", ""); // Clear county when state changes
+                            setSelectedBuyerCountyId(null);
+                            setBuyerCounties([]);
                             setValue("buyer_city", ""); // Clear city when state changes
                           }}
                           disabled={
@@ -1254,17 +1577,50 @@ const CreateCampaignForm = ({ fillMode }) => {
                         )}
                       </div>
 
-                      {/* Counties */}
+                      {/* County */}
                       <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                           <MapPin className="w-4 h-4 mr-2 text-blue-600" />
-                          Counties
+                          County
                         </label>
-                        <input
-                          {...register("buyer_counties")}
-                          placeholder="e.g., Miami-Dade, Broward"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100"
-                        />
+                        <select
+                          value={
+                            selectedBuyerStateId &&
+                            buyerCounties.some(
+                              (c) => c.id === selectedBuyerCountyId
+                            )
+                              ? selectedBuyerCountyId || ""
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const countyId = e.target.value ? parseInt(e.target.value) : null;
+                            setSelectedBuyerCountyId(countyId);
+                            const selectedCounty = buyerCounties.find(c => c.id === countyId);
+                            setValue("buyer_counties", selectedCounty ? selectedCounty.name : "");
+                          }}
+                          disabled={!selectedBuyerStateId || loadingBuyerCounties}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedBuyerStateId
+                              ? "Select a state first"
+                              : loadingBuyerCounties
+                              ? "Loading counties..."
+                              : buyerCounties.length === 0
+                              ? "No counties available"
+                              : "Select County"}
+                          </option>
+                          {buyerCounties.map((county) => (
+                            <option key={county.id} value={county.id}>
+                              {county.name}
+                            </option>
+                          ))}
+                        </select>
+                        {!selectedBuyerStateId && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Select a state first
+                          </p>
+                        )}
                       </div>
 
                       {/* City */}
@@ -1375,22 +1731,6 @@ const CreateCampaignForm = ({ fillMode }) => {
                     </div>
 
                     <div className="space-y-6">
-                      {/* Budget Range */}
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                          <DollarSign className="w-5 h-5 mr-2 text-orange-600" />
-                          Seller Budget Range
-                        </h3>
-                        <PriceRangeSlider
-                          minValue={priceRange.min}
-                          maxValue={priceRange.max}
-                          onRangeChange={handlePriceRangeChange}
-                          min={50000}
-                          max={5000000}
-                          step={25000}
-                        />
-                      </div>
-
                       {/* Property Age */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -1477,17 +1817,34 @@ const CreateCampaignForm = ({ fillMode }) => {
                               : "";
                             setValue("seller_country", countryName);
                             setValue("seller_state", "");
+                            setValue("seller_counties", ""); // Clear county when country changes
+                            setSelectedSellerCountyId(null);
+                            setSellerCounties([]);
                             setValue("seller_city", ""); // Clear city when country changes
                           }}
                           disabled={loadingCountries}
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">Select Country</option>
-                          {countries.map((country) => (
-                            <option key={country.id} value={country.id}>
-                              {country.emoji} {country.name}
-                            </option>
-                          ))}
+                          {(() => {
+                            // Pin USA at the top
+                            const usaCountry = countries.find(c => c.name === "United States" || c.name === "United States of America" || c.iso2 === "US");
+                            const otherCountries = countries.filter(c => c.id !== usaCountry?.id);
+                            return (
+                              <>
+                                {usaCountry && (
+                                  <option key={usaCountry.id} value={usaCountry.id}>
+                                    {usaCountry.emoji} {usaCountry.name}
+                                  </option>
+                                )}
+                                {otherCountries.map((country) => (
+                                  <option key={country.id} value={country.id}>
+                                    {country.emoji} {country.name}
+                                  </option>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </select>
                         {loadingCountries && (
                           <p className="text-sm text-gray-500 mt-2">
@@ -1514,6 +1871,9 @@ const CreateCampaignForm = ({ fillMode }) => {
                               ? sellerStates.find((s) => s.id === stateId)?.name
                               : "";
                             setValue("seller_state", stateName);
+                            setValue("seller_counties", ""); // Clear county when state changes
+                            setSelectedSellerCountyId(null);
+                            setSellerCounties([]);
                             setValue("seller_city", ""); // Clear city when state changes
                           }}
                           disabled={
@@ -1542,17 +1902,50 @@ const CreateCampaignForm = ({ fillMode }) => {
                         )}
                       </div>
 
-                      {/* Counties */}
+                      {/* County */}
                       <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                           <MapPin className="w-4 h-4 mr-2 text-emerald-600" />
-                          Counties
+                          County
                         </label>
-                        <input
-                          {...register("seller_counties")}
-                          placeholder="e.g., Miami-Dade, Broward"
-                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100"
-                        />
+                        <select
+                          value={
+                            selectedSellerStateId &&
+                            sellerCounties.some(
+                              (c) => c.id === selectedSellerCountyId
+                            )
+                              ? selectedSellerCountyId || ""
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const countyId = e.target.value ? parseInt(e.target.value) : null;
+                            setSelectedSellerCountyId(countyId);
+                            const selectedCounty = sellerCounties.find(c => c.id === countyId);
+                            setValue("seller_counties", selectedCounty ? selectedCounty.name : "");
+                          }}
+                          disabled={!selectedSellerStateId || loadingSellerCounties}
+                          className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedSellerStateId
+                              ? "Select a state first"
+                              : loadingSellerCounties
+                              ? "Loading counties..."
+                              : sellerCounties.length === 0
+                              ? "No counties available"
+                              : "Select County"}
+                          </option>
+                          {sellerCounties.map((county) => (
+                            <option key={county.id} value={county.id}>
+                              {county.name}
+                            </option>
+                          ))}
+                        </select>
+                        {!selectedSellerStateId && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Select a state first
+                          </p>
+                        )}
                       </div>
 
                       {/* City */}

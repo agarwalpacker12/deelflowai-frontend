@@ -4,6 +4,86 @@
  */
 
 /**
+ * Reverse geocode using Google Geocoding API
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @returns {Promise<Object>} Location details with country, state, city, county, district
+ */
+export const reverseGeocodeGoogle = async (lat, lng) => {
+  // Check if Google Maps is loaded
+  if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+    throw new Error("Google Maps Geocoding API not loaded");
+  }
+
+  return new Promise((resolve, reject) => {
+    const geocoder = new window.google.maps.Geocoder();
+    const latlng = { lat, lng };
+
+    geocoder.geocode({ location: latlng }, (results, status) => {
+      if (status === 'OK' && results && results.length > 0) {
+        const result = results[0];
+        const addressComponents = result.address_components || [];
+        
+        // Extract address components
+        let country = '';
+        let state = '';
+        let city = '';
+        let county = '';
+        let district = '';
+        let postalCode = '';
+        let formattedAddress = result.formatted_address || '';
+
+        addressComponents.forEach((component) => {
+          const types = component.types || [];
+          
+          if (types.includes('country')) {
+            country = component.long_name || component.short_name || '';
+          } else if (types.includes('administrative_area_level_1')) {
+            state = component.long_name || component.short_name || '';
+          } else if (types.includes('administrative_area_level_2')) {
+            county = component.long_name || component.short_name || '';
+          } else if (types.includes('locality')) {
+            city = component.long_name || component.short_name || '';
+          } else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
+            district = component.long_name || component.short_name || '';
+          } else if (types.includes('postal_code')) {
+            postalCode = component.long_name || component.short_name || '';
+          }
+        });
+
+        // If city is not found, try other types
+        if (!city) {
+          const cityComponent = addressComponents.find(
+            (c) => c.types.includes('locality') || 
+                   c.types.includes('administrative_area_level_3') ||
+                   c.types.includes('postal_town')
+          );
+          if (cityComponent) {
+            city = cityComponent.long_name || cityComponent.short_name || '';
+          }
+        }
+
+        const locationData = {
+          country: country,
+          state: state,
+          city: city,
+          county: county,
+          district: district,
+          postal_code: postalCode,
+          formatted_address: formattedAddress,
+          latitude: lat,
+          longitude: lng,
+        };
+
+        resolve(locationData);
+      } else {
+        reject(new Error(`Geocoding failed: ${status}`));
+      }
+    });
+  });
+};
+
+/**
  * Reverse geocode using OpenCage API (free tier available)
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude
@@ -103,12 +183,22 @@ export const reverseGeocodeNominatim = async (lat, lng) => {
 
 /**
  * Main reverse geocoding function
- * Tries OpenCage first, falls back to Nominatim if no API key
+ * Tries Google Geocoding API first (if available), then OpenCage, then Nominatim
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude
  * @returns {Promise<Object>} Location details
  */
 export const reverseGeocode = async (lat, lng) => {
+  // Try Google Geocoding API first (if Google Maps is loaded)
+  if (window.google && window.google.maps && window.google.maps.Geocoder) {
+    try {
+      console.log("Using Google Geocoding API for reverse geocoding");
+      return await reverseGeocodeGoogle(lat, lng);
+    } catch (error) {
+      console.warn("Google Geocoding failed, falling back to other services:", error);
+    }
+  }
+
   const API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
 
   // Try OpenCage if API key is available

@@ -1,4 +1,5 @@
-import { lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
+import LocationPicker from "./LocationPicker";
 
 // Placeholder component for when map fails to load
 const MapPlaceholder = ({ height = 400 }) => (
@@ -22,38 +23,25 @@ const MapPlaceholder = ({ height = 400 }) => (
   </div>
 );
 
-// Lazy load LocationPicker to avoid SSR and Context issues
-// Fallback to MapPlaceholder if LocationPicker fails to load
-const LocationPicker = lazy(() => 
-  import("./LocationPicker").catch((error) => {
-    console.warn("LocationPicker failed to load, showing placeholder:", error);
-    return {
-      default: (props) => <MapPlaceholder height={props.height || 400} />
-    };
-  })
-);
-
 /**
  * LocationPickerWrapper - Safely wraps LocationPicker with error boundary
  * Shows a "coming soon" placeholder if map fails to load instead of crashing
- * 
- * Multiple layers of protection:
- * 1. Lazy loading with Suspense fallback
- * 2. Import error catch handler
- * 3. Try-catch wrapper for runtime errors
  */
 const LocationPickerWrapper = (props) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Show placeholder if not client-side yet
+  if (!isClient) {
+    return <MapPlaceholder height={props.height || 400} />;
+  }
+
   // Wrap in try-catch for additional safety
   try {
-    return (
-      <Suspense
-        fallback={
-          <MapPlaceholder height={props.height || 400} />
-        }
-      >
-        <LocationPicker {...props} />
-      </Suspense>
-    );
+    return <LocationPicker {...props} />;
   } catch (error) {
     // Final safety net - if anything crashes, show placeholder
     console.warn("LocationPickerWrapper error, showing placeholder:", error);
@@ -62,4 +50,3 @@ const LocationPickerWrapper = (props) => {
 };
 
 export default LocationPickerWrapper;
-

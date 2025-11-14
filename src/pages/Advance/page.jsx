@@ -752,7 +752,7 @@ const AdvancedPage = () => {
               { name: "Zapier", status: "Connected", requests: "12.5K" },
               { name: "Salesforce", status: "Connected", requests: "8.2K" },
               { name: "HubSpot", status: "Pending", requests: "0" },
-              { name: "Mailchimp", status: "Connected", requests: "5.7K" },
+              { name: "MailerSend", status: "Connected", requests: "5.7K" },
             ].map((integration, index) => (
               <div
                 key={index}

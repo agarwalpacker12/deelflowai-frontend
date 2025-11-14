@@ -63,6 +63,7 @@ import AnalyticsPage from "./pages/Analytics/page.jsx";
 import ContentManagementPage from "./pages/Content_Management/page.jsx";
 import ClientPage from "./pages/Client/page.jsx";
 import AdvancedPage from "./pages/Advance/page.jsx";
+import CommunicationsPage from "./pages/Marketing/Communications/Page.jsx";
 import AiSettingsPage from "./pages/Ai-settings/page.jsx";
 import LiveActivityPage from "./pages/LiveActivity/page.jsx";
 import TenantManagementPage from "./pages/TenantManagement/page.jsx";
@@ -231,6 +232,10 @@ function App() {
                           <Route
                             path="marketing/advanced"
                             element={<AdvancedPage />}
+                          />
+                          <Route
+                            path="marketing/communications"
+                            element={<CommunicationsPage />}
                           />
                           <Route
                             path="ai-settings"
