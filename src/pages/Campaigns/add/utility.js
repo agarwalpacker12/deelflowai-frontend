@@ -19,13 +19,23 @@ export const channels = [
   { value: "social_media", label: "Social Media" },
 ];
 
-// Property types
+// Add this array of property types near the top of your component, after the statusOptions array
 export const propertyTypes = [
   { value: "residential", label: "Residential" },
+  { value: "single_family", label: "Single Family Home" },
+  { value: "multi_family", label: "Multi-Family" },
+  { value: "condo_townhouse", label: "Condo/Townhouse" },
   { value: "commercial", label: "Commercial" },
   { value: "industrial", label: "Industrial" },
-  { value: "land", label: "Land" },
-  { value: "multi_family", label: "Multi-Family" },
+  { value: "mixed_use", label: "Mixed Use" },
+  { value: "land_vacant", label: "Land/Vacant Lot" },
+  { value: "retail", label: "Retail" },
+  { value: "office", label: "Office Building" },
+  { value: "warehouse", label: "Warehouse" },
+  { value: "apartment_complex", label: "Apartment Complex" },
+  { value: "mobile_home", label: "Mobile Home" },
+  { value: "farm_ranch", label: "Farm/Ranch" },
+  { value: "other", label: "Other" },
 ];
 
 // Default form values
@@ -115,11 +125,11 @@ export const campaignSchema = yup.object().shape({
     .min(1, "Please select at least one channel")
     .required("Channel is required"),
 
-  budget: yup
-    .number()
-    .nullable()
-    .min(0.01, "Budget must be greater than $0.01")
-    .max(1000000, "Budget cannot exceed $1,000,000"),
+  // budget: yup
+  //   .number()
+  //   .nullable()
+  //   .min(0.01, "Budget must be greater than $0.01")
+  //   .max(1000000, "Budget cannot exceed $1,000,000"),
 
   scheduled_start_date: yup
     .string()
@@ -414,17 +424,17 @@ export const campaignSchema = yup.object().shape({
   //   }),
 
   // Seller Finder - Additional Fields (conditional)
-  property_year_built_min: yup.string().when("campaign_type", {
-    is: "seller_finder",
-    then: (schema) => schema.required("Property year built min is required"),
-    otherwise: (schema) => schema.nullable().optional(),
-  }),
+  // property_year_built_min: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) => schema.required("Property year built min is required"),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
 
-  property_year_built_max: yup.string().when("campaign_type", {
-    is: "seller_finder",
-    then: (schema) => schema.required("Property year built max is required"),
-    otherwise: (schema) => schema.nullable().optional(),
-  }),
+  // property_year_built_max: yup.string().when("campaign_type", {
+  //   is: "seller_finder",
+  //   then: (schema) => schema.required("Property year built max is required"),
+  //   otherwise: (schema) => schema.nullable().optional(),
+  // }),
 
   seller_keywords: yup.string().when("campaign_type", {
     is: "seller_finder",
