@@ -94,7 +94,7 @@ const CreateCampaignForm = ({ fillMode }) => {
   // Watch campaign type to show/hide relevant sections
   const campaignType = watch("campaign_type");
   const selectedChannels = watch("channel") || [];
-  
+
   // Communication lists state
   const [emailLists, setEmailLists] = useState([]);
   const [phoneLists, setPhoneLists] = useState([]);
@@ -209,15 +209,19 @@ const CreateCampaignForm = ({ fillMode }) => {
 
   // Fetch email lists when email channel is selected
   useEffect(() => {
-    const hasEmailChannel = Array.isArray(selectedChannels) 
+    const hasEmailChannel = Array.isArray(selectedChannels)
       ? selectedChannels.includes("email")
-      : selectedChannels === "email" || (typeof selectedChannels === "string" && selectedChannels.includes("email"));
-    
+      : selectedChannels === "email" ||
+        (typeof selectedChannels === "string" &&
+          selectedChannels.includes("email"));
+
     if (hasEmailChannel) {
       const fetchEmailLists = async () => {
         setLoadingEmailLists(true);
         try {
-          const response = await communicationsAPI.getListsForCampaign({ list_type: "email" });
+          const response = await communicationsAPI.getListsForCampaign({
+            list_type: "email",
+          });
           if (response.data.status === "success") {
             setEmailLists(response.data.data || []);
           }
@@ -238,13 +242,17 @@ const CreateCampaignForm = ({ fillMode }) => {
   useEffect(() => {
     const hasSmsChannel = Array.isArray(selectedChannels)
       ? selectedChannels.includes("sms")
-      : selectedChannels === "sms" || (typeof selectedChannels === "string" && selectedChannels.includes("sms"));
-    
+      : selectedChannels === "sms" ||
+        (typeof selectedChannels === "string" &&
+          selectedChannels.includes("sms"));
+
     if (hasSmsChannel) {
       const fetchPhoneLists = async () => {
         setLoadingPhoneLists(true);
         try {
-          const response = await communicationsAPI.getListsForCampaign({ list_type: "phone" });
+          const response = await communicationsAPI.getListsForCampaign({
+            list_type: "phone",
+          });
           if (response.data.status === "success") {
             setPhoneLists(response.data.data || []);
           }
@@ -323,7 +331,7 @@ const CreateCampaignForm = ({ fillMode }) => {
   useEffect(() => {
     if (!selectedBuyerStateId) {
       setBuyerCounties([]);
-      setSelectedBuyerCountyId(null);
+      setSelectedBuyerCountryId(null);
       setValue("buyer_counties", "");
       return;
     }
@@ -500,7 +508,10 @@ const CreateCampaignForm = ({ fillMode }) => {
               const countiesResponse = await geographicAPI.getCountiesByState(
                 matchedState.id
               );
-              if (countiesResponse?.status === "success" && countiesResponse.data) {
+              if (
+                countiesResponse?.status === "success" &&
+                countiesResponse.data
+              ) {
                 const sortedCounties = [...countiesResponse.data].sort((a, b) =>
                   (a.name || "").localeCompare(b.name || "", undefined, {
                     sensitivity: "base",
@@ -509,22 +520,28 @@ const CreateCampaignForm = ({ fillMode }) => {
                 setBuyerCounties(sortedCounties);
 
                 // Try to match the geocoded county
-                const geocodedCountyName = locationData.county || locationData.district || "";
+                const geocodedCountyName =
+                  locationData.county || locationData.district || "";
                 if (geocodedCountyName) {
                   let matchedCounty = sortedCounties.find(
-                    (c) => c.name.toLowerCase() === geocodedCountyName.toLowerCase()
+                    (c) =>
+                      c.name.toLowerCase() === geocodedCountyName.toLowerCase()
                   );
 
                   if (!matchedCounty) {
                     matchedCounty = sortedCounties.find(
                       (c) =>
-                        c.name.toLowerCase().includes(geocodedCountyName.toLowerCase()) ||
-                        geocodedCountyName.toLowerCase().includes(c.name.toLowerCase())
+                        c.name
+                          .toLowerCase()
+                          .includes(geocodedCountyName.toLowerCase()) ||
+                        geocodedCountyName
+                          .toLowerCase()
+                          .includes(c.name.toLowerCase())
                     );
                   }
 
                   if (matchedCounty) {
-                    setSelectedBuyerCountyId(matchedCounty.id);
+                    setSelectedBuyerCountryId(matchedCounty.id);
                     setValue("buyer_counties", matchedCounty.name);
                   } else {
                     setValue("buyer_counties", geocodedCountyName);
@@ -534,7 +551,10 @@ const CreateCampaignForm = ({ fillMode }) => {
             } catch (countyError) {
               console.warn("Failed to fetch counties:", countyError);
               // Use geocoded county value if available
-              setValue("buyer_counties", locationData.county || locationData.district || "");
+              setValue(
+                "buyer_counties",
+                locationData.county || locationData.district || ""
+              );
             }
 
             // Fetch cities for the matched state and then match the city
@@ -593,7 +613,10 @@ const CreateCampaignForm = ({ fillMode }) => {
               "buyer_city",
               locationData.city || locationData.components?.city || ""
             );
-            setValue("buyer_counties", locationData.county || locationData.district || "");
+            setValue(
+              "buyer_counties",
+              locationData.county || locationData.district || ""
+            );
           }
         }
       } else {
@@ -603,7 +626,10 @@ const CreateCampaignForm = ({ fillMode }) => {
           "buyer_city",
           locationData.city || locationData.components?.city || ""
         );
-        setValue("buyer_counties", locationData.county || locationData.district || "");
+        setValue(
+          "buyer_counties",
+          locationData.county || locationData.district || ""
+        );
       }
 
       // Fill other fields
@@ -661,7 +687,10 @@ const CreateCampaignForm = ({ fillMode }) => {
               const countiesResponse = await geographicAPI.getCountiesByState(
                 matchedState.id
               );
-              if (countiesResponse?.status === "success" && countiesResponse.data) {
+              if (
+                countiesResponse?.status === "success" &&
+                countiesResponse.data
+              ) {
                 const sortedCounties = [...countiesResponse.data].sort((a, b) =>
                   (a.name || "").localeCompare(b.name || "", undefined, {
                     sensitivity: "base",
@@ -670,17 +699,23 @@ const CreateCampaignForm = ({ fillMode }) => {
                 setSellerCounties(sortedCounties);
 
                 // Try to match the geocoded county
-                const geocodedCountyName = locationData.county || locationData.district || "";
+                const geocodedCountyName =
+                  locationData.county || locationData.district || "";
                 if (geocodedCountyName) {
                   let matchedCounty = sortedCounties.find(
-                    (c) => c.name.toLowerCase() === geocodedCountyName.toLowerCase()
+                    (c) =>
+                      c.name.toLowerCase() === geocodedCountyName.toLowerCase()
                   );
 
                   if (!matchedCounty) {
                     matchedCounty = sortedCounties.find(
                       (c) =>
-                        c.name.toLowerCase().includes(geocodedCountyName.toLowerCase()) ||
-                        geocodedCountyName.toLowerCase().includes(c.name.toLowerCase())
+                        c.name
+                          .toLowerCase()
+                          .includes(geocodedCountyName.toLowerCase()) ||
+                        geocodedCountyName
+                          .toLowerCase()
+                          .includes(c.name.toLowerCase())
                     );
                   }
 
@@ -695,7 +730,10 @@ const CreateCampaignForm = ({ fillMode }) => {
             } catch (countyError) {
               console.warn("Failed to fetch counties:", countyError);
               // Use geocoded county value if available
-              setValue("seller_counties", locationData.county || locationData.district || "");
+              setValue(
+                "seller_counties",
+                locationData.county || locationData.district || ""
+              );
             }
 
             // Fetch cities for the matched state and then match the city
@@ -754,7 +792,10 @@ const CreateCampaignForm = ({ fillMode }) => {
               "seller_city",
               locationData.city || locationData.components?.city || ""
             );
-            setValue("seller_counties", locationData.county || locationData.district || "");
+            setValue(
+              "seller_counties",
+              locationData.county || locationData.district || ""
+            );
           }
         }
       } else {
@@ -764,7 +805,10 @@ const CreateCampaignForm = ({ fillMode }) => {
           "seller_city",
           locationData.city || locationData.components?.city || ""
         );
-        setValue("seller_counties", locationData.county || locationData.district || "");
+        setValue(
+          "seller_counties",
+          locationData.county || locationData.district || ""
+        );
       }
 
       // Fill other fields
@@ -1039,30 +1083,49 @@ const CreateCampaignForm = ({ fillMode }) => {
                     </div>
 
                     {/* Email Lists Selection */}
-                    {(Array.isArray(selectedChannels) ? selectedChannels.includes("email") : selectedChannels === "email" || (typeof selectedChannels === "string" && selectedChannels.includes("email"))) && (
+                    {(Array.isArray(selectedChannels)
+                      ? selectedChannels.includes("email")
+                      : selectedChannels === "email" ||
+                        (typeof selectedChannels === "string" &&
+                          selectedChannels.includes("email"))) && (
                       <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                           <Mail className="w-4 h-4 mr-2 text-blue-600" />
                           Email Lists (Optional)
                         </label>
                         {loadingEmailLists ? (
-                          <div className="text-gray-500 text-sm">Loading email lists...</div>
+                          <div className="text-gray-500 text-sm">
+                            Loading email lists...
+                          </div>
                         ) : emailLists.length === 0 ? (
                           <div className="text-gray-500 text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            No email lists available. Create lists in Communications Management.
+                            No email lists available. Create lists in
+                            Communications Management.
                           </div>
                         ) : (
                           <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white/80">
                             {emailLists.map((list) => (
-                              <label key={list.id} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                              <label
+                                key={list.id}
+                                className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+                              >
                                 <input
                                   type="checkbox"
-                                  checked={selectedEmailListIds.includes(list.id)}
+                                  checked={selectedEmailListIds.includes(
+                                    list.id
+                                  )}
                                   onChange={(e) => {
                                     if (e.target.checked) {
-                                      setSelectedEmailListIds([...selectedEmailListIds, list.id]);
+                                      setSelectedEmailListIds([
+                                        ...selectedEmailListIds,
+                                        list.id,
+                                      ]);
                                     } else {
-                                      setSelectedEmailListIds(selectedEmailListIds.filter(id => id !== list.id));
+                                      setSelectedEmailListIds(
+                                        selectedEmailListIds.filter(
+                                          (id) => id !== list.id
+                                        )
+                                      );
                                     }
                                   }}
                                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -1078,30 +1141,49 @@ const CreateCampaignForm = ({ fillMode }) => {
                     )}
 
                     {/* Phone Lists Selection */}
-                    {(Array.isArray(selectedChannels) ? selectedChannels.includes("sms") : selectedChannels === "sms" || (typeof selectedChannels === "string" && selectedChannels.includes("sms"))) && (
+                    {(Array.isArray(selectedChannels)
+                      ? selectedChannels.includes("sms")
+                      : selectedChannels === "sms" ||
+                        (typeof selectedChannels === "string" &&
+                          selectedChannels.includes("sms"))) && (
                       <div>
                         <label className="flex items-center text-sm font-semibold text-gray-700 mb-3">
                           <Phone className="w-4 h-4 mr-2 text-blue-600" />
                           Phone Lists (Optional)
                         </label>
                         {loadingPhoneLists ? (
-                          <div className="text-gray-500 text-sm">Loading phone lists...</div>
+                          <div className="text-gray-500 text-sm">
+                            Loading phone lists...
+                          </div>
                         ) : phoneLists.length === 0 ? (
                           <div className="text-gray-500 text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            No phone lists available. Create lists in Communications Management.
+                            No phone lists available. Create lists in
+                            Communications Management.
                           </div>
                         ) : (
                           <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white/80">
                             {phoneLists.map((list) => (
-                              <label key={list.id} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                              <label
+                                key={list.id}
+                                className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+                              >
                                 <input
                                   type="checkbox"
-                                  checked={selectedPhoneListIds.includes(list.id)}
+                                  checked={selectedPhoneListIds.includes(
+                                    list.id
+                                  )}
                                   onChange={(e) => {
                                     if (e.target.checked) {
-                                      setSelectedPhoneListIds([...selectedPhoneListIds, list.id]);
+                                      setSelectedPhoneListIds([
+                                        ...selectedPhoneListIds,
+                                        list.id,
+                                      ]);
                                     } else {
-                                      setSelectedPhoneListIds(selectedPhoneListIds.filter(id => id !== list.id));
+                                      setSelectedPhoneListIds(
+                                        selectedPhoneListIds.filter(
+                                          (id) => id !== list.id
+                                        )
+                                      );
                                     }
                                   }}
                                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -1565,7 +1647,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                               : "";
                             setValue("buyer_state", stateName);
                             setValue("buyer_counties", ""); // Clear county when state changes
-                            setSelectedBuyerCountyId(null);
+                            setSelectedBuyerCountryId(null);
                             setBuyerCounties([]);
                             setValue("buyer_city", ""); // Clear city when state changes
                           }}
@@ -1611,12 +1693,21 @@ const CreateCampaignForm = ({ fillMode }) => {
                               : ""
                           }
                           onChange={(e) => {
-                            const countyId = e.target.value ? parseInt(e.target.value) : null;
-                            setSelectedBuyerCountyId(countyId);
-                            const selectedCounty = buyerCounties.find(c => c.id === countyId);
-                            setValue("buyer_counties", selectedCounty ? selectedCounty.name : "");
+                            const countyId = e.target.value
+                              ? parseInt(e.target.value)
+                              : null;
+                            setSelectedBuyerCountryId(countyId);
+                            const selectedCounty = buyerCounties.find(
+                              (c) => c.id === countyId
+                            );
+                            setValue(
+                              "buyer_counties",
+                              selectedCounty ? selectedCounty.name : ""
+                            );
                           }}
-                          disabled={!selectedBuyerStateId || loadingBuyerCounties}
+                          disabled={
+                            !selectedBuyerStateId || loadingBuyerCounties
+                          }
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
@@ -1846,12 +1937,22 @@ const CreateCampaignForm = ({ fillMode }) => {
                           <option value="">Select Country</option>
                           {(() => {
                             // Pin USA at the top
-                            const usaCountry = countries.find(c => c.name === "United States" || c.name === "United States of America" || c.iso2 === "US");
-                            const otherCountries = countries.filter(c => c.id !== usaCountry?.id);
+                            const usaCountry = countries.find(
+                              (c) =>
+                                c.name === "United States" ||
+                                c.name === "United States of America" ||
+                                c.iso2 === "US"
+                            );
+                            const otherCountries = countries.filter(
+                              (c) => c.id !== usaCountry?.id
+                            );
                             return (
                               <>
                                 {usaCountry && (
-                                  <option key={usaCountry.id} value={usaCountry.id}>
+                                  <option
+                                    key={usaCountry.id}
+                                    value={usaCountry.id}
+                                  >
                                     {usaCountry.emoji} {usaCountry.name}
                                   </option>
                                 )}
@@ -1936,12 +2037,21 @@ const CreateCampaignForm = ({ fillMode }) => {
                               : ""
                           }
                           onChange={(e) => {
-                            const countyId = e.target.value ? parseInt(e.target.value) : null;
+                            const countyId = e.target.value
+                              ? parseInt(e.target.value)
+                              : null;
                             setSelectedSellerCountyId(countyId);
-                            const selectedCounty = sellerCounties.find(c => c.id === countyId);
-                            setValue("seller_counties", selectedCounty ? selectedCounty.name : "");
+                            const selectedCounty = sellerCounties.find(
+                              (c) => c.id === countyId
+                            );
+                            setValue(
+                              "seller_counties",
+                              selectedCounty ? selectedCounty.name : ""
+                            );
                           }}
-                          disabled={!selectedSellerStateId || loadingSellerCounties}
+                          disabled={
+                            !selectedSellerStateId || loadingSellerCounties
+                          }
                           className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
