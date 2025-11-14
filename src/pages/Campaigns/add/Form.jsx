@@ -629,7 +629,31 @@ const CreateCampaignForm = ({ fillMode }) => {
       setIsGeneratingAI(false);
     }
   };
-  console.log("selectedBuyerCountryId", selectedBuyerCountryId);
+  // Add this helper function at the top of your component, outside the component function
+  const formatDateForInput = (date) => {
+    return date.toISOString().split("T")[0];
+  };
+
+  // Add this inside your component, after the existing watch statements
+  const watchedStartDate = watch("scheduled_start_date");
+
+  // Calculate minimum dates
+  const today = new Date();
+  const minStartDate = formatDateForInput(today);
+
+  // Calculate minimum end date (1 day after start date, or tomorrow if no start date selected)
+  const getMinEndDate = () => {
+    if (watchedStartDate) {
+      const startDate = new Date(watchedStartDate);
+      const nextDay = new Date(startDate);
+      nextDay.setDate(startDate.getDate() + 1);
+      return formatDateForInput(nextDay);
+    }
+    // If no start date selected, minimum end date is tomorrow
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return formatDateForInput(tomorrow);
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -824,6 +848,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                             {...register("scheduled_start_date")}
                             type="date"
                             className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                            min={minStartDate}
                           />
                           {errors.scheduled_start_date && (
                             <p className="text-sm text-red-500 mt-2 flex items-center">
@@ -842,6 +867,7 @@ const CreateCampaignForm = ({ fillMode }) => {
                             {...register("scheduled_end_date")}
                             type="date"
                             className="w-full px-5 py-4 bg-white/80 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:border-purple-500 focus:bg-white focus:shadow-lg focus:ring-4 focus:ring-purple-100"
+                            min={getMinEndDate()}
                           />
                           {errors.scheduled_end_date && (
                             <p className="text-sm text-red-500 mt-2 flex items-center">
