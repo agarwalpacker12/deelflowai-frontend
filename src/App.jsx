@@ -118,7 +118,7 @@ function App() {
         console.error("Failed to initialize CSRF cookie:", error);
       }
     };
-
+    console.log("v1.0.0");
     initializeApp();
   }, []);
 
